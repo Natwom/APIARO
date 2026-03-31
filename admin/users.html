@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management - KenyaShop Admin</title>
+    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-shopping-bag"></i> KenyaShop</h2>
+                <p>Admin Panel</p>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="index.html"><i class="fas fa-home"></i> Dashboard</a>
+                <a href="products.html"><i class="fas fa-box"></i> Products</a>
+                <a href="orders.html"><i class="fas fa-clipboard-list"></i> Orders</a>
+                <a href="users.html" class="active"><i class="fas fa-users"></i> Users</a>
+                <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="admin-header">
+                <h1>User Management</h1>
+                <div class="stats-summary">
+                    <span id="total-users">0 Users</span>
+                </div>
+            </header>
+
+            <div class="users-table-container">
+                <div class="debug-info" id="debug-info" style="background: #f0f0f0; padding: 10px; margin-bottom: 10px; font-family: monospace; font-size: 12px; display: none;">
+                    Debug info will appear here
+                </div>
+                <div class="table-responsive">
+                    <table class="users-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Full Name</th>
+                                <th>Email</th>
+                                <th>Phone Number</th>
+                                <th>Registered Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table-body">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function checkAdminAuth() {
+            const token = localStorage.getItem('admin_token');
+            console.log('Checking auth, token exists:', !!token);
+            console.log('Token preview:', token ? token.substring(0, 50) + '...' : 'none');
+            
+            if (!token) {
+                window.location.href = 'login.html';
+                return null;
+            }
+            return token;
+        }
+
+        function logout() {
+            localStorage.removeItem('admin_token');
+            window.location.href = 'login.html';
+        }
+
+        async function fetchWithAuth(url, options = {}) {
+            const token = localStorage.getItem('admin_token');
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token,
+                ...options.headers
+            };
+            
+            console.log('Fetching:', url);
+            console.log('Headers:', { ...headers, 'Authorization': 'Bearer ' + token.substring(0, 20) + '...' });
+            
+            return fetch(url, {
+                ...options,
+                headers: headers
+            });
+        }
+
+        async function loadUsers() {
+            const debugDiv = document.getElementById('debug-info');
+            debugDiv.style.display = 'block';
+            
+            try {
+                const token = localStorage.getItem('admin_token');
+                if (!token) {
+                    throw new Error('No admin token found - please login first');
+                }
+                
+                debugDiv.innerHTML = 'Token found: ' + token.substring(0, 30) + '...<br>';
+                
+                const res = await fetchWithAuth('http://localhost:8000/users/admin/all');
+                
+                debugDiv.innerHTML += 'Response status: ' + res.status + '<br>';
+                
+                if (res.status === 401) {
+                    throw new Error('401 Unauthorized - Token invalid or expired. Please logout and login again.');
+                }
+                
+                if (!res.ok) {
+                    const errorText = await res.text();
+                    throw new Error(`HTTP ${res.status}: ${errorText}`);
+                }
+                
+                const users = await res.json();
+                debugDiv.innerHTML += 'Data received: ' + (Array.isArray(users) ? 'Array with ' + users.length + ' items' : typeof users) + '<br>';
+                
+                // Handle case where API might return object with users key
+                let usersArray = users;
+                if (!Array.isArray(users) && users.users) {
+                    usersArray = users.users;
+                }
+                
+                if (!Array.isArray(usersArray)) {
+                    throw new Error('Expected array of users, got: ' + typeof users);
+                }
+                
+                document.getElementById('total-users').textContent = usersArray.length + ' Users';
+                
+                const tbody = document.getElementById('users-table-body');
+                if (usersArray.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;">No users found</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = usersArray.map(user => `
+                    <tr>
+                        <td>#${user.id}</td>
+                        <td><strong>${user.full_name || 'N/A'}</strong></td>
+                        <td>${user.email}</td>
+                        <td>${user.phone_number || 'N/A'}</td>
+                        <td>${user.created_at ? new Date(user.created_at).toLocaleDateString('en-KE') : 'N/A'}</td>
+                    </tr>
+                `).join('');
+                
+                debugDiv.innerHTML += 'Users loaded successfully!<br>';
+                
+            } catch (error) {
+                console.error('Error loading users:', error);
+                debugDiv.innerHTML += 'ERROR: ' + error.message + '<br>';
+                document.getElementById('users-table-body').innerHTML = 
+                    `<tr><td colspan="5" style="text-align:center;padding:2rem;color:red;">
+                        Error: ${error.message}<br>
+                        <button onclick="logout()" style="margin-top: 10px; padding: 5px 15px;">Go to Login</button>
+                    </td></tr>`;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = checkAdminAuth();
+            if (token) {
+                loadUsers();
+            }
+        });
+    </script>
+</body>
+</html>

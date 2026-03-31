@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - KenyaShop</title>
+    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-shopping-bag"></i> KenyaShop</h2>
+                <p>Admin Panel</p>
+            </div>
+            <nav class="sidebar-nav">
+
+                <a href="index.html" class="active"><i class="fas fa-home"></i> Dashboard</a>
+                <a href="products.html"><i class="fas fa-box"></i> Products</a>
+                <a href="orders.html"><i class="fas fa-clipboard-list"></i> Orders</a>
+                <a href="users.html"><i class="fas fa-users"></i> Users</a>
+                <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="admin-header">
+                <h1>Dashboard</h1>
+                <div class="admin-user">
+                    <span>Administrator</span>
+                </div>
+            </header>
+
+            <div class="dashboard-stats">
+                <div class="stat-card">
+                    <i class="fas fa-box"></i>
+                    <div>
+                        <h3 id="total-products">0</h3>
+                        <p>Total Products</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-shopping-cart"></i>
+                    <div>
+                        <h3 id="total-orders">0</h3>
+                        <p>Total Orders</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-clock"></i>
+                    <div>
+                        <h3 id="pending-orders">0</h3>
+                        <p>Pending Orders</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <div>
+                        <h3 id="total-revenue">KES 0</h3>
+                        <p>Revenue</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="recent-orders">
+                <h2>Recent Orders</h2>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Phone</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>SMS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recent-orders-body">
+                            <!-- Loaded dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Admin Utilities
+        function checkAdminAuth() {
+            const token = localStorage.getItem('admin_token');
+            if (!token) {
+                window.location.href = 'login.html';
+            }
+            return token;
+        }
+
+        function logout() {
+            localStorage.removeItem('admin_token');
+            window.location.href = 'login.html';
+        }
+
+        async function fetchWithAuth(url, options = {}) {
+            const token = localStorage.getItem('admin_token');
+            
+            const defaultOptions = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            };
+            
+            return fetch(url, { ...defaultOptions, ...options });
+        }
+
+        async function loadDashboardStats() {
+            try {
+                // Load products count
+                const productsRes = await fetchWithAuth('http://localhost:8000/products/');
+                const products = await productsRes.json();
+                document.getElementById('total-products').textContent = products.length;
+
+                // Load orders stats
+                const ordersRes = await fetchWithAuth('http://localhost:8000/orders/admin/all');
+                const orders = await ordersRes.json();
+                
+                document.getElementById('total-orders').textContent = orders.length;
+                document.getElementById('pending-orders').textContent = 
+                    orders.filter(o => o.status === 'pending').length;
+                
+                const revenue = orders.reduce((sum, o) => sum + parseFloat(o.total_amount), 0);
+                document.getElementById('total-revenue').textContent = `KES ${revenue.toFixed(2)}`;
+                
+                // Recent orders table
+                const recentOrders = orders.slice(0, 5);
+                const tbody = document.getElementById('recent-orders-body');
+                if (tbody) {
+                    tbody.innerHTML = recentOrders.map(order => `
+                        <tr>
+                            <td>#${order.id}</td>
+                            <td>${order.full_name}</td>
+                            <td>${order.phone_number}</td>
+                            <td>KES ${order.total_amount}</td>
+                            <td><span class="status-badge status-${order.status}">${order.status}</span></td>
+                            <td>${new Date(order.created_at).toLocaleDateString()}</td>
+                            <td>${order.sms_sent ? '<i class="fas fa-check sms-sent"></i>' : '<i class="fas fa-times sms-pending"></i>'}</td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAdminAuth();
+            loadDashboardStats();
+        });
+    </script>
+</body>
+</html>

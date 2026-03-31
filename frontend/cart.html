@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart - KenyaShop</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Modal styles for customer service messages */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+            animation: slideIn 0.3s ease;
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 1.5em;
+            cursor: pointer;
+            color: #666;
+        }
+        
+        .modal-close:hover {
+            color: #333;
+        }
+        
+        .modal-title {
+            margin-bottom: 15px;
+            color: #2c5aa0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .modal-body {
+            line-height: 1.6;
+            color: #555;
+        }
+        
+        .modal-body ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        
+        .modal-body li {
+            margin: 8px 0;
+        }
+        
+        .contact-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        
+        .contact-box p {
+            margin: 5px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <i class="fas fa-shopping-bag"></i> KenyaShop
+            </a>
+            <div class="nav-links">
+                <a href="products.html">Shop</a>
+                <a href="cart.html" class="active"><i class="fas fa-shopping-cart"></i> Cart <span id="cart-count" class="badge">0</span></a>
+                <a href="orders.html">My Orders</a>
+                <div id="auth-links">
+                    <a href="login.html">Login</a>
+                    <a href="register.html" class="btn-primary">Register</a>
+                </div>
+                <div id="user-links" style="display:none;">
+                    <span id="user-name"></span>
+                    <a href="#" onclick="logout()">Logout</a>
+                </div>
+            </div>
+            <div class="hamburger" onclick="toggleMenu()">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+    </nav>
+
+    <main class="cart-page">
+        <div class="container">
+            <h1><i class="fas fa-shopping-cart"></i> Shopping Cart</h1>
+            
+            <div id="cart-empty" class="cart-empty" style="display:none;">
+                <i class="fas fa-shopping-basket"></i>
+                <h2>Your cart is empty</h2>
+                <p>Looks like you haven't added any items yet. Browse our products and find something you like!</p>
+                <a href="products.html" class="btn-primary">Continue Shopping</a>
+            </div>
+
+            <div id="cart-content" class="cart-content">
+                <div class="cart-items" id="cart-items">
+                    <!-- Cart items loaded dynamically -->
+                </div>
+
+                <div class="cart-summary">
+                    <h3>Order Summary</h3>
+                    <div class="summary-row">
+                        <span>Subtotal</span>
+                        <span id="subtotal">KES 0.00</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Delivery Fee</span>
+                        <span>KES 300.00</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Tax (0%)</span>
+                        <span>KES 0.00</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Total</span>
+                        <span id="total">KES 0.00</span>
+                    </div>
+                    <button onclick="proceedToCheckout()" class="btn-checkout">
+                        Proceed to Checkout <i class="fas fa-arrow-right"></i>
+                    </button>
+                    <a href="products.html" class="continue-shopping"><i class="fas fa-arrow-left"></i> Continue Shopping</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>About KenyaShop</h4>
+                    <p>Kenya's premier online marketplace connecting buyers and sellers across all 47 counties. We offer quality products, secure payments via M-Pesa, and reliable delivery to your doorstep.</p>
+                    <div class="social-links">
+                        <a href="#" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" title="Twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="#" title="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                    </div>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Customer Service</h4>
+                    <ul>
+                        <li><a href="#" onclick="showHelpModal('help')">Help Center</a></li>
+                        <li><a href="#" onclick="showHelpModal('howtobuy')">How to Buy</a></li>
+                        <li><a href="#" onclick="showHelpModal('delivery')">Delivery Information</a></li>
+                        <li><a href="#" onclick="showHelpModal('returns')">Return Policy</a></li>
+                        <li><a href="#" onclick="showHelpModal('track')">Track Your Order</a></li>
+                        <li><a href="#" onclick="showHelpModal('contact')">Contact Us</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Categories</h4>
+                    <ul>
+                        <li><a href="products.html">Electronics & Phones</a></li>
+                        <li><a href="products.html">Fashion & Clothing</a></li>
+                        <li><a href="products.html">Home & Living</a></li>
+                        <li><a href="products.html">Agriculture</a></li>
+                        <li><a href="#">Beauty & Health</a></li>
+                        <li><a href="#">Sports & Outdoors</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Contact Us</h4>
+                    <div class="contact-info">
+                        <p><i class="fas fa-map-marker-alt"></i> Westlands Business Park, Nairobi</p>
+                        <p><i class="fas fa-phone"></i> +254 712 345 678</p>
+                        <p><i class="fas fa-envelope"></i> support@kenyashop.co.ke</p>
+                        <p><i class="fas fa-clock"></i> Mon-Fri: 8AM - 6PM</p>
+                    </div>
+                    
+                    <div class="newsletter">
+                        <p>Subscribe to our newsletter for deals</p>
+                        <form class="newsletter-form" onsubmit="event.preventDefault(); alert('Thank you for subscribing!');">
+                            <input type="email" placeholder="Your email" required>
+                            <button type="submit">Join</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="trust-badges">
+                <div class="trust-badge">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Secure Shopping</span>
+                </div>
+                <div class="trust-badge">
+                    <i class="fas fa-truck"></i>
+                    <span>County-wide Delivery</span>
+                </div>
+                <div class="trust-badge">
+                    <i class="fas fa-undo"></i>
+                    <span>7-Day Returns</span>
+                </div>
+                <div class="trust-badge">
+                    <i class="fas fa-headset"></i>
+                    <span>24/7 Support</span>
+                </div>
+            </div>
+            
+            <div class="payment-section" style="text-align: center; margin-bottom: 2rem;">
+                <h5>Payment Methods</h5>
+                <div class="payment-icons" style="justify-content: center;">
+                    <div class="payment-icon mpesa-icon">
+                        <i class="fas fa-mobile-alt"></i> M-Pesa
+                    </div>
+                    <div class="payment-icon">
+                        <i class="fas fa-money-bill-wave"></i> Cash on Delivery
+                    </div>
+                    <div class="payment-icon">
+                        <i class="fas fa-credit-card"></i> Card
+                    </div>
+                    <div class="payment-icon">
+                        <i class="fas fa-university"></i> Bank Transfer
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <div class="footer-bottom-links">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms & Conditions</a>
+                    <a href="#">Cookie Policy</a>
+                    <a href="#">Seller Center</a>
+                    <a href="#">Advertise</a>
+                </div>
+                <p>&copy; 2024 KenyaShop. All rights reserved. Made with <i class="fas fa-heart" style="color: var(--primary);"></i> in Kenya</p>
+                <div class="country-selector">
+                    <img src="https://flagcdn.com/w40/ke.png" alt="Kenya">
+                    <span>Kenya</span>
+                    <i class="fas fa-chevron-down" style="font-size: 0.7rem;"></i>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Customer Service Modal -->
+    <div id="help-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeHelpModal()">&times;</button>
+            <h3 class="modal-title" id="modal-title">
+                <i class="fas fa-info-circle"></i>
+                <span>Help Center</span>
+            </h3>
+            <div class="modal-body" id="modal-body">
+                <!-- Content loaded dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/cart.js"></script>
+    <script>
+        function toggleMenu() {
+            document.querySelector('.nav-links').classList.toggle('active');
+        }
+
+        // Customer Service Modal Functions
+        const helpContent = {
+            help: {
+                title: 'Help Center',
+                icon: 'fa-life-ring',
+                content: `
+                    <p>Welcome to KenyaShop Help Center! We're here to assist you with any questions or concerns.</p>
+                    <h4>Frequently Asked Questions:</h4>
+                    <ul>
+                        <li><strong>How do I create an account?</strong> Click on "Register" in the top menu and fill in your details.</li>
+                        <li><strong>Is my payment information secure?</strong> Yes, we use 256-bit SSL encryption for all transactions.</li>
+                        <li><strong>Can I change my order after placing it?</strong> Contact us within 1 hour of placing your order.</li>
+                        <li><strong>What if my product is damaged?</strong> We offer easy returns within 7 days for damaged items.</li>
+                    </ul>
+                    <p>Can't find what you're looking for? Contact our support team below.</p>
+                `
+            },
+            howtobuy: {
+                title: 'How to Buy',
+                icon: 'fa-shopping-cart',
+                content: `
+                    <p>Shopping on KenyaShop is easy! Follow these simple steps:</p>
+                    <ol>
+                        <li><strong>Browse Products:</strong> Use the search bar or categories to find what you need.</li>
+                        <li><strong>Add to Cart:</strong> Click the "Add to Cart" button on any product you like.</li>
+                        <li><strong>Review Cart:</strong> Click the cart icon to review your items and quantities.</li>
+                        <li><strong>Checkout:</strong> Click "Proceed to Checkout" and fill in your delivery details.</li>
+                        <li><strong>Payment:</strong> Choose M-Pesa, Cash on Delivery, or Card payment.</li>
+                        <li><strong>Confirmation:</strong> You'll receive an SMS and email confirmation.</li>
+                    </ol>
+                    <p><strong>Tip:</strong> Create an account to track your orders and save your delivery information!</p>
+                `
+            },
+            delivery: {
+                title: 'Delivery Information',
+                icon: 'fa-truck',
+                content: `
+                    <p>We deliver to all 47 counties in Kenya!</p>
+                    <h4>Delivery Times:</h4>
+                    <ul>
+                        <li><strong>Nairobi & Surroundings:</strong> Same day or next day delivery</li>
+                        <li><strong>Major Cities (Mombasa, Kisumu, Nakuru, Eldoret):</strong> 1-2 business days</li>
+                        <li><strong>Other Counties:</strong> 2-4 business days</li>
+                        <li><strong>Remote Areas:</strong> 4-7 business days</li>
+                    </ul>
+                    <h4>Delivery Costs:</h4>
+                    <ul>
+                        <li>Orders above KES 5,000: <strong>FREE delivery</strong></li>
+                        <li>Orders below KES 5,000: KES 300 - 500 depending on location</li>
+                    </ul>
+                    <p>You'll receive SMS updates when your order is dispatched and when it's near delivery.</p>
+                `
+            },
+            returns: {
+                title: 'Return Policy',
+                icon: 'fa-undo',
+                content: `
+                    <p>We want you to be completely satisfied with your purchase!</p>
+                    <h4>Our 7-Day Return Policy:</h4>
+                    <ul>
+                        <li><strong>Damaged/Defective Items:</strong> Full refund or replacement - no questions asked!</li>
+                        <li><strong>Wrong Item Received:</strong> We'll exchange it for the correct item at no cost.</li>
+                        <li><strong>Changed Your Mind?</strong> Items in original condition can be returned within 7 days.</li>
+                    </ul>
+                    <h4>How to Return:</h4>
+                    <ol>
+                        <li>Contact us at <strong>support@kenyashop.co.ke</strong> or call <strong>+254 712 345 678</strong></li>
+                        <li>Provide your order number and reason for return</li>
+                        <li>We'll arrange pickup from your location (FREE for defective items)</li>
+                        <li>Refund processed within 5-7 business days to your M-Pesa or bank account</li>
+                    </ol>
+                    <p><strong>Note:</strong> Perishable goods and intimate items cannot be returned for hygiene reasons.</p>
+                `
+            },
+            track: {
+                title: 'Track Your Order',
+                icon: 'fa-map-marker-alt',
+                content: `
+                    <p>Stay updated on your order status every step of the way!</p>
+                    <h4>How to Track:</h4>
+                    <ol>
+                        <li><strong>Via Website:</strong> Log into your account and go to "My Orders"</li>
+                        <li><strong>Via SMS:</strong> You'll receive automatic updates at each stage</li>
+                        <li><strong>Via WhatsApp:</strong> Send your order number to +254 712 345 678</li>
+                    </ol>
+                    <h4>Order Status Meanings:</h4>
+                    <ul>
+                        <li><strong>Pending:</strong> Order received, awaiting confirmation</li>
+                        <li><strong>Processing:</strong> Order confirmed, preparing for shipment</li>
+                        <li><strong>Shipped:</strong> Order on its way to you</li>
+                        <li><strong>Out for Delivery:</strong> Rider is on the way to your address</li>
+                        <li><strong>Delivered:</strong> Order successfully delivered</li>
+                    </ul>
+                    <p>Need help? Contact our support team with your order number.</p>
+                `
+            },
+            contact: {
+                title: 'Contact Us',
+                icon: 'fa-headset',
+                content: `
+                    <p>We're here to help! Reach out to us through any of these channels:</p>
+                    <div class="contact-box">
+                        <p><i class="fas fa-phone" style="color: #2c5aa0;"></i> <strong>+254 712 345 678</strong> (Mon-Fri, 8AM - 6PM)</p>
+                        <p><i class="fas fa-envelope" style="color: #2c5aa0;"></i> <strong>support@kenyashop.co.ke</strong></p>
+                        <p><i class="fab fa-whatsapp" style="color: #25d366;"></i> <strong>+254 712 345 678</strong> (WhatsApp)</p>
+                        <p><i class="fas fa-map-marker-alt" style="color: #e74c3c;"></i> Westlands Business Park, Nairobi</p>
+                    </div>
+                    <h4>Response Times:</h4>
+                    <ul>
+                        <li>Phone/WhatsApp: Immediate during business hours</li>
+                        <li>Email: Within 24 hours</li>
+                        <li>Social Media: Within 2 hours</li>
+                    </ul>
+                    <p>For urgent issues, please call or WhatsApp us for fastest response!</p>
+                `
+            }
+        };
+
+        function showHelpModal(type) {
+            const modal = document.getElementById('help-modal');
+            const titleEl = document.getElementById('modal-title');
+            const bodyEl = document.getElementById('modal-body');
+            const content = helpContent[type];
+            
+            if (content) {
+                titleEl.innerHTML = `<i class="fas ${content.icon}"></i> <span>${content.title}</span>`;
+                bodyEl.innerHTML = content.content;
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        function closeHelpModal() {
+            const modal = document.getElementById('help-modal');
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('help-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeHelpModal();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeHelpModal();
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            renderCart();
+        });
+
+        function proceedToCheckout() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Please login to proceed to checkout');
+                window.location.href = 'login.html';
+                return;
+            }
+            window.location.href = 'checkout.html';
+        }
+    </script>
+</body>
+</html>

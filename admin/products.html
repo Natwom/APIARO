@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Management - KenyaShop Admin</title>
+    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-shopping-bag"></i> KenyaShop</h2>
+                <p>Admin Panel</p>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="index.html"><i class="fas fa-home"></i> Dashboard</a>
+                <a href="products.html" class="active"><i class="fas fa-box"></i> Products</a>
+                <a href="orders.html"><i class="fas fa-clipboard-list"></i> Orders</a>
+                <a href="users.html"><i class="fas fa-users"></i> Users</a>
+                <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="admin-header">
+                <h1>Product Management</h1>
+                <button onclick="openAddModal()" class="btn-primary">
+                    <i class="fas fa-plus"></i> Add New Product
+                </button>
+            </header>
+
+            <div class="products-stats">
+                <div class="stat-card">
+                    <i class="fas fa-box"></i>
+                    <div>
+                        <h3 id="total-products">0</h3>
+                        <p>Total Products</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-check-circle"></i>
+                    <div>
+                        <h3 id="active-products">0</h3>
+                        <p>Active</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <div>
+                        <h3 id="low-stock">0</h3>
+                        <p>Low Stock</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="products-table-container">
+                <div class="table-responsive">
+                    <table class="products-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Image</th>
+                                <th>Product Name</th>
+                                <th>Category</th>
+                                <th>Price (KES)</th>
+                                <th>Stock</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="products-table-body">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add/Edit Product Modal -->
+    <div id="product-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
+        <div class="modal-content" style="background:white; padding:30px; border-radius:10px; max-width:600px; width:90%; max-height:90vh; overflow-y:auto;">
+            <h3 id="modal-title" style="margin-bottom:20px;">Add New Product</h3>
+            <form id="product-form">
+                <input type="hidden" id="product-id">
+                
+                <div class="form-row" style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:15px;">
+                    <div class="form-group">
+                        <label>Product Name *</label>
+                        <input type="text" id="product-name" required style="width:100%; padding:10px; border:1px solid #ddd; border-radius:5px;">
+                    </div>
+                    <div class="form-group">
+                        <label>Category *</label>
+                        <select id="product-category" required style="width:100%; padding:10px; border:1px solid #ddd; border-radius:5px;">
+                            <option value="">Select Category</option>
+                            <option value="1">Electronics</option>
+                            <option value="2">Fashion</option>
+                            <option value="3">Home & Living</option>
+                            <option value="4">Agriculture</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row" style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:15px;">
+                    <div class="form-group">
+                        <label>Price (KES) *</label>
+                        <input type="number" id="product-price" required min="0" step="0.01" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:5px;">
+                    </div>
+                    <div class="form-group">
+                        <label>Stock Quantity *</label>
+                        <input type="number" id="product-stock" required min="0" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:5px;">
+                    </div>
+                </div>
+
+                <!-- IMAGE UPLOAD SECTION - NEW -->
+                <div class="form-group" style="margin-bottom:15px;">
+                    <label>Product Image</label>
+                    <div style="border:2px dashed #ddd; padding:20px; border-radius:5px; text-align:center;">
+                        <input type="file" id="product-image-file" accept="image/*" style="display:none;" onchange="previewImage(this)">
+                        <div id="image-preview-container" style="margin-bottom:10px;">
+                            <img id="image-preview" src="" style="max-width:200px; max-height:200px; display:none; border-radius:5px;">
+                            <p id="image-placeholder" style="color:#999; margin:0;">
+                                <i class="fas fa-cloud-upload-alt" style="font-size:2em;"></i><br>
+                                Click to upload image from your computer
+                            </p>
+                        </div>
+                        <button type="button" onclick="document.getElementById('product-image-file').click()" class="btn-secondary" style="padding:8px 15px;">
+                            <i class="fas fa-upload"></i> Choose File
+                        </button>
+                        <p id="selected-filename" style="margin-top:10px; font-size:0.9em; color:#666;"></p>
+                    </div>
+                    <!-- Hidden field to store the image URL after upload -->
+                    <input type="hidden" id="product-image-url">
+                </div>
+
+                <div class="form-group" style="margin-bottom:15px;">
+                    <label>Description</label>
+                    <textarea id="product-description" rows="3" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:5px;"></textarea>
+                </div>
+
+                <div class="form-group checkbox-group" style="margin-bottom:20px;">
+                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                        <input type="checkbox" id="product-active" checked style="width:auto;">
+                        <span>Active</span>
+                    </label>
+                </div>
+
+                <div class="modal-actions" style="display:flex; justify-content:flex-end; gap:10px;">
+                    <button type="button" onclick="closeModal()" class="btn-secondary" style="padding:10px 20px;">Cancel</button>
+                    <button type="submit" class="btn-primary" style="padding:10px 20px;">
+                        <i class="fas fa-save"></i> Save Product
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function checkAdminAuth() {
+            const token = localStorage.getItem('admin_token');
+            if (!token) window.location.href = 'login.html';
+            return token;
+        }
+
+        function logout() {
+            localStorage.removeItem('admin_token');
+            window.location.href = 'login.html';
+        }
+
+        // Updated fetchWithAuth to handle FormData
+        async function fetchWithAuth(url, options = {}) {
+            const token = localStorage.getItem('admin_token');
+            const headers = {
+                'Authorization': 'Bearer ' + token,
+                ...options.headers
+            };
+            
+            // Don't set Content-Type if it's FormData (browser sets it automatically with boundary)
+            if (options.body instanceof FormData) {
+                delete headers['Content-Type'];
+            } else if (!headers['Content-Type']) {
+                headers['Content-Type'] = 'application/json';
+            }
+            
+            return fetch(url, {
+                ...options,
+                headers: headers
+            });
+        }
+
+        function getCategoryName(id) {
+            return {1:'Electronics',2:'Fashion',3:'Home & Living',4:'Agriculture'}[id]||'Other';
+        }
+
+        // Image preview function
+        function previewImage(input) {
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('image-preview').src = e.target.result;
+                    document.getElementById('image-preview').style.display = 'block';
+                    document.getElementById('image-placeholder').style.display = 'none';
+                    document.getElementById('selected-filename').textContent = 'Selected: ' + file.name;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function loadProducts() {
+            try {
+                const res = await fetchWithAuth('http://localhost:8000/products/');
+                const products = await res.json();
+                document.getElementById('total-products').textContent = products.length;
+                document.getElementById('active-products').textContent = products.filter(p=>p.is_active).length;
+                document.getElementById('low-stock').textContent = products.filter(p=>p.stock_quantity<5).length;
+                
+                document.getElementById('products-table-body').innerHTML = products.map(p=>{
+                    // Construct full image URL if it's a relative path
+                    let imgUrl = p.image_url || 'https://via.placeholder.com/50';
+                    if (imgUrl && !imgUrl.startsWith('http') && !imgUrl.startsWith('data:')) {
+                        imgUrl = 'http://localhost:8000' + imgUrl;
+                    }
+                    
+                    return `
+                    <tr>
+                        <td>#${p.id}</td>
+                        <td><img src="${imgUrl}" style="width:50px;height:50px;object-fit:cover;border-radius:5px;" onerror="this.src='https://via.placeholder.com/50'"></td>
+                        <td><strong>${p.name}</strong><br><small>${p.description?p.description.substring(0,50)+'...':''}</small></td>
+                        <td>${getCategoryName(p.category_id)}</td>
+                        <td>KES ${parseFloat(p.price).toFixed(2)}</td>
+                        <td style="${p.stock_quantity<5?'color:red;font-weight:bold':''}">${p.stock_quantity}</td>
+                        <td><span class="status-badge ${p.is_active?'status-delivered':'status-cancelled'}">${p.is_active?'Active':'Inactive'}</span></td>
+                        <td>
+                            <button onclick="editProduct(${p.id})" class="btn-primary btn-small"><i class="fas fa-edit"></i></button>
+                        </td>
+                    </tr>
+                `}).join('');
+            } catch(e) { 
+                console.error('Error loading products:', e); 
+            }
+        }
+
+        function openAddModal() {
+            document.getElementById('modal-title').textContent='Add New Product';
+            document.getElementById('product-form').reset();
+            document.getElementById('product-id').value='';
+            document.getElementById('product-image-url').value='';
+            document.getElementById('image-preview').style.display='none';
+            document.getElementById('image-placeholder').style.display='block';
+            document.getElementById('selected-filename').textContent='';
+            document.getElementById('product-modal').style.display='flex';
+        }
+
+        async function editProduct(id) {
+            const res=await fetchWithAuth('http://localhost:8000/products/'+id);
+            const p=await res.json();
+            document.getElementById('modal-title').textContent='Edit Product';
+            document.getElementById('product-id').value=p.id;
+            document.getElementById('product-name').value=p.name;
+            document.getElementById('product-category').value=p.category_id||'';
+            document.getElementById('product-price').value=p.price;
+            document.getElementById('product-stock').value=p.stock_quantity;
+            document.getElementById('product-image-url').value=p.image_url||'';
+            document.getElementById('product-description').value=p.description||'';
+            document.getElementById('product-active').checked=p.is_active;
+            
+            // Show existing image if available
+            if (p.image_url) {
+                let imgUrl = p.image_url;
+                if (!imgUrl.startsWith('http') && !imgUrl.startsWith('data:')) {
+                    imgUrl = 'http://localhost:8000' + imgUrl;
+                }
+                document.getElementById('image-preview').src = imgUrl;
+                document.getElementById('image-preview').style.display = 'block';
+                document.getElementById('image-placeholder').style.display = 'none';
+            } else {
+                document.getElementById('image-preview').style.display = 'none';
+                document.getElementById('image-placeholder').style.display = 'block';
+            }
+            
+            document.getElementById('product-modal').style.display='flex';
+        }
+
+        function closeModal() { 
+            document.getElementById('product-modal').style.display='none'; 
+        }
+
+        // Handle form submission with image upload
+        document.getElementById('product-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const id = document.getElementById('product-id').value;
+            const imageFile = document.getElementById('product-image-file').files[0];
+            let imageUrl = document.getElementById('product-image-url').value;
+            
+            try {
+                // Step 1: Upload image if a new file is selected
+                if (imageFile) {
+                    console.log('Uploading image...');
+                    const formData = new FormData();
+                    formData.append('file', imageFile);
+                    
+                    const uploadRes = await fetchWithAuth('http://localhost:8000/products/admin/upload-image', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (!uploadRes.ok) {
+                        const error = await uploadRes.json();
+                        throw new Error('Image upload failed: ' + (error.detail || 'Unknown error'));
+                    }
+                    
+                    const uploadData = await uploadRes.json();
+                    imageUrl = uploadData.image_url;
+                    console.log('Image uploaded:', imageUrl);
+                }
+                
+                // Step 2: Create or update product
+                const data = {
+                    name: document.getElementById('product-name').value,
+                    category_id: parseInt(document.getElementById('product-category').value) || null,
+                    price: parseFloat(document.getElementById('product-price').value),
+                    stock_quantity: parseInt(document.getElementById('product-stock').value),
+                    image_url: imageUrl || null,
+                    description: document.getElementById('product-description').value || null,
+                    is_active: document.getElementById('product-active').checked
+                };
+                
+                console.log('Saving product:', data);
+                
+                const url = id ? `http://localhost:8000/products/admin/${id}` : 'http://localhost:8000/products/admin/';
+                const method = id ? 'PUT' : 'POST';
+                
+                const res = await fetchWithAuth(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                if (res.ok) {
+                    closeModal();
+                    loadProducts();
+                    alert(id ? 'Product updated successfully!' : 'Product created successfully!');
+                } else {
+                    const error = await res.json();
+                    alert('Failed to save: ' + (error.detail || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error: ' + error.message);
+            }
+        });
+
+        // Close modal when clicking outside
+        document.getElementById('product-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'product-modal') closeModal();
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAdminAuth();
+            loadProducts();
+        });
+    </script>
+</body>
+</html>

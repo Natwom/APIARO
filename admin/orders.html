@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Orders - KenyaShop Admin</title>
+    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .orders-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .orders-table th, .orders-table td { 
+            padding: 12px; 
+            text-align: left; 
+            border-bottom: 1px solid #ddd; 
+            vertical-align: top;
+        }
+        .orders-table th { background: #f8f9fa; font-weight: bold; }
+        .orders-table tr:hover { background: #f5f5f5; }
+        .status-badge { 
+            padding: 4px 12px; 
+            border-radius: 4px; 
+            font-size: 0.85em; 
+            text-transform: capitalize;
+            display: inline-block;
+        }
+        .status-pending { background: #ffc107; color: #333; }
+        .status-paid { background: #17a2b8; color: white; }
+        .status-processing { background: #6c757d; color: white; }
+        .status-shipped { background: #007bff; color: white; }
+        .status-delivered { background: #28a745; color: white; }
+        .status-cancelled { background: #dc3545; color: white; }
+        .order-items-row { background: #f8f9fa; }
+        .order-items-row td { padding: 15px; border-top: 3px solid #dee2e6; }
+        .product-item { 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 10px; 
+            margin: 5px; 
+            padding: 8px 12px; 
+            background: white; 
+            border: 1px solid #ddd; 
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .product-item img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid #eee;
+        }
+        .product-info { line-height: 1.3; }
+        .product-info strong { display: block; font-size: 0.9em; color: #333; }
+        .product-info small { color: #666; font-size: 0.8em; }
+        .btn-view { 
+            background: #007bff; 
+            color: white; 
+            border: none; 
+            padding: 6px 12px; 
+            border-radius: 4px; 
+            cursor: pointer;
+            font-size: 0.85em;
+        }
+        .btn-view:hover { background: #0056b3; }
+        .filters { margin-bottom: 20px; }
+        .filters select { padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; margin-right: 10px; }
+        .location-cell { max-width: 200px; }
+        .location-cell small { display: block; color: #666; margin-top: 4px; }
+        .customer-cell strong { display: block; color: #333; }
+        .customer-cell small { color: #666; }
+        .total-cell { font-weight: bold; color: #28a745; }
+    </style>
+</head>
+<body>
+    <div class="admin-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-shopping-bag"></i> KenyaShop</h2>
+                <p>Admin Panel</p>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="index.html"><i class="fas fa-home"></i> Dashboard</a>
+                <a href="products.html"><i class="fas fa-box"></i> Products</a>
+                <a href="orders.html" class="active"><i class="fas fa-clipboard-list"></i> Orders</a>
+                <a href="users.html"><i class="fas fa-users"></i> Users</a>
+                <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="admin-header">
+                <h1>All Orders</h1>
+                <div class="filters">
+                    <select id="status-filter" onchange="filterOrders()">
+                        <option value="">All Statuses</option>
+                        <option value="pending">Pending</option>
+                        <option value="paid">Paid</option>
+                        <option value="processing">Processing</option>
+                        <option value="shipped">Shipped</option>
+                        <option value="delivered">Delivered</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+            </header>
+
+            <div class="orders-table-container">
+                <div class="table-responsive">
+                    <table class="orders-table">
+                        <thead>
+                            <tr>
+                                <th>Order #</th>
+                                <th>Date</th>
+                                <th>Customer</th>
+                                <th>Contact</th>
+                                <th>Location</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-table-body">
+                            <!-- Loaded dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Order Detail Modal -->
+    <div id="order-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center; padding:20px;">
+        <div style="background:white; padding:30px; border-radius:10px; max-width:700px; width:100%; max-height:90vh; overflow-y:auto; position:relative;">
+            <button onclick="closeModal()" style="position:absolute; top:15px; right:15px; background:none; border:none; font-size:1.5em; cursor:pointer;">&times;</button>
+            <div id="modal-content"></div>
+        </div>
+    </div>
+
+    <!-- Update Status Modal -->
+    <div id="status-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1001; justify-content:center; align-items:center;">
+        <div style="background:white; padding:30px; border-radius:10px; max-width:400px; width:90%;">
+            <h3>Update Order Status</h3>
+            <p>Order #<span id="modal-order-id"></span></p>
+            <select id="new-status" style="width:100%; padding:10px; margin:15px 0; border:1px solid #ddd; border-radius:4px;">
+                <option value="pending">Pending</option>
+                <option value="paid">Paid</option>
+                <option value="processing">Processing</option>
+                <option value="shipped">Shipped</option>
+                <option value="delivered">Delivered</option>
+                <option value="cancelled">Cancelled</option>
+            </select>
+            <div style="display:flex; gap:10px; justify-content:flex-end;">
+                <button onclick="closeStatusModal()" class="btn-secondary" style="padding:10px 20px;">Cancel</button>
+                <button onclick="confirmStatusUpdate()" class="btn-primary" style="padding:10px 20px;">Update</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8000';
+        let currentOrderId = null;
+
+        function checkAdminAuth() {
+            const token = localStorage.getItem('admin_token');
+            if (!token) {
+                window.location.href = 'login.html';
+            }
+            return token;
+        }
+
+        function logout() {
+            localStorage.removeItem('admin_token');
+            localStorage.removeItem('admin_user');
+            window.location.href = 'login.html';
+        }
+
+        async function fetchWithAuth(url, options = {}) {
+            const token = localStorage.getItem('admin_token');
+            const headers = {
+                'Authorization': `Bearer ${token}`
+            };
+            
+            if (!(options.body instanceof FormData)) {
+                headers['Content-Type'] = 'application/json';
+            }
+            
+            return fetch(url, { ...options, headers: { ...headers, ...options.headers } });
+        }
+
+        function getFullImageUrl(imageUrl) {
+            if (!imageUrl) return 'https://via.placeholder.com/50?text=No+Image';
+            if (imageUrl.startsWith('http')) return imageUrl;
+            return API_BASE_URL + imageUrl;
+        }
+
+        async function loadAllOrders(status = '') {
+            try {
+                let url = `${API_BASE_URL}/orders/admin/all`;
+                
+                const response = await fetchWithAuth(url);
+                const orders = await response.json();
+                console.log('Loaded orders:', orders);
+                
+                const tbody = document.getElementById('orders-table-body');
+                if (!tbody) return;
+                
+                let filteredOrders = orders;
+                if (status) {
+                    filteredOrders = orders.filter(o => o.status === status);
+                }
+                
+                if (filteredOrders.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:40px;">No orders found</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = filteredOrders.map(order => {
+                    // Build product items HTML with images
+                    const itemsHtml = order.items && order.items.length > 0 
+                        ? order.items.map(item => `
+                            <div class="product-item">
+                                <img src="${getFullImageUrl(item.product_image)}" 
+                                     alt="${item.product_name}"
+                                     onerror="this.src='https://via.placeholder.com/50?text=No+Image'">
+                                <div class="product-info">
+                                    <strong>${item.product_name}</strong>
+                                    <small>Qty: ${item.quantity} × KES ${parseFloat(item.unit_price).toFixed(2)}</small>
+                                </div>
+                            </div>
+                        `).join('')
+                        : '<p>No items</p>';
+                    
+                    return `
+                    <tr>
+                        <td><strong>#${order.id}</strong></td>
+                        <td>${new Date(order.created_at).toLocaleDateString('en-KE', {day:'numeric', month:'short', year:'numeric'})}</td>
+                        <td class="customer-cell">
+                            <strong>${order.full_name}</strong>
+                            <small>${order.email}</small>
+                        </td>
+                        <td>
+                            <div><i class="fas fa-phone" style="color:#666; width:16px;"></i> ${order.phone_number}</div>
+                            <small style="color:#666;">${order.payment_method.toUpperCase()}</small>
+                        </td>
+                        <td class="location-cell">
+                            <strong>${order.county}</strong>
+                            <small>${order.town}, ${order.specific_location}</small>
+                        </td>
+                        <td class="total-cell">KES ${parseFloat(order.total_amount).toFixed(2)}</td>
+                        <td><span class="status-badge status-${order.status}">${order.status}</span></td>
+                        <td>
+                            <button onclick="viewOrderDetails(${order.id})" class="btn-view">
+                                <i class="fas fa-eye"></i> View
+                            </button>
+                        </td>
+                    </tr>
+                    <tr class="order-items-row">
+                        <td colspan="8">
+                            <div style="margin-bottom:8px; font-weight:bold; color:#666;">
+                                <i class="fas fa-shopping-cart"></i> Products Ordered (${order.items ? order.items.length : 0}):
+                            </div>
+                            <div style="display:flex; flex-wrap:wrap; gap:10px;">
+                                ${itemsHtml}
+                            </div>
+                        </td>
+                    </tr>
+                    `;
+                }).join('');
+                
+            } catch (error) {
+                console.error('Error loading orders:', error);
+                document.getElementById('orders-table-body').innerHTML = 
+                    '<tr><td colspan="8" style="text-align:center; color:red; padding:40px;">Error loading orders</td></tr>';
+            }
+        }
+
+        async function viewOrderDetails(orderId) {
+            try {
+                const response = await fetchWithAuth(`${API_BASE_URL}/orders/admin/all`);
+                const orders = await response.json();
+                const order = orders.find(o => o.id === orderId);
+                
+                if (!order) {
+                    alert('Order not found');
+                    return;
+                }
+
+                const itemsHtml = order.items && order.items.length > 0 
+                    ? order.items.map(item => `
+                        <div style="display:flex; gap:15px; margin:15px 0; padding:15px; border:1px solid #ddd; border-radius:8px; background:#f8f9fa;">
+                            <img src="${getFullImageUrl(item.product_image)}" 
+                                 style="width:100px; height:100px; object-fit:cover; border-radius:8px; border:2px solid #ddd;" 
+                                 onerror="this.src='https://via.placeholder.com/100?text=No+Image'"
+                                 alt="${item.product_name}">
+                            <div style="flex:1;">
+                                <h4 style="margin:0 0 10px 0;">${item.product_name}</h4>
+                                <p style="margin:5px 0; color:#666;">
+                                    <strong>Product ID:</strong> #${item.product_id}<br>
+                                    <strong>Quantity:</strong> ${item.quantity}<br>
+                                    <strong>Unit Price:</strong> KES ${parseFloat(item.unit_price).toFixed(2)}<br>
+                                    <strong style="color:#28a745; font-size:1.2em;">Total: KES ${parseFloat(item.total_price).toFixed(2)}</strong>
+                                </p>
+                            </div>
+                        </div>
+                    `).join('')
+                    : '<p>No items in this order</p>';
+
+                const content = `
+                    <h2 style="margin-bottom:20px;">Order #${order.id} Details</h2>
+                    
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:25px;">
+                        <div style="background:#f8f9fa; padding:15px; border-radius:8px;">
+                            <h4 style="margin-top:0; color:#007bff;"><i class="fas fa-user"></i> Customer</h4>
+                            <p><strong>Name:</strong> ${order.full_name}</p>
+                            <p><strong>Email:</strong> ${order.email}</p>
+                            <p><strong>Phone:</strong> ${order.phone_number}</p>
+                        </div>
+                        
+                        <div style="background:#f8f9fa; padding:15px; border-radius:8px;">
+                            <h4 style="margin-top:0; color:#007bff;"><i class="fas fa-map-marker-alt"></i> Delivery Address</h4>
+                            <p><strong>County:</strong> ${order.county}</p>
+                            <p><strong>Town:</strong> ${order.town}</p>
+                            <p><strong>Location:</strong> ${order.specific_location}</p>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom:25px;">
+                        <h4 style="color:#007bff;"><i class="fas fa-box"></i> Ordered Products</h4>
+                        ${itemsHtml}
+                        <div style="margin-top:20px; padding:15px; background:#333; color:white; border-radius:8px; text-align:right;">
+                            <div style="font-size:1.3em; font-weight:bold;">
+                                Order Total: KES ${parseFloat(order.total_amount).toFixed(2)}
+                            </div>
+                            <small style="color:#ccc;">(Includes KES 300 delivery fee)</small>
+                        </div>
+                    </div>
+                    
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:25px;">
+                        <div style="background:#f8f9fa; padding:15px; border-radius:8px;">
+                            <h4 style="margin-top:0; color:#007bff;"><i class="fas fa-credit-card"></i> Payment</h4>
+                            <p><strong>Method:</strong> ${order.payment_method.toUpperCase()}</p>
+                            <p><strong>Status:</strong> <span class="status-badge status-${order.status}">${order.status}</span></p>
+                        </div>
+                        
+                        <div style="background:#f8f9fa; padding:15px; border-radius:8px;">
+                            <h4 style="margin-top:0; color:#007bff;"><i class="fas fa-info-circle"></i> Order Info</h4>
+                            <p><strong>Date:</strong> ${new Date(order.created_at).toLocaleString('en-KE')}</p>
+                            <p><strong>Terms Accepted:</strong> ${order.terms_accepted ? 'Yes' : 'No'}</p>
+                            <p><strong>SMS Sent:</strong> ${order.sms_sent ? 'Yes' : 'No'}</p>
+                        </div>
+                    </div>
+                    
+                    ${order.notes ? `
+                    <div style="background:#fff3cd; padding:15px; border-radius:8px; margin-bottom:25px; border:1px solid #ffeaa7;">
+                        <h4 style="margin-top:0; color:#856404;"><i class="fas fa-sticky-note"></i> Customer Notes</h4>
+                        <p style="margin:0; color:#856404;">${order.notes}</p>
+                    </div>
+                    ` : ''}
+                    
+                    <div style="display:flex; gap:10px; justify-content:flex-end; padding-top:15px; border-top:2px solid #eee;">
+                        <button onclick="closeModal()" class="btn-secondary" style="padding:10px 20px;">Close</button>
+                        <button onclick="openStatusModal(${order.id}, '${order.status}')" class="btn-primary" style="padding:10px 20px;">
+                            <i class="fas fa-edit"></i> Update Status
+                        </button>
+                    </div>
+                `;
+                
+                document.getElementById('modal-content').innerHTML = content;
+                document.getElementById('order-modal').style.display = 'flex';
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to load order details');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('order-modal').style.display = 'none';
+        }
+
+        function openStatusModal(orderId, currentStatus) {
+            currentOrderId = orderId;
+            document.getElementById('modal-order-id').textContent = orderId;
+            document.getElementById('new-status').value = currentStatus;
+            document.getElementById('status-modal').style.display = 'flex';
+        }
+
+        function closeStatusModal() {
+            document.getElementById('status-modal').style.display = 'none';
+            currentOrderId = null;
+        }
+
+        async function confirmStatusUpdate() {
+            if (!currentOrderId) return;
+            
+            const newStatus = document.getElementById('new-status').value;
+            
+            try {
+                const response = await fetchWithAuth(
+                    `${API_BASE_URL}/orders/admin/${currentOrderId}/status`,
+                    {
+                        method: 'PATCH',
+                        body: JSON.stringify({ status: newStatus })
+                    }
+                );
+                
+                if (response.ok) {
+                    closeStatusModal();
+                    closeModal();
+                    loadAllOrders();
+                    alert('Status updated successfully!');
+                } else {
+                    const error = await response.json();
+                    alert('Failed: ' + (error.detail || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error updating status');
+            }
+        }
+
+        function filterOrders() {
+            const status = document.getElementById('status-filter').value;
+            loadAllOrders(status);
+        }
+
+        // Close modals when clicking outside
+        document.getElementById('order-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'order-modal') closeModal();
+        });
+        document.getElementById('status-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'status-modal') closeStatusModal();
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAdminAuth();
+            loadAllOrders();
+        });
+    </script>
+</body>
+</html>
