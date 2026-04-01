@@ -1,4 +1,4 @@
-# KenyaShop - Full-Stack E-Commerce Platform
+# APIARO - Full-Stack E-Commerce Platform
 
 A production-ready e-commerce platform tailored for Kenya with M-Pesa integration, SMS notifications, and multi-county delivery support.
 
