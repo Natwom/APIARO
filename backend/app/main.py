@@ -7,6 +7,12 @@ import traceback
 from app.routers import users, products, orders
 from app.database import engine, Base
 
+import os
+
+if not os.path.exists("uploads"):
+    os.makedirs("uploads")
+
+
 # Create tables
 Base.metadata.create_all(bind=engine)
 
