@@ -735,12 +735,7 @@
             }
         });
 
-        document.addEventListener('DOMContentLoaded', () => {
-            checkAuth();
-            loadCategories();
-            loadProducts();
-        });
-
+        // Search functions
         function searchProducts() {
             const query = document.getElementById('search-input').value;
             loadProducts(null, query);
@@ -748,6 +743,12 @@
 
         document.getElementById('search-input').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') searchProducts();
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            loadCategories();
+            loadProducts();
         });
     </script>
 </body>
