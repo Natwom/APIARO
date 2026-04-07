@@ -98,6 +98,18 @@
                 opacity: 1;
             }
         }
+
+        /* Footer link styles */
+        .footer-bottom-links a {
+            cursor: pointer;
+            color: #666;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .footer-bottom-links a:hover {
+            color: #2c5aa0;
+        }
     </style>
 </head>
 <body>
@@ -281,11 +293,11 @@
             
             <div class="footer-bottom">
                 <div class="footer-bottom-links">
-                    <a href="#">Privacy Policy</a>
-                    <a href="#">Terms & Conditions</a>
-                    <a href="#">Cookie Policy</a>
-                    <a href="#">Seller Center</a>
-                    <a href="#">Advertise</a>
+                    <a onclick="showFooterModal('privacy')">Privacy Policy</a>
+                    <a onclick="showFooterModal('terms')">Terms & Conditions</a>
+                    <a onclick="showFooterModal('cookie')">Cookie Policy</a>
+                    <a onclick="showFooterModal('seller')">Seller Center</a>
+                    <a onclick="showFooterModal('advertise')">Advertise</a>
                 </div>
                 <p>&copy; 2024 KenyaShop. All rights reserved. Made with <i class="fas fa-heart" style="color: var(--primary);"></i> in Kenya</p>
                 <div class="country-selector">
@@ -306,6 +318,20 @@
                 <span>Help Center</span>
             </h3>
             <div class="modal-body" id="modal-body">
+                <!-- Content loaded dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Links Modal -->
+    <div id="footer-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeFooterModal()">&times;</button>
+            <h3 class="modal-title" id="footer-modal-title">
+                <i class="fas fa-info-circle"></i>
+                <span>Title</span>
+            </h3>
+            <div class="modal-body" id="footer-modal-body">
                 <!-- Content loaded dynamically -->
             </div>
         </div>
@@ -436,6 +462,199 @@
             }
         };
 
+        // Footer Links Modal Content
+        const footerContent = {
+            privacy: {
+                title: 'Privacy Policy',
+                icon: 'fa-shield-alt',
+                content: `
+                    <p><strong>Last Updated:</strong> April 2024</p>
+                    <p>At APIARO, we take your privacy seriously. This policy describes how we collect, use, and protect your personal information.</p>
+                    
+                    <h4>Information We Collect</h4>
+                    <ul>
+                        <li><strong>Personal Information:</strong> Name, email, phone number, and delivery address</li>
+                        <li><strong>Payment Information:</strong> M-Pesa transaction details (we do not store card numbers)</li>
+                        <li><strong>Usage Data:</strong> Pages visited, products viewed, and purchase history</li>
+                        <li><strong>Device Information:</strong> IP address, browser type, and operating system</li>
+                    </ul>
+                    
+                    <h4>How We Use Your Information</h4>
+                    <ul>
+                        <li>Process and deliver your orders</li>
+                        <li>Send order confirmations and updates via SMS/email</li>
+                        <li>Improve our services and user experience</li>
+                        <li>Prevent fraud and ensure security</li>
+                        <li>Comply with legal obligations</li>
+                    </ul>
+                    
+                    <h4>Data Protection</h4>
+                    <p>We implement industry-standard security measures including 256-bit SSL encryption to protect your data. Your information is stored on secure servers and is never sold to third parties.</p>
+                    
+                    <h4>Your Rights</h4>
+                    <p>You have the right to access, correct, or delete your personal information. Contact us at <strong>privacy@apiaro.co.ke</strong> for any privacy-related requests.</p>
+                `
+            },
+            terms: {
+                title: 'Terms & Conditions',
+                icon: 'fa-file-contract',
+                content: `
+                    <p><strong>Effective Date:</strong> April 2024</p>
+                    <p>Welcome to APIARO. By using our platform, you agree to these terms and conditions.</p>
+                    
+                    <h4>1. Account Registration</h4>
+                    <ul>
+                        <li>You must provide accurate and complete information when creating an account</li>
+                        <li>You are responsible for maintaining the confidentiality of your account credentials</li>
+                        <li>You must be at least 18 years old to use our services</li>
+                        <li>One person may only maintain one active account</li>
+                    </ul>
+                    
+                    <h4>2. Orders and Payments</h4>
+                    <ul>
+                        <li>All prices are in Kenyan Shillings (KES) and include VAT where applicable</li>
+                        <li>We accept M-Pesa, Cash on Delivery, and Bank Transfer</li>
+                        <li>Orders are confirmed only after payment is received</li>
+                        <li>We reserve the right to cancel orders for fraudulent activity</li>
+                    </ul>
+                    
+                    <h4>3. Delivery</h4>
+                    <ul>
+                        <li>Delivery times are estimates and may vary based on location and availability</li>
+                        <li>Risk of loss transfers to you upon delivery</li>
+                        <li>You must inspect goods upon delivery and report issues within 24 hours</li>
+                    </ul>
+                    
+                    <h4>4. Returns and Refunds</h4>
+                    <ul>
+                        <li>Items may be returned within 7 days of delivery</li>
+                        <li>Items must be in original condition with all packaging</li>
+                        <li>Refunds are processed within 5-7 business days</li>
+                        <li>Delivery fees are non-refundable unless item is defective</li>
+                    </ul>
+                    
+                    <h4>5. Prohibited Activities</h4>
+                    <p>You may not use our platform for illegal activities, fraud, harassment, or to distribute harmful content. Violation may result in account termination.</p>
+                `
+            },
+            cookie: {
+                title: 'Cookie Policy',
+                icon: 'fa-cookie-bite',
+                content: `
+                    <p><strong>Last Updated:</strong> April 2024</p>
+                    <p>APIARO uses cookies and similar technologies to enhance your browsing experience.</p>
+                    
+                    <h4>What Are Cookies?</h4>
+                    <p>Cookies are small text files stored on your device when you visit our website. They help us remember your preferences and improve your experience.</p>
+                    
+                    <h4>Types of Cookies We Use</h4>
+                    <ul>
+                        <li><strong>Essential Cookies:</strong> Required for the website to function (shopping cart, login session)</li>
+                        <li><strong>Functional Cookies:</strong> Remember your preferences (language, location)</li>
+                        <li><strong>Analytics Cookies:</strong> Help us understand how visitors interact with our site</li>
+                        <li><strong>Marketing Cookies:</strong> Used to deliver relevant advertisements (with your consent)</li>
+                    </ul>
+                    
+                    <h4>Managing Cookies</h4>
+                    <p>You can control cookies through your browser settings. However, disabling essential cookies may affect website functionality.</p>
+                    
+                    <h4>Third-Party Cookies</h4>
+                    <p>We may use third-party services (Google Analytics, payment processors) that set their own cookies. These are governed by the respective privacy policies.</p>
+                    
+                    <h4>Contact Us</h4>
+                    <p>If you have questions about our cookie policy, email us at <strong>privacy@apiaro.co.ke</strong></p>
+                `
+            },
+            seller: {
+                title: 'Seller Center',
+                icon: 'fa-store',
+                content: `
+                    <p>Join thousands of successful sellers on APIARO and grow your business across Kenya!</p>
+                    
+                    <h4>Why Sell on APIARO?</h4>
+                    <ul>
+                        <li><strong>Reach 47 Counties:</strong> Access customers from Mombasa to Malaba</li>
+                        <li><strong>Secure Payments:</strong> Receive payments directly to your M-Pesa or bank account</li>
+                        <li><strong>Easy Logistics:</strong> We handle delivery or you can use your own</li>
+                        <li><strong>Seller Protection:</strong> Fraud detection and dispute resolution</li>
+                        <li><strong>Marketing Support:</strong> Featured placements and promotional campaigns</li>
+                    </ul>
+                    
+                    <h4>How to Become a Seller</h4>
+                    <ol>
+                        <li>Register for a seller account at <strong>seller.apiaro.co.ke</strong></li>
+                        <li>Complete KYC verification (ID, business registration)</li>
+                        <li>Set up your shop profile and add products</li>
+                        <li>Configure shipping preferences and return policy</li>
+                        <li>Start selling! Orders come directly to your dashboard</li>
+                    </ol>
+                    
+                    <h4>Seller Fees</h4>
+                    <ul>
+                        <li><strong>Commission:</strong> 5-15% per sale (varies by category)</li>
+                        <li><strong>Payment Processing:</strong> 1.5% for M-Pesa withdrawals</li>
+                        <li><strong>No Monthly Fees:</strong> Pay only when you sell</li>
+                    </ul>
+                    
+                    <h4>Seller Requirements</h4>
+                    <ul>
+                        <li>Valid Kenyan ID or Passport</li>
+                        <li>Active M-Pesa or bank account</li>
+                        <li>Genuine products only (counterfeits prohibited)</li>
+                        <li>Ability to fulfill orders within 24-48 hours</li>
+                    </ul>
+                    
+                    <div class="contact-box">
+                        <p><strong>Ready to start?</strong> Contact our Seller Support:</p>
+                        <p><i class="fas fa-envelope"></i> sellers@apiaro.co.ke</p>
+                        <p><i class="fas fa-phone"></i> +254 712 345 679</p>
+                    </div>
+                `
+            },
+            advertise: {
+                title: 'Advertise with Us',
+                icon: 'fa-bullhorn',
+                content: `
+                    <p>Reach millions of Kenyan shoppers with targeted advertising on APIARO!</p>
+                    
+                    <h4>Advertising Options</h4>
+                    <ul>
+                        <li><strong>Homepage Banner:</strong> Premium placement on our homepage (500K+ daily views)</li>
+                        <li><strong>Category Sponsorship:</strong> Feature your brand in specific product categories</li>
+                        <li><strong>Sponsored Products:</strong> Boost your product listings in search results</li>
+                        <li><strong>Email Marketing:</strong> Reach 200K+ subscribers with targeted campaigns</li>
+                        <li><strong>SMS Campaigns:</strong> Direct marketing to verified phone numbers</li>
+                    </ul>
+                    
+                    <h4>Why Advertise on APIARO?</h4>
+                    <ul>
+                        <li><strong>Targeted Audience:</strong> Reach active shoppers across all 47 counties</li>
+                        <li><strong>Measurable Results:</strong> Detailed analytics and conversion tracking</li>
+                        <li><strong>Flexible Budgets:</strong> Start from as low as KES 5,000</li>
+                        <li><strong>Brand Safety:</strong> Your ads appear alongside trusted Kenyan brands</li>
+                    </ul>
+                    
+                    <h4>Our Audience</h4>
+                    <ul>
+                        <li>1.5M+ monthly active users</li>
+                        <li>65% aged 25-45 (prime purchasing demographic)</li>
+                        <li>45% from Nairobi, 55% from other counties</li>
+                        <li>70% female, 30% male shoppers</li>
+                    </ul>
+                    
+                    <h4>Get Started</h4>
+                    <p>Contact our advertising team for a customized media kit and rate card:</p>
+                    <div class="contact-box">
+                        <p><i class="fas fa-envelope"></i> ads@apiaro.co.ke</p>
+                        <p><i class="fas fa-phone"></i> +254 712 345 680</p>
+                        <p><i class="fas fa-user"></i> Account Manager: Jane Wanjiku</p>
+                    </div>
+                    
+                    <p><em>Special discounts available for Kenyan-owned SMEs and first-time advertisers!</em></p>
+                `
+            }
+        };
+
         function showHelpModal(type) {
             const modal = document.getElementById('help-modal');
             const titleEl = document.getElementById('modal-title');
@@ -446,27 +665,55 @@
                 titleEl.innerHTML = `<i class="fas ${content.icon}"></i> <span>${content.title}</span>`;
                 bodyEl.innerHTML = content.content;
                 modal.classList.add('active');
-                document.body.style.overflow = 'hidden'; // Prevent background scrolling
+                document.body.style.overflow = 'hidden';
             }
         }
 
         function closeHelpModal() {
             const modal = document.getElementById('help-modal');
             modal.classList.remove('active');
-            document.body.style.overflow = ''; // Restore scrolling
+            document.body.style.overflow = '';
         }
 
-        // Close modal when clicking outside
+        // Footer Modal Functions
+        function showFooterModal(type) {
+            const modal = document.getElementById('footer-modal');
+            const titleEl = document.getElementById('footer-modal-title');
+            const bodyEl = document.getElementById('footer-modal-body');
+            const content = footerContent[type];
+            
+            if (content) {
+                titleEl.innerHTML = `<i class="fas ${content.icon}"></i> <span>${content.title}</span>`;
+                bodyEl.innerHTML = content.content;
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        function closeFooterModal() {
+            const modal = document.getElementById('footer-modal');
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Close modals when clicking outside
         document.getElementById('help-modal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeHelpModal();
             }
         });
 
-        // Close modal with Escape key
+        document.getElementById('footer-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeFooterModal();
+            }
+        });
+
+        // Close modals with Escape key
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 closeHelpModal();
+                closeFooterModal();
             }
         });
 
