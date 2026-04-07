@@ -55,6 +55,8 @@
     </div>
 
     <script>
+        const ADMIN_API_URL = 'https://apiaro-backend.onrender.com';
+        
         function checkAdminAuth() {
             const token = localStorage.getItem('admin_token');
             console.log('Checking auth, token exists:', !!token);
@@ -101,7 +103,7 @@
                 
                 debugDiv.innerHTML = 'Token found: ' + token.substring(0, 30) + '...<br>';
                 
-                const res = await fetchWithAuth('http://localhost:8000/users/admin/all');
+                const res = await fetchWithAuth(`${ADMIN_API_URL}/users/admin/all`);
                 
                 debugDiv.innerHTML += 'Response status: ' + res.status + '<br>';
                 

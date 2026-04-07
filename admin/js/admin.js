@@ -1,4 +1,5 @@
 // Admin Utilities
+const ADMIN_API_URL = 'https://apiaro-backend.onrender.com';
 
 function checkAdminAuth() {
     const token = localStorage.getItem('admin_token');
@@ -28,8 +29,14 @@ async function fetchWithAuth(url, options = {}) {
 
 async function loadDashboardStats() {
     try {
-        const response = await fetchWithAuth('http://localhost:8000/orders/admin/all');
-        const orders = await response.json();
+        // Load products count
+        const productsRes = await fetchWithAuth(`${ADMIN_API_URL}/products/`);
+        const products = await productsRes.json();
+        document.getElementById('total-products').textContent = products.length;
+
+        // Load orders stats
+        const ordersRes = await fetchWithAuth(`${ADMIN_API_URL}/orders/admin/all`);
+        const orders = await ordersRes.json();
         
         document.getElementById('total-orders').textContent = orders.length;
         document.getElementById('pending-orders').textContent = 
@@ -63,7 +70,7 @@ async function loadDashboardStats() {
 
 async function loadAllOrders(status = '') {
     try {
-        let url = 'http://localhost:8000/orders/admin/all';
+        let url = `${ADMIN_API_URL}/orders/admin/all`;
         if (status) url += `?status=${status}`;
         
         const response = await fetchWithAuth(url);

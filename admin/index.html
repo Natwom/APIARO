@@ -15,7 +15,6 @@
                 <p>Admin Panel</p>
             </div>
             <nav class="sidebar-nav">
-
                 <a href="index.html" class="active"><i class="fas fa-home"></i> Dashboard</a>
                 <a href="products.html"><i class="fas fa-box"></i> Products</a>
                 <a href="orders.html"><i class="fas fa-clipboard-list"></i> Orders</a>
@@ -89,6 +88,8 @@
 
     <script>
         // Admin Utilities
+        const ADMIN_API_URL = 'https://apiaro-backend.onrender.com';
+        
         function checkAdminAuth() {
             const token = localStorage.getItem('admin_token');
             if (!token) {
@@ -118,12 +119,12 @@
         async function loadDashboardStats() {
             try {
                 // Load products count
-                const productsRes = await fetchWithAuth('http://localhost:8000/products/');
+                const productsRes = await fetchWithAuth(`${ADMIN_API_URL}/products/`);
                 const products = await productsRes.json();
                 document.getElementById('total-products').textContent = products.length;
 
                 // Load orders stats
-                const ordersRes = await fetchWithAuth('http://localhost:8000/orders/admin/all');
+                const ordersRes = await fetchWithAuth(`${ADMIN_API_URL}/orders/admin/all`);
                 const orders = await ordersRes.json();
                 
                 document.getElementById('total-orders').textContent = orders.length;

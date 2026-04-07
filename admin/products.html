@@ -157,6 +157,8 @@
     </div>
 
     <script>
+        const ADMIN_API_URL = 'https://apiaro-backend.onrender.com';
+        
         function checkAdminAuth() {
             const token = localStorage.getItem('admin_token');
             if (!token) window.location.href = 'login.html';
@@ -210,7 +212,7 @@
 
         async function loadProducts() {
             try {
-                const res = await fetchWithAuth('http://localhost:8000/products/');
+                const res = await fetchWithAuth(`${ADMIN_API_URL}/products/`);
                 const products = await res.json();
                 document.getElementById('total-products').textContent = products.length;
                 document.getElementById('active-products').textContent = products.filter(p=>p.is_active).length;
@@ -220,7 +222,7 @@
                     // Construct full image URL if it's a relative path
                     let imgUrl = p.image_url || 'https://via.placeholder.com/50';
                     if (imgUrl && !imgUrl.startsWith('http') && !imgUrl.startsWith('data:')) {
-                        imgUrl = 'http://localhost:8000' + imgUrl;
+                        imgUrl = ADMIN_API_URL + imgUrl;
                     }
                     
                     return `
@@ -254,7 +256,7 @@
         }
 
         async function editProduct(id) {
-            const res=await fetchWithAuth('http://localhost:8000/products/'+id);
+            const res=await fetchWithAuth(`${ADMIN_API_URL}/products/${id}`);
             const p=await res.json();
             document.getElementById('modal-title').textContent='Edit Product';
             document.getElementById('product-id').value=p.id;
@@ -270,7 +272,7 @@
             if (p.image_url) {
                 let imgUrl = p.image_url;
                 if (!imgUrl.startsWith('http') && !imgUrl.startsWith('data:')) {
-                    imgUrl = 'http://localhost:8000' + imgUrl;
+                    imgUrl = ADMIN_API_URL + imgUrl;
                 }
                 document.getElementById('image-preview').src = imgUrl;
                 document.getElementById('image-preview').style.display = 'block';
@@ -302,7 +304,7 @@
                     const formData = new FormData();
                     formData.append('file', imageFile);
                     
-                    const uploadRes = await fetchWithAuth('http://localhost:8000/products/admin/upload-image', {
+                    const uploadRes = await fetchWithAuth(`${ADMIN_API_URL}/products/admin/upload-image`, {
                         method: 'POST',
                         body: formData
                     });
@@ -330,7 +332,7 @@
                 
                 console.log('Saving product:', data);
                 
-                const url = id ? `http://localhost:8000/products/admin/${id}` : 'http://localhost:8000/products/admin/';
+                const url = id ? `${ADMIN_API_URL}/products/admin/${id}` : `${ADMIN_API_URL}/products/admin/`;
                 const method = id ? 'PUT' : 'POST';
                 
                 const res = await fetchWithAuth(url, {
