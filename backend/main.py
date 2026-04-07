@@ -1,3 +1,10 @@
+import sys
+import os
+
+# Fix: Add backend directory to Python path for Render deployment
+# This ensures 'app' module can be found regardless of where uvicorn is run from
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -7,13 +14,11 @@ import traceback
 from app.routers import users, products, orders
 from app.database import engine, Base
 
-import os
-
+# Create uploads directory if it doesn't exist
 if not os.path.exists("uploads"):
     os.makedirs("uploads")
 
-
-# Create tables
+# Create database tables
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
