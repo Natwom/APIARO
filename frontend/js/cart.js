@@ -1,7 +1,7 @@
 // Shopping Cart Management
 
 // Use global API_BASE_URL from auth.js or define fallback
-const CART_API_URL = (typeof API_BASE_URL !== 'undefined') ? API_BASE_URL : 'http://localhost:8000';
+const CART_API_URL = (typeof API_BASE_URL !== 'undefined') ? API_BASE_URL : 'https://apiaro-backend.onrender.com';
 
 function getCart() {
     return JSON.parse(localStorage.getItem('cart')) || [];

@@ -1,7 +1,7 @@
 // Authentication Utilities
 
 // Define API base URL globally so other scripts can use it
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = 'https://apiaro-backend.onrender.com';
 
 // Make it available globally for other scripts
 if (typeof window !== 'undefined') {

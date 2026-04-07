@@ -155,7 +155,7 @@ window.placeOrder = async function() {
     
     try {
         // Use fetchWithAuth from auth.js (global)
-        const response = await fetchWithAuth(`${window.API_BASE_URL || 'http://localhost:8000'}/orders/`, {
+        const response = await fetchWithAuth(`${window.API_BASE_URL || 'https://apiaro-backend.onrender.com'}/orders/`, {
             method: 'POST',
             body: JSON.stringify(orderData)
         });
