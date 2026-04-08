@@ -1,9 +1,7 @@
 // Authentication Utilities
-
-// Define API base URL globally so other scripts can use it
 const API_BASE_URL = 'https://apiaro-backend.onrender.com';
 
-// Make it available globally for other scripts
+// Make it available globally
 if (typeof window !== 'undefined') {
     window.API_BASE_URL = API_BASE_URL;
 }
@@ -17,15 +15,14 @@ function isTokenExpired() {
     if (!token) return true;
     
     try {
-        // Decode JWT payload (base64)
         const base64Url = token.split('.')[1];
         const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
         const payload = JSON.parse(window.atob(base64));
         
-        const exp = payload.exp * 1000; // Convert seconds to milliseconds
+        const exp = payload.exp * 1000; // Convert to milliseconds
         const now = Date.now();
         
-        // Add 10 second buffer to prevent edge cases
+        // Add 10 second buffer
         const isExpired = (now + 10000) >= exp;
         
         if (isExpired) {
@@ -35,36 +32,47 @@ function isTokenExpired() {
         return isExpired;
     } catch (e) {
         console.error('Error checking token expiry:', e);
-        return true; // Treat invalid tokens as expired
+        return true;
     }
 }
 
 /**
- * Get time until token expires in minutes
- * @returns {number} minutes until expiry, 0 if expired
+ * LOGIN FUNCTION - Stores token for 30 days
  */
-function getTokenTimeRemaining() {
-    const token = localStorage.getItem('token');
-    if (!token) return 0;
-    
+async function login(email, password) {
     try {
-        const base64Url = token.split('.')[1];
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const payload = JSON.parse(window.atob(base64));
+        const response = await fetch(`${API_BASE_URL}/users/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email.toLowerCase(), password })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.detail || 'Login failed');
+        }
+
+        // Store in localStorage (persists for 30 days until token expires)
+        localStorage.setItem('token', data.access_token);
+        localStorage.setItem('user', JSON.stringify(data.user));
         
-        const exp = payload.exp * 1000;
-        const now = Date.now();
-        const remaining = Math.floor((exp - now) / 60000); // Convert to minutes
+        console.log('Login successful, token stored for 30 days');
         
-        return Math.max(0, remaining);
-    } catch (e) {
-        return 0;
+        // Redirect to home or intended page
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirect = urlParams.get('redirect') || 'index.html';
+        window.location.href = redirect;
+        
+    } catch (error) {
+        console.error('Login error:', error);
+        showToast(error.message, 'error');
+        throw error;
     }
 }
 
 /**
  * Check authentication status and update UI
- * @returns {string|null} token if authenticated, null otherwise
  */
 function checkAuth() {
     const token = localStorage.getItem('token');
@@ -88,9 +96,9 @@ function checkAuth() {
             if (userNameEl) userNameEl.textContent = user.full_name.split(' ')[0];
         }
         
-        // Show token time remaining in console for debugging
+        // Debug: Show token time remaining
         const minsRemaining = getTokenTimeRemaining();
-        console.log(`Token valid for ${minsRemaining} more minutes`);
+        console.log(`Token valid for ${minsRemaining} more minutes (${Math.floor(minsRemaining/1440)} days)`);
         
         return token;
     } else {
@@ -101,7 +109,29 @@ function checkAuth() {
 }
 
 /**
- * Logout user and clear storage
+ * Get time until token expires
+ */
+function getTokenTimeRemaining() {
+    const token = localStorage.getItem('token');
+    if (!token) return 0;
+    
+    try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const payload = JSON.parse(window.atob(base64));
+        
+        const exp = payload.exp * 1000;
+        const now = Date.now();
+        const remaining = Math.floor((exp - now) / 60000); // Minutes
+        
+        return Math.max(0, remaining);
+    } catch (e) {
+        return 0;
+    }
+}
+
+/**
+ * Logout user
  */
 function logout() {
     localStorage.removeItem('token');
@@ -110,22 +140,15 @@ function logout() {
     
     showToast('Logged out successfully', 'success');
     
-    // Redirect to home page after short delay
     setTimeout(() => {
         window.location.href = 'index.html';
     }, 500);
 }
 
 /**
- * Fetch with automatic authentication headers and error handling
- * Automatically logs out on 401 errors
- * 
- * @param {string} url - API endpoint
- * @param {object} options - fetch options
- * @returns {Promise<Response>}
+ * Fetch with authentication headers
  */
 async function fetchWithAuth(url, options = {}) {
-    // Check token before making request
     if (isTokenExpired()) {
         showToast('Your session has expired. Please login again.', 'error');
         logout();
@@ -141,12 +164,10 @@ async function fetchWithAuth(url, options = {}) {
         }
     };
     
-    // Don't override Content-Type if FormData (browser sets it automatically with boundary)
     if (options.body instanceof FormData) {
         delete defaultOptions.headers['Content-Type'];
     }
     
-    // Merge options - headers are merged specially to not lose Authorization
     const mergedOptions = {
         ...defaultOptions,
         ...options,
@@ -159,18 +180,15 @@ async function fetchWithAuth(url, options = {}) {
     try {
         const response = await fetch(url, mergedOptions);
         
-        // Handle 401 Unauthorized - token expired or invalid
         if (response.status === 401) {
             const errorData = await response.json().catch(() => ({}));
             console.error('401 Unauthorized:', errorData);
             
-            // Clear invalid token
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             
             showToast(errorData.detail || 'Session expired. Please login again.', 'error');
             
-            // Redirect to login after short delay
             setTimeout(() => {
                 window.location.href = 'login.html?expired=true';
             }, 1500);
@@ -178,9 +196,8 @@ async function fetchWithAuth(url, options = {}) {
             throw new Error('Unauthorized');
         }
         
-        // Handle 403 Forbidden
         if (response.status === 403) {
-            showToast('Access denied. Insufficient permissions.', 'error');
+            showToast('Access denied.', 'error');
             throw new Error('Forbidden');
         }
         
@@ -199,18 +216,14 @@ async function fetchWithAuth(url, options = {}) {
 
 /**
  * Show toast notification
- * @param {string} message - Message to display
- * @param {string} type - 'success', 'error', or 'warning'
  */
 function showToast(message, type = 'success') {
-    // Remove any existing toasts
     const existingToasts = document.querySelectorAll('.toast');
     existingToasts.forEach(t => t.remove());
     
     const toast = document.createElement('div');
     toast.className = `toast ${type} show`;
     
-    // Color based on type
     const colors = {
         success: '#28a745',
         error: '#dc3545',
@@ -236,24 +249,18 @@ function showToast(message, type = 'success') {
     toast.textContent = message;
     document.body.appendChild(toast);
     
-    // Auto remove after 3 seconds
     setTimeout(() => {
         toast.style.animation = 'slideOut 0.3s ease';
         setTimeout(() => toast.remove(), 300);
     }, 3000);
 }
 
-/**
- * Parse URL parameters
- * @param {string} param - Parameter name
- * @returns {string|null} parameter value
- */
 function getUrlParam(param) {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get(param);
 }
 
-// Add toast animations to page
+// Add toast animations
 const toastStyles = document.createElement('style');
 toastStyles.textContent = `
     @keyframes slideIn {
@@ -267,11 +274,10 @@ toastStyles.textContent = `
 `;
 document.head.appendChild(toastStyles);
 
-// Check auth status on page load
+// Check auth on page load
 document.addEventListener('DOMContentLoaded', () => {
     checkAuth();
     
-    // Check if redirected due to expired session
     if (getUrlParam('expired') === 'true') {
         showToast('Your session expired. Please login again.', 'warning');
     }

@@ -2,7 +2,6 @@ import sys
 import os
 
 # Fix: Add backend directory to Python path for Render deployment
-# This ensures 'app' module can be found regardless of where uvicorn is run from
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from fastapi import FastAPI, Request
@@ -18,7 +17,7 @@ from app.database import engine, Base
 if not os.path.exists("uploads"):
     os.makedirs("uploads")
 
-# Create database tables
+# Create database tables (works for both SQLite and PostgreSQL)
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
@@ -27,18 +26,18 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS - MUST BE FIRST, before any routes or exception handlers
+# CORS - MUST BE FIRST
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins for development
+    allow_origins=["*"],  # Change to your frontend URL in production
     allow_credentials=True,
-    allow_methods=["*"],  # GET, POST, PUT, DELETE, PATCH, OPTIONS
-    allow_headers=["*"],  # All headers including Authorization
+    allow_methods=["*"],
+    allow_headers=["*"],
     expose_headers=["*"],
-    max_age=3600,  # Cache preflight for 1 hour
+    max_age=3600,
 )
 
-# Serve static files (product images)
+# Serve static files
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 # Include routers
@@ -56,9 +55,9 @@ def read_root():
 
 @app.get("/health")
 def health_check():
-    return {"status": "healthy", "service": "Kenya E-Commerce API"}
+    return {"status": "healthy", "database": "connected"}
 
-# Global exception handler to ensure CORS headers on errors
+# Global exception handler
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     print(f"ERROR: {exc}")

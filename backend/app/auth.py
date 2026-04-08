@@ -10,7 +10,8 @@ import hashlib
 
 SECRET_KEY = "your-secret-key-change-in-production"
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 1440  # 24 hours
+# CHANGED: 30 days instead of 24 hours (43200 minutes = 30 days)
+ACCESS_TOKEN_EXPIRE_MINUTES = 43200
 
 security = HTTPBearer()
 
@@ -26,7 +27,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     """Create JWT access token with timezone-aware expiration"""
     to_encode = data.copy()
     
-    # FIX: Use timezone-aware UTC datetime
+    # 30 days expiry
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
     else:
@@ -34,7 +35,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     
     to_encode.update({
         "exp": expire,
-        "iat": datetime.now(timezone.utc),  # Issued at time
+        "iat": datetime.now(timezone.utc),
         "type": "access"
     })
     
@@ -60,7 +61,6 @@ def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
     
-    # Debug logging
     token_preview = credentials.credentials[:20] + "..." if len(credentials.credentials) > 20 else credentials.credentials
     print(f"Received credentials: {token_preview}")
     
@@ -76,7 +76,7 @@ def get_current_user(
             print("No user_id in token")
             raise credentials_exception
             
-        # FIX: Use timezone-aware comparison for expiration check
+        # Check expiration
         current_timestamp = datetime.now(timezone.utc).timestamp()
         
         if exp and current_timestamp > exp:
@@ -102,7 +102,6 @@ def get_current_user(
         print(f"User {user_id} not found in database")
         raise credentials_exception
     
-    # Check if user is active
     if hasattr(user, 'is_active') and not user.is_active:
         print(f"User {user.email} is inactive")
         raise HTTPException(
