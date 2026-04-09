@@ -2,13 +2,21 @@ from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.orm import Session
 from typing import List
 import random
-import re
+import sys
+import os
 from datetime import datetime, timedelta, timezone
 from app.database import get_db
 from app import models, schemas, auth
+
+# Fix import path for services
+backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if backend_dir not in sys.path:
+    sys.path.insert(0, backend_dir)
+
 from services.sms_service import SMSServiceFactory
 
 router = APIRouter(prefix="/users", tags=["users"])
+# ... rest of your code
 
 def create_admin_user_if_not_exists(db: Session):
     """Auto-create admin user if it doesn't exist"""
