@@ -88,10 +88,22 @@ class OrderItem(Base):
     order_id = Column(Integer, ForeignKey("orders.id"), nullable=False)
     product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
     product_name = Column(String(255), nullable=False)
-    product_image = Column(String(500), nullable=True)  # ← ADDED: Store image URL
+    product_image = Column(String(500), nullable=True)
     quantity = Column(Integer, nullable=False)
     unit_price = Column(DECIMAL(10, 2), nullable=False)
     total_price = Column(DECIMAL(10, 2), nullable=False)
     
     order = relationship("Order", back_populates="items")
     product = relationship("Product", back_populates="order_items")
+
+# ========== ADDED: Password Reset Token Model ==========
+class PasswordResetToken(Base):
+    __tablename__ = "password_reset_tokens"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String(255), nullable=False, index=True)
+    phone_number = Column(String(20), nullable=False)  # Store phone for reference
+    reset_code = Column(String(6), nullable=False)  # 6-digit SMS code
+    expires_at = Column(DateTime, nullable=False)
+    used = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)

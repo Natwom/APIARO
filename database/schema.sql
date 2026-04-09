@@ -14,6 +14,21 @@ CREATE TABLE users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
+-- Password Reset Tokens Table (SMS 6-Digit Code Version)
+CREATE TABLE password_reset_tokens (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(255) NOT NULL,
+    phone_number VARCHAR(20) NOT NULL,
+    reset_code VARCHAR(6) NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    used BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    INDEX idx_email (email),
+    INDEX idx_reset_code (reset_code),
+    INDEX idx_expires (expires_at)
+);
+
 -- Categories Table
 CREATE TABLE categories (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -64,11 +79,13 @@ CREATE TABLE orders (
     INDEX idx_phone (phone_number)
 );
 
--- Order Items Table
+-- Order Items Table (Updated with product_image and product_name for denormalization)
 CREATE TABLE order_items (
     id INT AUTO_INCREMENT PRIMARY KEY,
     order_id INT NOT NULL,
     product_id INT NOT NULL,
+    product_name VARCHAR(255) NOT NULL,
+    product_image VARCHAR(500),
     quantity INT NOT NULL,
     unit_price DECIMAL(10, 2) NOT NULL,
     total_price DECIMAL(10, 2) NOT NULL,
@@ -89,7 +106,7 @@ INSERT INTO products (name, description, price, stock_quantity, category_id, ima
 ('Ramtons Cooker', '4 Gas Burners + Electric Oven', 18500.00, 10, 3, 'https://via.placeholder.com/300x300?text=Cooker'),
 ('Solar Panel Kit', '200W Solar Panel with Battery', 12500.00, 20, 4, 'https://via.placeholder.com/300x300?text=Solar+Kit');
 
--- Admin user (password: admin123 - hashed version needs bcrypt in real app)
--- This is a placeholder - use proper password hashing in production
+-- Admin user (password: admin123 - SHA256 hash)
+-- Note: Using SHA256 hash as per your auth.py implementation
 INSERT INTO users (email, password_hash, full_name, phone_number) VALUES 
-('admin@kenyashop.co.ke', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/X4.VTtYA.qGZvKG6G', 'System Admin', '+254712345678');
+('admin@kenyashop.co.ke', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', 'System Admin', '+254712345678');

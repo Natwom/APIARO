@@ -17,6 +17,23 @@ class OrderStatus(str, Enum):
     delivered = "delivered"
     cancelled = "cancelled"
 
+# ========== ADDED: Password Reset Schemas ==========
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+class ForgotPasswordResponse(BaseModel):
+    message: str
+    phone_masked: Optional[str] = None  # Show masked phone for user confirmation
+
+class VerifyResetCodeRequest(BaseModel):
+    email: EmailStr
+    reset_code: str = Field(..., min_length=6, max_length=6)
+
+class ResetPasswordRequest(BaseModel):
+    email: EmailStr
+    reset_code: str = Field(..., min_length=6, max_length=6)
+    new_password: str = Field(..., min_length=6)
+
 # User Schemas
 class UserBase(BaseModel):
     email: EmailStr
@@ -85,7 +102,7 @@ class OrderItemResponse(BaseModel):
     id: int
     product_id: int
     product_name: str
-    product_image: Optional[str] = None  # ← ADDED
+    product_image: Optional[str] = None
     quantity: int
     unit_price: Decimal
     total_price: Decimal

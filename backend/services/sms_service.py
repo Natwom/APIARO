@@ -141,6 +141,44 @@ class SMSServiceFactory:
         else:
             return MockSMSService()
 
+# ========== PASSWORD RESET SMS FUNCTIONS ==========
+
+def send_password_reset_code(phone_number: str, reset_code: str, service_type: Optional[str] = None):
+    """
+    Send password reset code via SMS
+    
+    Args:
+        phone_number: Customer phone (+254XXXXXXXXX)
+        reset_code: 6-digit reset code
+        service_type: SMS service to use
+    """
+    message = (
+        f"Your APIARO password reset code is: {reset_code}. "
+        f"Valid for 15 minutes. Do not share this code with anyone."
+    )
+    
+    service = SMSServiceFactory.get_service(service_type)
+    result = service.send_sms(phone_number, message)
+    
+    if result["success"]:
+        logger.info(f"Password reset SMS sent successfully to {phone_number}")
+    else:
+        logger.error(f"Failed to send password reset SMS to {phone_number}: {result.get('error')}")
+    
+    return result
+
+def send_password_reset_confirmation(phone_number: str, service_type: Optional[str] = None):
+    """
+    Send password reset confirmation SMS
+    """
+    message = (
+        f"Your APIARO password has been reset successfully. "
+        f"If you did not do this, please contact support immediately."
+    )
+    
+    service = SMSServiceFactory.get_service(service_type)
+    return service.send_sms(phone_number, message)
+
 # Convenience function for order notifications
 def send_order_confirmation(phone_number: str, customer_name: str, order_id: int, service_type: Optional[str] = None):
     """
