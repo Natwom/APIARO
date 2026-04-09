@@ -23,7 +23,7 @@
         }
         
         .modal-overlay.active {
-            display: flex;
+            display: flex !important;
         }
         
         .modal {
@@ -34,6 +34,8 @@
             max-width: 400px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             animation: modalSlideIn 0.3s ease;
+            max-height: 90vh;
+            overflow-y: auto;
         }
         
         @keyframes modalSlideIn {
@@ -118,7 +120,7 @@
         }
         
         .step.active {
-            display: block;
+            display: block !important;
         }
         
         .masked-phone {
@@ -165,7 +167,7 @@
                         <span class="checkmark"></span>
                         Remember me
                     </label>
-                    <a href="#" class="forgot-link" onclick="openForgotPasswordModal(event)">Forgot password?</a>
+                    <a href="#" class="forgot-link" onclick="openForgotPasswordModal(event); return false;">Forgot password?</a>
                 </div>
 
                 <button type="submit" class="btn-auth">
@@ -182,8 +184,8 @@
     </div>
 
     <!-- Forgot Password Modal -->
-    <div id="forgotPasswordModal" class="modal-overlay">
-        <div class="modal">
+    <div id="forgotPasswordModal" class="modal-overlay" onclick="closeModalOnOutsideClick(event)">
+        <div class="modal" onclick="event.stopPropagation()">
             <!-- Step 1: Enter Email -->
             <div id="step1" class="step active">
                 <div class="modal-header">
@@ -192,7 +194,7 @@
                     <p>Enter your email and we'll send a reset code to your phone</p>
                 </div>
                 
-                <form id="forgot-password-form">
+                <form id="forgot-password-form" onsubmit="handleForgotPassword(event)">
                     <div class="form-group">
                         <div class="input-group">
                             <i class="fas fa-envelope"></i>
@@ -206,7 +208,7 @@
                     </button>
                 </form>
                 
-                <button onclick="closeForgotPasswordModal()" class="btn-secondary" style="width: 100%; margin-top: 0.75rem; background: #e5e7eb; color: #374151; border: none; padding: 0.75rem; border-radius: 8px; cursor: pointer;">
+                <button onclick="closeForgotPasswordModal()" style="width: 100%; margin-top: 0.75rem; background: #e5e7eb; color: #374151; border: none; padding: 0.75rem; border-radius: 8px; cursor: pointer;">
                     Cancel
                 </button>
             </div>
@@ -220,14 +222,14 @@
                     <div id="masked-phone-display" class="masked-phone"></div>
                 </div>
                 
-                <form id="verify-code-form">
+                <form id="verify-code-form" onsubmit="handleVerifyCode(event)">
                     <div class="code-inputs">
-                        <input type="text" class="code-input" maxlength="1" data-index="0">
-                        <input type="text" class="code-input" maxlength="1" data-index="1">
-                        <input type="text" class="code-input" maxlength="1" data-index="2">
-                        <input type="text" class="code-input" maxlength="1" data-index="3">
-                        <input type="text" class="code-input" maxlength="1" data-index="4">
-                        <input type="text" class="code-input" maxlength="1" data-index="5">
+                        <input type="text" class="code-input" maxlength="1" data-index="0" oninput="handleCodeInput(this, 0)" onkeydown="handleCodeKeydown(event, 0)">
+                        <input type="text" class="code-input" maxlength="1" data-index="1" oninput="handleCodeInput(this, 1)" onkeydown="handleCodeKeydown(event, 1)">
+                        <input type="text" class="code-input" maxlength="1" data-index="2" oninput="handleCodeInput(this, 2)" onkeydown="handleCodeKeydown(event, 2)">
+                        <input type="text" class="code-input" maxlength="1" data-index="3" oninput="handleCodeInput(this, 3)" onkeydown="handleCodeKeydown(event, 3)">
+                        <input type="text" class="code-input" maxlength="1" data-index="4" oninput="handleCodeInput(this, 4)" onkeydown="handleCodeKeydown(event, 4)">
+                        <input type="text" class="code-input" maxlength="1" data-index="5" oninput="handleCodeInput(this, 5)" onkeydown="handleCodeKeydown(event, 5)">
                     </div>
                     <input type="hidden" id="full-reset-code">
                     
@@ -244,7 +246,7 @@
                     <p id="countdown" style="color: #6b7280; font-size: 0.85rem; margin-top: 0.5rem;"></p>
                 </div>
                 
-                <button onclick="goToStep(1)" class="btn-secondary" style="width: 100%; margin-top: 0.75rem; background: none; border: none; color: #6b7280; cursor: pointer;">
+                <button onclick="goToStep(1)" style="width: 100%; margin-top: 0.75rem; background: none; border: none; color: #6b7280; cursor: pointer;">
                     <i class="fas fa-arrow-left"></i> Back
                 </button>
             </div>
@@ -257,7 +259,7 @@
                     <p>Create a strong password for your account</p>
                 </div>
                 
-                <form id="reset-password-form">
+                <form id="reset-password-form" onsubmit="handleResetPassword(event)">
                     <div class="form-group">
                         <label>New Password</label>
                         <div class="input-group">
@@ -343,17 +345,31 @@
             }
         });
 
-        // ========== FORGOT PASSWORD FLOW ==========
+        // ========== FORGOT PASSWORD FUNCTIONS ==========
         
         function openForgotPasswordModal(e) {
-            if (e) e.preventDefault();
-            document.getElementById('forgotPasswordModal').classList.add('active');
-            document.body.style.overflow = 'hidden';
+            console.log('Opening forgot password modal...');
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            const modal = document.getElementById('forgotPasswordModal');
+            if (modal) {
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                console.log('Modal opened successfully');
+            } else {
+                console.error('Modal element not found!');
+            }
+            return false;
         }
 
         function closeForgotPasswordModal() {
-            document.getElementById('forgotPasswordModal').classList.remove('active');
-            document.body.style.overflow = '';
+            const modal = document.getElementById('forgotPasswordModal');
+            if (modal) {
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+            }
             resetFlow();
         }
 
@@ -362,23 +378,45 @@
             document.getElementById('email').focus();
         }
 
+        function closeModalOnOutsideClick(event) {
+            if (event.target.id === 'forgotPasswordModal') {
+                closeForgotPasswordModal();
+            }
+        }
+
         function resetFlow() {
             resetEmail = '';
             goToStep(1);
-            document.getElementById('reset-email').value = '';
-            document.getElementById('new-password').value = '';
-            document.getElementById('confirm-password').value = '';
+            const resetEmailInput = document.getElementById('reset-email');
+            if (resetEmailInput) resetEmailInput.value = '';
+            
+            const newPass = document.getElementById('new-password');
+            if (newPass) newPass.value = '';
+            
+            const confirmPass = document.getElementById('confirm-password');
+            if (confirmPass) confirmPass.value = '';
+            
             document.querySelectorAll('.code-input').forEach(input => input.value = '');
+            
+            const fullCode = document.getElementById('full-reset-code');
+            if (fullCode) fullCode.value = '';
+            
             clearInterval(resendTimer);
         }
 
         function goToStep(stepNum) {
-            document.querySelectorAll('.step').forEach(step => step.classList.remove('active'));
-            document.getElementById(`step${stepNum}`).classList.add('active');
+            console.log('Going to step:', stepNum);
+            document.querySelectorAll('.step').forEach(step => {
+                step.classList.remove('active');
+            });
+            const targetStep = document.getElementById(`step${stepNum}`);
+            if (targetStep) {
+                targetStep.classList.add('active');
+            }
         }
 
         // Step 1: Request reset code
-        document.getElementById('forgot-password-form').addEventListener('submit', async (e) => {
+        async function handleForgotPassword(e) {
             e.preventDefault();
             
             resetEmail = document.getElementById('reset-email').value.trim().toLowerCase();
@@ -389,6 +427,8 @@
             btn.disabled = true;
 
             try {
+                console.log('Sending forgot password request for:', resetEmail);
+                
                 const response = await fetch(`${API_BASE_URL}/users/forgot-password`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -396,13 +436,16 @@
                 });
 
                 const data = await response.json();
+                console.log('Response:', data);
 
                 if (response.ok) {
                     if (data.phone_masked) {
                         document.getElementById('masked-phone-display').textContent = data.phone_masked;
                         showToast('Reset code sent to your phone!', 'success');
                         goToStep(2);
-                        setupCodeInputs();
+                        setTimeout(() => {
+                            document.querySelector('.code-input[data-index="0"]').focus();
+                        }, 100);
                         startResendCountdown();
                     } else {
                         showToast(data.message, 'success');
@@ -412,44 +455,42 @@
                     showToast(data.detail || 'Failed to send reset code', 'error');
                 }
             } catch (error) {
-                showToast('Network error. Please try again.', 'error');
                 console.error('Forgot password error:', error);
+                showToast('Network error. Please try again.', 'error');
             } finally {
                 btn.innerHTML = originalText;
                 btn.disabled = false;
             }
-        });
-
-        // Setup code input auto-tab
-        function setupCodeInputs() {
-            const inputs = document.querySelectorAll('.code-input');
-            inputs.forEach((input, index) => {
-                input.addEventListener('input', (e) => {
-                    // Only allow numbers
-                    e.target.value = e.target.value.replace(/[^0-9]/g, '');
-                    
-                    // Auto-focus next
-                    if (e.target.value && index < inputs.length - 1) {
-                        inputs[index + 1].focus();
-                    }
-                    
-                    // Update hidden full code
-                    const code = Array.from(inputs).map(i => i.value).join('');
-                    document.getElementById('full-reset-code').value = code;
-                });
-
-                input.addEventListener('keydown', (e) => {
-                    // Backspace to go back
-                    if (e.key === 'Backspace' && !e.target.value && index > 0) {
-                        inputs[index - 1].focus();
-                    }
-                });
-            });
-            inputs[0].focus();
         }
 
-        // Step 2: Verify code (optional - can skip to step 3)
-        document.getElementById('verify-code-form').addEventListener('submit', async (e) => {
+        // Code input handling
+        function handleCodeInput(input, index) {
+            // Only allow numbers
+            input.value = input.value.replace(/[^0-9]/g, '');
+            
+            const inputs = document.querySelectorAll('.code-input');
+            
+            // Auto-focus next
+            if (input.value && index < inputs.length - 1) {
+                inputs[index + 1].focus();
+            }
+            
+            // Update hidden full code
+            const code = Array.from(inputs).map(i => i.value).join('');
+            document.getElementById('full-reset-code').value = code;
+        }
+
+        function handleCodeKeydown(event, index) {
+            const inputs = document.querySelectorAll('.code-input');
+            
+            // Backspace to go back
+            if (event.key === 'Backspace' && !event.target.value && index > 0) {
+                inputs[index - 1].focus();
+            }
+        }
+
+        // Step 2: Verify code
+        function handleVerifyCode(e) {
             e.preventDefault();
             
             const code = document.getElementById('full-reset-code').value;
@@ -459,9 +500,8 @@
                 return;
             }
 
-            // Code is valid format, proceed to new password
             goToStep(3);
-        });
+        }
 
         // Resend code
         async function resendCode() {
@@ -499,6 +539,7 @@
             const countdownEl = document.getElementById('countdown');
             
             clearInterval(resendTimer);
+            btn.disabled = true;
             
             resendTimer = setInterval(() => {
                 seconds--;
@@ -513,7 +554,7 @@
         }
 
         // Step 3: Reset password
-        document.getElementById('reset-password-form').addEventListener('submit', async (e) => {
+        async function handleResetPassword(e) {
             e.preventDefault();
             
             const newPassword = document.getElementById('new-password').value;
@@ -564,14 +605,7 @@
                 btn.innerHTML = originalText;
                 btn.disabled = false;
             }
-        });
-
-        // Close modal on outside click
-        document.getElementById('forgotPasswordModal').addEventListener('click', (e) => {
-            if (e.target === e.currentTarget) {
-                closeForgotPasswordModal();
-            }
-        });
+        }
 
         // Toast notification
         function showToast(message, type = 'success') {
@@ -579,7 +613,7 @@
             existingToasts.forEach(t => t.remove());
             
             const toast = document.createElement('div');
-            toast.className = `toast ${type} show`;
+            toast.className = `toast ${type}`;
             
             const colors = {
                 success: '#10b981',
@@ -596,35 +630,34 @@
                 border-radius: 10px;
                 color: white;
                 font-weight: 500;
-                z-index: 10000;
-                animation: slideIn 0.3s ease;
+                z-index: 10001;
                 background: ${colors[type] || colors.success};
                 box-shadow: 0 10px 40px rgba(0,0,0,0.2);
                 max-width: 400px;
                 word-wrap: break-word;
+                transform: translateX(100%);
+                transition: transform 0.3s ease;
             `;
             toast.textContent = message;
             document.body.appendChild(toast);
             
+            // Animate in
             setTimeout(() => {
-                toast.style.animation = 'slideOut 0.3s ease';
+                toast.style.transform = 'translateX(0)';
+            }, 10);
+            
+            // Animate out and remove
+            setTimeout(() => {
+                toast.style.transform = 'translateX(100%)';
                 setTimeout(() => toast.remove(), 300);
             }, 3000);
         }
 
-        // Add animations
-        const toastStyles = document.createElement('style');
-        toastStyles.textContent = `
-            @keyframes slideIn {
-                from { transform: translateX(100%); opacity: 0; }
-                to { transform: translateX(0); opacity: 1; }
-            }
-            @keyframes slideOut {
-                from { transform: translateX(0); opacity: 1; }
-                to { transform: translateX(100%); opacity: 0; }
-            }
-        `;
-        document.head.appendChild(toastStyles);
+        // Debug: Log when page loads
+        console.log('Login page loaded. Forgot password functions available:', {
+            openForgotPasswordModal: typeof openForgotPasswordModal,
+            closeForgotPasswordModal: typeof closeForgotPasswordModal
+        });
     </script>
 </body>
 </html>
