@@ -1,4 +1,10 @@
-// Checkout Process - Fixed Version (No Double Submission)
+// Checkout Process - Complete Fixed Version
+// Prevents double submission, handles errors properly
+
+// Module-level variables
+let isSubmitting = false;
+let lastSubmitTime = 0;
+const SUBMIT_COOLDOWN = 5000; // 5 seconds between submissions
 
 /**
  * Get cart from localStorage
@@ -44,7 +50,7 @@ window.loadCheckoutSummary = function() {
         container.innerHTML = cart.map(item => `
             <div class="summary-item" style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #eee;">
                 <div style="display:flex; align-items:center; gap:10px;">
-                    <img src="${item.image_url || 'https://via.placeholder.com/50'}" style="width:50px;height:50px;object-fit:cover;border-radius:5px;">
+                    <img src="${item.image_url || 'https://via.placeholder.com/50'}" style="width:50px;height:50px;object-fit:cover;border-radius:5px;" alt="${item.name}">
                     <div>
                         <div style="font-weight:bold;">${item.name}</div>
                         <div style="color:#666;font-size:0.9em;">Qty: ${item.quantity}</div>
@@ -128,46 +134,126 @@ function toggleLoading(show) {
     }
 }
 
-// Flag to prevent double submission
-let isSubmitting = false;
+/**
+ * Show toast notification
+ */
+function showToast(message, type = 'success') {
+    // Remove existing toasts
+    document.querySelectorAll('.toast-notification').forEach(t => t.remove());
+    
+    const toast = document.createElement('div');
+    toast.className = `toast-notification ${type}`;
+    toast.textContent = message;
+    
+    const colors = {
+        success: '#10b981',
+        error: '#ef4444',
+        warning: '#f59e0b',
+        info: '#3b82f6'
+    };
+    
+    toast.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        padding: 15px 25px;
+        border-radius: 10px;
+        color: white;
+        font-weight: 500;
+        z-index: 10001;
+        background: ${colors[type] || colors.success};
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Animate in
+    setTimeout(() => toast.style.transform = 'translateX(0)', 10);
+    
+    // Remove after delay
+    setTimeout(() => {
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
 
 /**
- * Place order - EXPOSED GLOBALLY
+ * Reset submit button state
+ */
+function resetSubmitButton() {
+    isSubmitting = false;
+    const btn = document.querySelector('#checkout-form button[type="submit"]');
+    if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = 'Place Order <i class="fas fa-check"></i>';
+    }
+}
+
+/**
+ * Place order - EXPOSED GLOBALLY with duplicate protection
  */
 window.placeOrder = async function() {
-    // Prevent double submission
+    // Prevent double submission - check flag
     if (isSubmitting) {
-        console.log('Already submitting, ignoring duplicate request');
+        console.log('Already submitting, please wait...');
+        showToast('Please wait, processing your order...', 'info');
         return;
     }
     
-    isSubmitting = true;
+    // Prevent rapid re-submission (5 second cooldown)
+    const now = Date.now();
+    if (now - lastSubmitTime < SUBMIT_COOLDOWN) {
+        console.log('Submit too soon, blocking');
+        showToast('Please wait a moment before trying again', 'warning');
+        return;
+    }
     
-    // Check authentication first
+    // Set submission flag
+    isSubmitting = true;
+    lastSubmitTime = now;
+    
+    // Disable button immediately
+    const submitBtn = document.querySelector('#checkout-form button[type="submit"]');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    }
+    
+    // Check authentication
     if (typeof isTokenExpired === 'function' && isTokenExpired()) {
         showToast('Please login to place an order', 'error');
         setTimeout(() => {
             window.location.href = 'login.html';
         }, 1500);
-        isSubmitting = false;
+        resetSubmitButton();
         return;
     }
     
     // Validate form
     const orderData = validateCheckoutForm();
     if (!orderData) {
-        isSubmitting = false;
+        resetSubmitButton();
         return;
     }
     
-    // Show loading
+    // Show loading modal
     toggleLoading(true);
     
     console.log('Sending order:', orderData);
     
     try {
-        const response = await fetchWithAuth(`${window.API_BASE_URL || 'https://apiaro-backend.onrender.com'}/orders/`, {
+        // Use fetchWithAuth from auth.js (global) or fallback to regular fetch
+        const fetchFn = typeof fetchWithAuth === 'function' ? fetchWithAuth : fetch;
+        const apiUrl = window.API_BASE_URL || 'https://apiaro-backend.onrender.com';
+        
+        const response = await fetchFn(`${apiUrl}/orders/`, {
             method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+            },
             body: JSON.stringify(orderData)
         });
         
@@ -184,6 +270,7 @@ window.placeOrder = async function() {
             // Show success
             showSuccessModal(result.id);
         } else {
+            // Handle specific errors
             const errorMsg = result.detail || 'Failed to place order';
             console.error('Order error:', result);
             
@@ -197,18 +284,23 @@ window.placeOrder = async function() {
             } else {
                 alert('Error: ' + errorMsg);
             }
-            isSubmitting = false;
+            
+            // Re-enable button on error
+            resetSubmitButton();
         }
     } catch (error) {
         toggleLoading(false);
-        isSubmitting = false;
         
         if (error.message === 'Unauthorized' || error.message === 'Token expired') {
+            resetSubmitButton();
             return;
         }
         
         console.error('Order error:', error);
         alert('Network error. Please check your connection and try again.');
+        
+        // Re-enable button on error
+        resetSubmitButton();
     }
 };
 
@@ -223,6 +315,7 @@ function showSuccessModal(orderId) {
         
         successModal.style.display = 'flex';
         
+        // Auto redirect after 3 seconds
         setTimeout(() => {
             window.location.href = 'orders.html';
         }, 3000);
@@ -232,32 +325,62 @@ function showSuccessModal(orderId) {
     }
 }
 
-// Initialize checkout page when DOM is ready
+/**
+ * Initialize checkout page
+ */
+function initCheckout() {
+    // Only run on checkout page
+    if (!document.getElementById('checkout-items')) {
+        console.log('Not on checkout page, skipping init');
+        return;
+    }
+    
+    console.log('Initializing checkout...');
+    
+    // Load summary
+    loadCheckoutSummary();
+    
+    // Setup form with duplicate protection
+    setupCheckoutForm();
+}
+
+/**
+ * Setup form event listener with protection against double attachments
+ */
+function setupCheckoutForm() {
+    const checkoutForm = document.getElementById('checkout-form');
+    if (!checkoutForm) {
+        console.error('Checkout form not found!');
+        return;
+    }
+    
+    // Clone and replace to remove ANY existing listeners (prevents duplicates)
+    const newForm = checkoutForm.cloneNode(true);
+    checkoutForm.parentNode.replaceChild(newForm, checkoutForm);
+    
+    // Add single submit listener
+    newForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        console.log('Form submitted, calling placeOrder...');
+        window.placeOrder();
+    });
+    
+    console.log('Checkout form initialized with duplicate protection');
+}
+
+// Initialize when DOM is ready
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initCheckout);
 } else {
+    // DOM already loaded
     initCheckout();
 }
 
-function initCheckout() {
-    // Only run on checkout page
-    if (!document.getElementById('checkout-items')) return;
-    
-    console.log('Initializing checkout...');
-    loadCheckoutSummary();
-    
-    // IMPORTANT: Remove any existing listeners first
-    const checkoutForm = document.getElementById('checkout-form');
-    if (checkoutForm) {
-        // Clone and replace to remove all existing listeners
-        const newForm = checkoutForm.cloneNode(true);
-        checkoutForm.parentNode.replaceChild(newForm, checkoutForm);
-        
-        // Add single listener
-        newForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            window.placeOrder();
-        });
-    }
-}
+// Also expose functions globally for inline handlers
+window.getCart = getCart;
+window.clearCart = clearCart;
+window.updateCartCount = updateCartCount;
+window.toggleLoading = toggleLoading;
+window.showSuccessModal = showSuccessModal;

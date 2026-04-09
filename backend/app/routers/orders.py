@@ -1,19 +1,53 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session, joinedload
 from typing import List
 from decimal import Decimal
+from datetime import datetime, timedelta, timezone
 from app.database import get_db
 from app import models, schemas, auth
+import time
 
 router = APIRouter(prefix="/orders", tags=["orders"])
+
+# Store recent order signatures to prevent duplicates (in-memory cache)
+# Format: {user_id_timestamp: timestamp}
+recent_orders_cache = {}
 
 @router.post("/", response_model=schemas.OrderResponse, status_code=status.HTTP_201_CREATED)
 def create_order(
     order: schemas.OrderCreate,
+    request: Request,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_active_user)
 ):
-    """Create a new order - NO SMS, NO PAYMENT REQUIRED FIRST"""
+    """Create a new order - DUPLICATE PROTECTION ADDED"""
+    
+    # ===== DUPLICATE PREVENTION =====
+    # Create a signature based on user + items + total
+    items_signature = ",".join([f"{item.product_id}:{item.quantity}" for item in sorted(order.items, key=lambda x: x.product_id)])
+    order_signature = f"{current_user.id}:{items_signature}:{order.total_amount}"
+    current_time = time.time()
+    
+    # Check if similar order was created in last 30 seconds
+    if order_signature in recent_orders_cache:
+        last_time = recent_orders_cache[order_signature]
+        if current_time - last_time < 30:  # 30 second cooldown
+            print(f"DUPLICATE ORDER BLOCKED: User {current_user.id} tried to create identical order within 30 seconds")
+            # Return the most recent order instead
+            recent_order = db.query(models.Order).filter(
+                models.Order.user_id == current_user.id
+            ).order_by(models.Order.created_at.desc()).first()
+            if recent_order:
+                return recent_order
+    
+    # Update cache
+    recent_orders_cache[order_signature] = current_time
+    # Clean old cache entries (older than 5 minutes)
+    cutoff_time = current_time - 300
+    for key in list(recent_orders_cache.keys()):
+        if recent_orders_cache[key] < cutoff_time:
+            del recent_orders_cache[key]
+    # ===== END DUPLICATE PREVENTION =====
     
     # Validate terms accepted
     if not order.terms_accepted:
@@ -51,7 +85,7 @@ def create_order(
         order_items_data.append({
             "product_id": product.id,
             "product_name": product.name,
-            "product_image": product.image_url,  # ← STORE IMAGE URL
+            "product_image": product.image_url,
             "quantity": item.quantity,
             "unit_price": product.price,
             "total_price": item_total
@@ -87,7 +121,7 @@ def create_order(
             order_id=db_order.id,
             product_id=item_data["product_id"],
             product_name=item_data["product_name"],
-            product_image=item_data["product_image"],  # ← SAVE IMAGE
+            product_image=item_data["product_image"],
             quantity=item_data["quantity"],
             unit_price=item_data["unit_price"],
             total_price=item_data["total_price"]
@@ -103,6 +137,7 @@ def create_order(
     db.commit()
     db.refresh(db_order)
     
+    print(f"Order {db_order.id} created successfully for user {current_user.id}")
     return db_order
 
 @router.get("/", response_model=List[schemas.OrderResponse])
