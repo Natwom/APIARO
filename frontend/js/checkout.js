@@ -1,5 +1,4 @@
-// Checkout Process - Fixed Version
-// Use global API_BASE_URL from auth.js, don't redeclare
+// Checkout Process - Fixed Version (No Double Submission)
 
 /**
  * Get cart from localStorage
@@ -67,7 +66,6 @@ window.loadCheckoutSummary = function() {
  * @returns {object|null} order data if valid, null if invalid
  */
 function validateCheckoutForm() {
-    // Get form values
     const fullName = document.getElementById('full_name')?.value?.trim();
     const phone = document.getElementById('phone')?.value?.trim();
     const email = document.getElementById('email')?.value?.trim();
@@ -78,7 +76,6 @@ function validateCheckoutForm() {
     const paymentMethod = document.querySelector('input[name="payment"]:checked')?.value;
     const notes = document.getElementById('notes')?.value?.trim() || "";
     
-    // Validation
     const errors = [];
     
     if (!fullName) errors.push('Full name is required');
@@ -131,22 +128,37 @@ function toggleLoading(show) {
     }
 }
 
+// Flag to prevent double submission
+let isSubmitting = false;
+
 /**
  * Place order - EXPOSED GLOBALLY
  */
 window.placeOrder = async function() {
+    // Prevent double submission
+    if (isSubmitting) {
+        console.log('Already submitting, ignoring duplicate request');
+        return;
+    }
+    
+    isSubmitting = true;
+    
     // Check authentication first
     if (typeof isTokenExpired === 'function' && isTokenExpired()) {
         showToast('Please login to place an order', 'error');
         setTimeout(() => {
             window.location.href = 'login.html';
         }, 1500);
+        isSubmitting = false;
         return;
     }
     
     // Validate form
     const orderData = validateCheckoutForm();
-    if (!orderData) return;
+    if (!orderData) {
+        isSubmitting = false;
+        return;
+    }
     
     // Show loading
     toggleLoading(true);
@@ -154,7 +166,6 @@ window.placeOrder = async function() {
     console.log('Sending order:', orderData);
     
     try {
-        // Use fetchWithAuth from auth.js (global)
         const response = await fetchWithAuth(`${window.API_BASE_URL || 'https://apiaro-backend.onrender.com'}/orders/`, {
             method: 'POST',
             body: JSON.stringify(orderData)
@@ -173,7 +184,6 @@ window.placeOrder = async function() {
             // Show success
             showSuccessModal(result.id);
         } else {
-            // Handle specific error cases
             const errorMsg = result.detail || 'Failed to place order';
             console.error('Order error:', result);
             
@@ -187,12 +197,13 @@ window.placeOrder = async function() {
             } else {
                 alert('Error: ' + errorMsg);
             }
+            isSubmitting = false;
         }
     } catch (error) {
         toggleLoading(false);
+        isSubmitting = false;
         
         if (error.message === 'Unauthorized' || error.message === 'Token expired') {
-            // Already handled by fetchWithAuth
             return;
         }
         
@@ -207,13 +218,11 @@ window.placeOrder = async function() {
 function showSuccessModal(orderId) {
     const successModal = document.getElementById('success-modal');
     if (successModal) {
-        // Update order ID in modal if element exists
         const orderIdEl = document.getElementById('success-order-id');
         if (orderIdEl) orderIdEl.textContent = orderId;
         
         successModal.style.display = 'flex';
         
-        // Auto redirect after 3 seconds
         setTimeout(() => {
             window.location.href = 'orders.html';
         }, 3000);
@@ -237,17 +246,17 @@ function initCheckout() {
     console.log('Initializing checkout...');
     loadCheckoutSummary();
     
-    // Attach form submit handler if button exists
-    const placeOrderBtn = document.getElementById('place-order-btn');
-    if (placeOrderBtn) {
-        placeOrderBtn.addEventListener('click', window.placeOrder);
-    }
-    
-    // Also handle form submission if it's a form
+    // IMPORTANT: Remove any existing listeners first
     const checkoutForm = document.getElementById('checkout-form');
     if (checkoutForm) {
-        checkoutForm.addEventListener('submit', (e) => {
+        // Clone and replace to remove all existing listeners
+        const newForm = checkoutForm.cloneNode(true);
+        checkoutForm.parentNode.replaceChild(newForm, checkoutForm);
+        
+        // Add single listener
+        newForm.addEventListener('submit', (e) => {
             e.preventDefault();
+            e.stopPropagation();
             window.placeOrder();
         });
     }
