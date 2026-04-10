@@ -1,23 +1,19 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import and_
 from typing import List
 from decimal import Decimal
 from datetime import datetime, timedelta, timezone
-import hashlib
-import time
+import threading
 
-from app.database import get_db
+from app.database import get_db, DATABASE_URL
 from app import models, schemas, auth
 from services.sms_service import send_order_confirmation
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 
-def generate_order_signature(user_id: int, items: list, total: Decimal) -> str:
-    """Generate unique signature for order to detect duplicates"""
-    items_str = ",".join([f"{item.product_id}:{item.quantity}" for item in sorted(items, key=lambda x: x.product_id)])
-    signature_str = f"{user_id}:{items_str}:{float(total)}:{int(time.time()) // 30}"  # 30-second window
-    return hashlib.md5(signature_str.encode()).hexdigest()
+# Lock for SQLite to prevent race conditions
+db_lock = threading.Lock()
 
 @router.post("/", response_model=schemas.OrderResponse, status_code=status.HTTP_201_CREATED)
 def create_order(
@@ -26,7 +22,7 @@ def create_order(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_active_user)
 ):
-    """Create new order with DATABASE LEVEL duplicate prevention"""
+    """Create new order with DUPLICATE PREVENTION"""
     
     # Validate terms
     if not order.terms_accepted:
@@ -35,7 +31,7 @@ def create_order(
             detail="You must accept the Terms and Conditions"
         )
     
-    # Calculate total and validate products first
+    # Calculate totals and validate products
     total_amount = Decimal('0.00')
     order_items_data = []
     
@@ -51,7 +47,7 @@ def create_order(
         if product.stock_quantity < item.quantity:
             raise HTTPException(
                 status_code=400,
-                detail=f"Insufficient stock for {product.name}. Available: {product.stock_quantity}"
+                detail=f"Insufficient stock for {product.name}"
             )
         
         item_total = Decimal(str(product.price)) * item.quantity
@@ -68,44 +64,52 @@ def create_order(
     
     total_amount += Decimal('300.00')  # Delivery fee
     
-    # ===== DATABASE LEVEL DUPLICATE PREVENTION =====
-    # Check for exact duplicate in last 60 seconds
-    one_minute_ago = datetime.now(timezone.utc) - timedelta(seconds=60)
+    # ===== DUPLICATE PREVENTION (90-second window) =====
+    ninety_seconds_ago = datetime.now(timezone.utc) - timedelta(seconds=90)
     
     recent_duplicate = db.query(models.Order).filter(
         and_(
             models.Order.user_id == current_user.id,
-            models.Order.created_at >= one_minute_ago,
+            models.Order.created_at >= ninety_seconds_ago,
             models.Order.phone_number == order.phone_number,
             models.Order.total_amount == total_amount,
-            models.Order.payment_method == order.payment_method
+            models.Order.status != "cancelled"
         )
     ).order_by(models.Order.created_at.desc()).first()
     
     if recent_duplicate:
-        print(f"🚫 DUPLICATE BLOCKED: Returning existing order #{recent_duplicate.id} instead of creating new")
-        # Return existing order - don't create duplicate
+        print(f"🚫 DUPLICATE BLOCKED: Returning existing order #{recent_duplicate.id}")
         return recent_duplicate
     # ===== END DUPLICATE PREVENTION =====
     
-    # Create the order
-    db_order = models.Order(
-        user_id=current_user.id,
-        full_name=order.full_name,
-        phone_number=order.phone_number,
-        email=order.email,
-        county=order.county,
-        town=order.town,
-        specific_location=order.specific_location,
-        notes=order.notes,
-        payment_method=order.payment_method,
-        total_amount=total_amount,
-        status="pending",
-        terms_accepted=order.terms_accepted,
-        sms_sent=False
-    )
+    # Use lock for SQLite
+    is_sqlite = "sqlite" in str(DATABASE_URL)
+    lock_acquired = False
+    
+    if is_sqlite:
+        lock_acquired = db_lock.acquire(timeout=10)
+        if not lock_acquired:
+            raise HTTPException(status_code=503, detail="Server busy, please retry")
     
     try:
+        # Create order
+        db_order = models.Order(
+            user_id=current_user.id,
+            full_name=order.full_name,
+            phone_number=order.phone_number,
+            email=order.email,
+            county=order.county,
+            town=order.town,
+            specific_location=order.specific_location,
+            notes=order.notes,
+            payment_method=order.payment_method,
+            total_amount=total_amount,
+            status="pending",
+            terms_accepted=order.terms_accepted,
+            sms_sent=False,
+            created_at=datetime.now(timezone.utc)
+        )
+        
         db.add(db_order)
         db.commit()
         db.refresh(db_order)
@@ -127,27 +131,34 @@ def create_order(
             product = db.query(models.Product).filter(
                 models.Product.id == item_data["product_id"]
             ).first()
-            product.stock_quantity -= item_data["quantity"]
+            if product:
+                product.stock_quantity -= item_data["quantity"]
         
         db.commit()
         db.refresh(db_order)
         
-        # Send confirmation SMS in background (only if not duplicate)
-        if current_user.phone_number:
+        print(f"✅ Order #{db_order.id} created")
+        
+        # Send SMS
+        try:
             background_tasks.add_task(
                 send_order_confirmation,
-                current_user.phone_number,
-                current_user.full_name,
+                order.phone_number,
+                order.full_name,
                 db_order.id
             )
+        except Exception as e:
+            print(f"SMS failed: {e}")
         
-        print(f"✅ Order #{db_order.id} created successfully for user {current_user.id}")
         return db_order
         
     except Exception as e:
         db.rollback()
-        print(f"❌ Error creating order: {e}")
-        raise HTTPException(status_code=500, detail="Failed to create order. Please try again.")
+        print(f"❌ Order error: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to create order: {str(e)}")
+    finally:
+        if lock_acquired:
+            db_lock.release()
 
 @router.get("/", response_model=List[schemas.OrderResponse])
 def get_user_orders(
@@ -181,7 +192,7 @@ def get_all_orders(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_active_user)
 ):
-    """Get all orders (admin only)"""
+    """Get all orders (admin)"""
     orders = db.query(models.Order).options(
         joinedload(models.Order.items)
     ).order_by(models.Order.created_at.desc()).all()
@@ -194,7 +205,7 @@ def update_order_status(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_active_user)
 ):
-    """Update order status (admin only)"""
+    """Update order status"""
     order = db.query(models.Order).filter(models.Order.id == order_id).first()
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
