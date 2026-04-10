@@ -1,10 +1,10 @@
-// Checkout Process - Complete Fixed Version
-// Prevents double submission, handles errors properly
+// Checkout Process - COMPLETE FIXED VERSION
+// Prevents ALL duplicate submissions
 
-// Module-level variables
+// State management
 let isSubmitting = false;
-let lastSubmitTime = 0;
-const SUBMIT_COOLDOWN = 5000; // 5 seconds between submissions
+let submitStartTime = 0;
+const SUBMIT_LOCK_DURATION = 10000; // 10 seconds
 
 /**
  * Get cart from localStorage
@@ -14,14 +14,15 @@ function getCart() {
 }
 
 /**
- * Clear cart
+ * Clear cart completely
  */
 function clearCart() {
     localStorage.removeItem('cart');
+    updateCartCount();
 }
 
 /**
- * Update cart count in header
+ * Update cart count badge
  */
 function updateCartCount() {
     const cart = getCart();
@@ -31,7 +32,7 @@ function updateCartCount() {
 }
 
 /**
- * Load checkout summary - EXPOSED GLOBALLY
+ * Load checkout summary
  */
 window.loadCheckoutSummary = function() {
     const cart = getCart();
@@ -42,7 +43,12 @@ window.loadCheckoutSummary = function() {
         return;
     }
     
-    const subtotal = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
+    const subtotal = cart.reduce((sum, item) => {
+        const price = parseFloat(item.price) || 0;
+        const qty = parseInt(item.quantity) || 0;
+        return sum + (price * qty);
+    }, 0);
+    
     const delivery = 300;
     const total = subtotal + delivery;
     
@@ -50,7 +56,9 @@ window.loadCheckoutSummary = function() {
         container.innerHTML = cart.map(item => `
             <div class="summary-item" style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #eee;">
                 <div style="display:flex; align-items:center; gap:10px;">
-                    <img src="${item.image_url || 'https://via.placeholder.com/50'}" style="width:50px;height:50px;object-fit:cover;border-radius:5px;" alt="${item.name}">
+                    <img src="${item.image_url || 'https://via.placeholder.com/50'}" 
+                         style="width:50px;height:50px;object-fit:cover;border-radius:5px;" 
+                         alt="${item.name}">
                     <div>
                         <div style="font-weight:bold;">${item.name}</div>
                         <div style="color:#666;font-size:0.9em;">Qty: ${item.quantity}</div>
@@ -68,8 +76,7 @@ window.loadCheckoutSummary = function() {
 };
 
 /**
- * Validate checkout form
- * @returns {object|null} order data if valid, null if invalid
+ * Validate form fields
  */
 function validateCheckoutForm() {
     const fullName = document.getElementById('full_name')?.value?.trim();
@@ -119,13 +126,13 @@ function validateCheckoutForm() {
         terms_accepted: true,
         items: cart.map(item => ({
             product_id: item.product_id,
-            quantity: item.quantity
+            quantity: parseInt(item.quantity) || 1
         }))
     };
 }
 
 /**
- * Show/hide loading modal
+ * Toggle loading modal
  */
 function toggleLoading(show) {
     const loadingModal = document.getElementById('loading-modal');
@@ -138,12 +145,11 @@ function toggleLoading(show) {
  * Show toast notification
  */
 function showToast(message, type = 'success') {
-    // Remove existing toasts
+    // Remove existing
     document.querySelectorAll('.toast-notification').forEach(t => t.remove());
     
     const toast = document.createElement('div');
     toast.className = `toast-notification ${type}`;
-    toast.textContent = message;
     
     const colors = {
         success: '#10b981',
@@ -163,121 +169,125 @@ function showToast(message, type = 'success') {
         z-index: 10001;
         background: ${colors[type] || colors.success};
         box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        max-width: 350px;
+        word-wrap: break-word;
         transform: translateX(100%);
         transition: transform 0.3s ease;
     `;
-    
+    toast.textContent = message;
     document.body.appendChild(toast);
     
-    // Animate in
-    setTimeout(() => toast.style.transform = 'translateX(0)', 10);
+    requestAnimationFrame(() => {
+        toast.style.transform = 'translateX(0)';
+    });
     
-    // Remove after delay
     setTimeout(() => {
         toast.style.transform = 'translateX(100%)';
         setTimeout(() => toast.remove(), 300);
-    }, 3000);
+    }, 4000);
 }
 
 /**
- * Reset submit button state
- */
-function resetSubmitButton() {
-    isSubmitting = false;
-    const btn = document.querySelector('#checkout-form button[type="submit"]');
-    if (btn) {
-        btn.disabled = false;
-        btn.innerHTML = 'Place Order <i class="fas fa-check"></i>';
-    }
-}
-
-/**
- * Place order - EXPOSED GLOBALLY with duplicate protection
+ * PLACE ORDER - Main function with maximum duplicate protection
  */
 window.placeOrder = async function() {
-    // Prevent double submission - check flag
+    console.log('🚀 placeOrder called at:', new Date().toISOString());
+    
+    // GUARD 1: Check if already submitting
     if (isSubmitting) {
-        console.log('Already submitting, please wait...');
+        console.log('⛔ BLOCKED: Already submitting');
         showToast('Please wait, processing your order...', 'info');
         return;
     }
     
-    // Prevent rapid re-submission (5 second cooldown)
+    // GUARD 2: Check time since last submit (prevent double-click)
     const now = Date.now();
-    if (now - lastSubmitTime < SUBMIT_COOLDOWN) {
-        console.log('Submit too soon, blocking');
-        showToast('Please wait a moment before trying again', 'warning');
+    const timeSinceLastSubmit = now - submitStartTime;
+    if (timeSinceLastSubmit < SUBMIT_LOCK_DURATION) {
+        console.log(`⛔ BLOCKED: ${timeSinceLastSubmit}ms since last submit`);
+        showToast('Please wait, order is being processed...', 'warning');
         return;
     }
     
-    // Set submission flag
-    isSubmitting = true;
-    lastSubmitTime = now;
+    // GUARD 3: Check if order was recently placed (localStorage)
+    const lastOrderTime = localStorage.getItem('last_order_timestamp');
+    const lastOrderTotal = localStorage.getItem('last_order_total');
+    if (lastOrderTime) {
+        const timeSinceLastOrder = now - parseInt(lastOrderTime);
+        if (timeSinceLastOrder < 30000) { // 30 seconds
+            console.log('⛔ BLOCKED: Recent order found in localStorage');
+            showToast('You just placed an order! Please check your orders page.', 'info');
+            window.location.href = 'orders.html';
+            return;
+        }
+    }
     
-    // Disable button immediately
+    // Set submission lock
+    isSubmitting = true;
+    submitStartTime = now;
+    
+    // Disable submit button immediately
     const submitBtn = document.querySelector('#checkout-form button[type="submit"]');
     if (submitBtn) {
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        submitBtn.style.opacity = '0.7';
     }
     
-    // Check authentication
+    // Check auth
     if (typeof isTokenExpired === 'function' && isTokenExpired()) {
         showToast('Please login to place an order', 'error');
-        setTimeout(() => {
-            window.location.href = 'login.html';
-        }, 1500);
-        resetSubmitButton();
+        setTimeout(() => window.location.href = 'login.html', 1500);
+        resetSubmitState();
         return;
     }
     
     // Validate form
     const orderData = validateCheckoutForm();
     if (!orderData) {
-        resetSubmitButton();
+        resetSubmitState();
         return;
     }
     
-    // Show loading modal
+    // Show loading
     toggleLoading(true);
     
-    console.log('Sending order:', orderData);
-    
     try {
-        // Use fetchWithAuth from auth.js (global) or fallback to regular fetch
-        const fetchFn = typeof fetchWithAuth === 'function' ? fetchWithAuth : fetch;
         const apiUrl = window.API_BASE_URL || 'https://apiaro-backend.onrender.com';
+        const token = localStorage.getItem('token');
         
-        const response = await fetchFn(`${apiUrl}/orders/`, {
+        console.log('📤 Sending order to:', `${apiUrl}/orders/`);
+        
+        const response = await fetch(`${apiUrl}/orders/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify(orderData)
         });
         
         const result = await response.json();
-        console.log('Order response:', result);
+        console.log('📥 Response:', result);
         
         toggleLoading(false);
         
         if (response.ok) {
+            // Store success timestamp to prevent re-submission
+            localStorage.setItem('last_order_timestamp', Date.now().toString());
+            localStorage.setItem('last_order_total', result.total_amount);
+            
             // Clear cart
             clearCart();
-            updateCartCount();
             
             // Show success
-            showSuccessModal(result.id);
+            showSuccess(result);
         } else {
-            // Handle specific errors
+            // Error handling
             const errorMsg = result.detail || 'Failed to place order';
-            console.error('Order error:', result);
             
             if (response.status === 400 && errorMsg.includes('stock')) {
-                alert('Stock Error: ' + errorMsg + '\n\nPlease adjust quantities and try again.');
-            } else if (response.status === 422) {
-                alert('Validation Error: ' + errorMsg);
+                alert('Stock Error: ' + errorMsg + '\nPlease adjust quantities and try again.');
             } else if (response.status === 401) {
                 alert('Session expired. Please login again.');
                 window.location.href = 'login.html';
@@ -285,102 +295,110 @@ window.placeOrder = async function() {
                 alert('Error: ' + errorMsg);
             }
             
-            // Re-enable button on error
-            resetSubmitButton();
+            resetSubmitState();
         }
     } catch (error) {
+        console.error('❌ Network error:', error);
         toggleLoading(false);
         
-        if (error.message === 'Unauthorized' || error.message === 'Token expired') {
-            resetSubmitButton();
-            return;
+        if (error.message.includes('Unauthorized') || error.message.includes('Token')) {
+            alert('Session expired. Please login again.');
+            window.location.href = 'login.html';
+        } else {
+            alert('Network error. Please check your connection and try again.');
         }
         
-        console.error('Order error:', error);
-        alert('Network error. Please check your connection and try again.');
-        
-        // Re-enable button on error
-        resetSubmitButton();
+        resetSubmitState();
     }
 };
 
 /**
- * Show success modal or redirect
+ * Reset submit button and flags
  */
-function showSuccessModal(orderId) {
-    const successModal = document.getElementById('success-modal');
-    if (successModal) {
-        const orderIdEl = document.getElementById('success-order-id');
-        if (orderIdEl) orderIdEl.textContent = orderId;
-        
-        successModal.style.display = 'flex';
-        
-        // Auto redirect after 3 seconds
-        setTimeout(() => {
-            window.location.href = 'orders.html';
-        }, 3000);
-    } else {
-        alert('Order placed successfully! Order #' + orderId);
-        window.location.href = 'orders.html';
+function resetSubmitState() {
+    isSubmitting = false;
+    const submitBtn = document.querySelector('#checkout-form button[type="submit"]');
+    if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Place Order <i class="fas fa-check"></i>';
+        submitBtn.style.opacity = '1';
     }
 }
 
 /**
- * Initialize checkout page
+ * Show success and redirect
+ */
+function showSuccess(result) {
+    const successModal = document.getElementById('success-modal');
+    
+    if (successModal) {
+        const orderIdEl = document.getElementById('success-order-id');
+        if (orderIdEl) orderIdEl.textContent = result.id;
+        successModal.style.display = 'flex';
+    } else {
+        alert(`Order #${result.id} placed successfully!`);
+    }
+    
+    // Redirect after delay
+    setTimeout(() => {
+        window.location.href = 'orders.html';
+    }, 2500);
+}
+
+/**
+ * Initialize checkout page - EXACTLY ONCE
  */
 function initCheckout() {
     // Only run on checkout page
     if (!document.getElementById('checkout-items')) {
-        console.log('Not on checkout page, skipping init');
+        console.log('Not on checkout page, skipping');
         return;
     }
     
-    console.log('Initializing checkout...');
+    console.log('✅ Initializing checkout...');
     
-    // Load summary
+    // Load cart summary
     loadCheckoutSummary();
     
-    // Setup form with duplicate protection
-    setupCheckoutForm();
+    // Setup form with SINGLE event listener
+    setupFormOnce();
 }
 
 /**
- * Setup form event listener with protection against double attachments
+ * Setup form with guaranteed single listener
  */
-function setupCheckoutForm() {
-    const checkoutForm = document.getElementById('checkout-form');
-    if (!checkoutForm) {
+function setupFormOnce() {
+    const form = document.getElementById('checkout-form');
+    if (!form) {
         console.error('Checkout form not found!');
         return;
     }
     
-    // Clone and replace to remove ANY existing listeners (prevents duplicates)
-    const newForm = checkoutForm.cloneNode(true);
-    checkoutForm.parentNode.replaceChild(newForm, checkoutForm);
+    // CRITICAL: Clone node to remove ALL existing listeners
+    const newForm = form.cloneNode(true);
+    form.parentNode.replaceChild(newForm, form);
     
-    // Add single submit listener
+    // Add ONE submit listener
     newForm.addEventListener('submit', function(e) {
         e.preventDefault();
         e.stopPropagation();
+        e.stopImmediatePropagation(); // Extra protection
         
-        console.log('Form submitted, calling placeOrder...');
+        console.log('Form submit event fired');
         window.placeOrder();
     });
     
-    console.log('Checkout form initialized with duplicate protection');
+    console.log('Form setup complete with single listener');
 }
 
-// Initialize when DOM is ready
+// Initialize on DOM ready
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initCheckout);
 } else {
-    // DOM already loaded
     initCheckout();
 }
 
-// Also expose functions globally for inline handlers
+// Expose globally
 window.getCart = getCart;
 window.clearCart = clearCart;
 window.updateCartCount = updateCartCount;
-window.toggleLoading = toggleLoading;
-window.showSuccessModal = showSuccessModal;

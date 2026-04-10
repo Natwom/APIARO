@@ -1,62 +1,41 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Request, BackgroundTasks
 from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import and_
 from typing import List
 from decimal import Decimal
 from datetime import datetime, timedelta, timezone
+import hashlib
+import time
+
 from app.database import get_db
 from app import models, schemas, auth
-import time
+from services.sms_service import send_order_confirmation
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 
-# Store recent order signatures to prevent duplicates (in-memory cache)
-# Format: {user_id_timestamp: timestamp}
-recent_orders_cache = {}
+def generate_order_signature(user_id: int, items: list, total: Decimal) -> str:
+    """Generate unique signature for order to detect duplicates"""
+    items_str = ",".join([f"{item.product_id}:{item.quantity}" for item in sorted(items, key=lambda x: x.product_id)])
+    signature_str = f"{user_id}:{items_str}:{float(total)}:{int(time.time()) // 30}"  # 30-second window
+    return hashlib.md5(signature_str.encode()).hexdigest()
 
 @router.post("/", response_model=schemas.OrderResponse, status_code=status.HTTP_201_CREATED)
 def create_order(
     order: schemas.OrderCreate,
-    request: Request,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_active_user)
 ):
-    """Create a new order - DUPLICATE PROTECTION ADDED"""
+    """Create new order with DATABASE LEVEL duplicate prevention"""
     
-    # ===== DUPLICATE PREVENTION =====
-    # Create a signature based on user + items + total
-    items_signature = ",".join([f"{item.product_id}:{item.quantity}" for item in sorted(order.items, key=lambda x: x.product_id)])
-    order_signature = f"{current_user.id}:{items_signature}:{order.total_amount}"
-    current_time = time.time()
-    
-    # Check if similar order was created in last 30 seconds
-    if order_signature in recent_orders_cache:
-        last_time = recent_orders_cache[order_signature]
-        if current_time - last_time < 30:  # 30 second cooldown
-            print(f"DUPLICATE ORDER BLOCKED: User {current_user.id} tried to create identical order within 30 seconds")
-            # Return the most recent order instead
-            recent_order = db.query(models.Order).filter(
-                models.Order.user_id == current_user.id
-            ).order_by(models.Order.created_at.desc()).first()
-            if recent_order:
-                return recent_order
-    
-    # Update cache
-    recent_orders_cache[order_signature] = current_time
-    # Clean old cache entries (older than 5 minutes)
-    cutoff_time = current_time - 300
-    for key in list(recent_orders_cache.keys()):
-        if recent_orders_cache[key] < cutoff_time:
-            del recent_orders_cache[key]
-    # ===== END DUPLICATE PREVENTION =====
-    
-    # Validate terms accepted
+    # Validate terms
     if not order.terms_accepted:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="You must accept the Terms and Conditions"
         )
     
-    # Validate products and calculate total
+    # Calculate total and validate products first
     total_amount = Decimal('0.00')
     order_items_data = []
     
@@ -67,18 +46,14 @@ def create_order(
         ).first()
         
         if not product:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Product {item.product_id} not found"
-            )
+            raise HTTPException(status_code=404, detail=f"Product {item.product_id} not found")
         
         if product.stock_quantity < item.quantity:
             raise HTTPException(
                 status_code=400,
-                detail=f"Insufficient stock for {product.name}. Available: {product.stock_quantity}, Requested: {item.quantity}"
+                detail=f"Insufficient stock for {product.name}. Available: {product.stock_quantity}"
             )
         
-        # Calculate item total
         item_total = Decimal(str(product.price)) * item.quantity
         total_amount += item_total
         
@@ -91,10 +66,29 @@ def create_order(
             "total_price": item_total
         })
     
-    # Add delivery fee (300 KES)
-    total_amount += Decimal('300.00')
+    total_amount += Decimal('300.00')  # Delivery fee
     
-    # Create order
+    # ===== DATABASE LEVEL DUPLICATE PREVENTION =====
+    # Check for exact duplicate in last 60 seconds
+    one_minute_ago = datetime.now(timezone.utc) - timedelta(seconds=60)
+    
+    recent_duplicate = db.query(models.Order).filter(
+        and_(
+            models.Order.user_id == current_user.id,
+            models.Order.created_at >= one_minute_ago,
+            models.Order.phone_number == order.phone_number,
+            models.Order.total_amount == total_amount,
+            models.Order.payment_method == order.payment_method
+        )
+    ).order_by(models.Order.created_at.desc()).first()
+    
+    if recent_duplicate:
+        print(f"🚫 DUPLICATE BLOCKED: Returning existing order #{recent_duplicate.id} instead of creating new")
+        # Return existing order - don't create duplicate
+        return recent_duplicate
+    # ===== END DUPLICATE PREVENTION =====
+    
+    # Create the order
     db_order = models.Order(
         user_id=current_user.id,
         full_name=order.full_name,
@@ -111,34 +105,49 @@ def create_order(
         sms_sent=False
     )
     
-    db.add(db_order)
-    db.commit()
-    db.refresh(db_order)
-    
-    # Create order items and update stock
-    for item_data in order_items_data:
-        db_item = models.OrderItem(
-            order_id=db_order.id,
-            product_id=item_data["product_id"],
-            product_name=item_data["product_name"],
-            product_image=item_data["product_image"],
-            quantity=item_data["quantity"],
-            unit_price=item_data["unit_price"],
-            total_price=item_data["total_price"]
-        )
-        db.add(db_item)
+    try:
+        db.add(db_order)
+        db.commit()
+        db.refresh(db_order)
         
-        # Update product stock
-        product = db.query(models.Product).filter(
-            models.Product.id == item_data["product_id"]
-        ).first()
-        product.stock_quantity -= item_data["quantity"]
-    
-    db.commit()
-    db.refresh(db_order)
-    
-    print(f"Order {db_order.id} created successfully for user {current_user.id}")
-    return db_order
+        # Create order items and update stock
+        for item_data in order_items_data:
+            db_item = models.OrderItem(
+                order_id=db_order.id,
+                product_id=item_data["product_id"],
+                product_name=item_data["product_name"],
+                product_image=item_data["product_image"],
+                quantity=item_data["quantity"],
+                unit_price=item_data["unit_price"],
+                total_price=item_data["total_price"]
+            )
+            db.add(db_item)
+            
+            # Update stock
+            product = db.query(models.Product).filter(
+                models.Product.id == item_data["product_id"]
+            ).first()
+            product.stock_quantity -= item_data["quantity"]
+        
+        db.commit()
+        db.refresh(db_order)
+        
+        # Send confirmation SMS in background (only if not duplicate)
+        if current_user.phone_number:
+            background_tasks.add_task(
+                send_order_confirmation,
+                current_user.phone_number,
+                current_user.full_name,
+                db_order.id
+            )
+        
+        print(f"✅ Order #{db_order.id} created successfully for user {current_user.id}")
+        return db_order
+        
+    except Exception as e:
+        db.rollback()
+        print(f"❌ Error creating order: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create order. Please try again.")
 
 @router.get("/", response_model=List[schemas.OrderResponse])
 def get_user_orders(
