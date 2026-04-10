@@ -303,8 +303,8 @@
 
     <script src="js/auth.js"></script>
     <script>
-        // API Base URL
-        const API_BASE_URL = 'https://apiaro-backend.onrender.com';
+        // Use API_BASE_URL from auth.js (already declared)
+        // Removed: const API_BASE_URL = 'https://apiaro-backend.onrender.com';
         
         // Store email for the flow
         let resetEmail = '';
@@ -654,10 +654,7 @@
         }
 
         // Debug: Log when page loads
-        console.log('Login page loaded. Forgot password functions available:', {
-            openForgotPasswordModal: typeof openForgotPasswordModal,
-            closeForgotPasswordModal: typeof closeForgotPasswordModal
-        });
+        console.log('Login page loaded. API_BASE_URL:', typeof API_BASE_URL !== 'undefined' ? 'defined' : 'undefined');
     </script>
 </body>
 </html>
