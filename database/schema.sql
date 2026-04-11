@@ -1,37 +1,54 @@
--- Kenya E-Commerce Database Schema
+-- Kenya E-Commerce Database Schema (PostgreSQL Version)
 
-CREATE DATABASE IF NOT EXISTS kenya_ecommerce CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE kenya_ecommerce;
+-- Drop existing tables if they exist (clean slate)
+DROP TABLE IF EXISTS order_items CASCADE;
+DROP TABLE IF EXISTS orders CASCADE;
+DROP TABLE IF EXISTS password_reset_tokens CASCADE;
+DROP TABLE IF EXISTS products CASCADE;
+DROP TABLE IF EXISTS categories CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
 
 -- Users Table
 CREATE TABLE users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     full_name VARCHAR(255) NOT NULL,
     phone_number VARCHAR(20) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Trigger to auto-update updated_at timestamp
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Password Reset Tokens Table (SMS 6-Digit Code Version)
 CREATE TABLE password_reset_tokens (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     email VARCHAR(255) NOT NULL,
     phone_number VARCHAR(20) NOT NULL,
     reset_code VARCHAR(6) NOT NULL,
     expires_at TIMESTAMP NOT NULL,
     used BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
-    INDEX idx_email (email),
-    INDEX idx_reset_code (reset_code),
-    INDEX idx_expires (expires_at)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX idx_reset_email ON password_reset_tokens(email);
+CREATE INDEX idx_reset_code ON password_reset_tokens(reset_code);
+CREATE INDEX idx_reset_expires ON password_reset_tokens(expires_at);
 
 -- Categories Table
 CREATE TABLE categories (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     slug VARCHAR(100) UNIQUE NOT NULL,
     description TEXT,
@@ -40,25 +57,31 @@ CREATE TABLE categories (
 
 -- Products Table
 CREATE TABLE products (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     description TEXT,
     price DECIMAL(10, 2) NOT NULL,
-    stock_quantity INT DEFAULT 0,
-    category_id INT,
+    stock_quantity INTEGER DEFAULT 0,
+    category_id INTEGER,
     image_url VARCHAR(500),
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL,
-    INDEX idx_price (price),
-    INDEX idx_category (category_id)
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
 );
 
+CREATE INDEX idx_products_price ON products(price);
+CREATE INDEX idx_products_category ON products(category_id);
+
+-- Trigger for products updated_at
+CREATE TRIGGER update_products_updated_at BEFORE UPDATE ON products
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
 -- Orders Table (Kenya-specific fields)
+-- Note: ENUM replaced with VARCHAR + CHECK constraints for PostgreSQL
 CREATE TABLE orders (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL,
     full_name VARCHAR(255) NOT NULL,
     phone_number VARCHAR(20) NOT NULL,
     email VARCHAR(255) NOT NULL,
@@ -66,27 +89,32 @@ CREATE TABLE orders (
     town VARCHAR(100) NOT NULL,
     specific_location TEXT NOT NULL,
     notes TEXT,
-    payment_method ENUM('cod', 'mpesa', 'card') NOT NULL,
+    payment_method VARCHAR(20) CHECK (payment_method IN ('cod', 'mpesa', 'card')) NOT NULL,
     total_amount DECIMAL(10, 2) NOT NULL,
-    status ENUM('pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled') DEFAULT 'pending',
+    status VARCHAR(20) CHECK (status IN ('pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled')) DEFAULT 'pending',
     terms_accepted BOOLEAN NOT NULL DEFAULT FALSE,
     sms_sent BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    INDEX idx_user (user_id),
-    INDEX idx_status (status),
-    INDEX idx_phone (phone_number)
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- Order Items Table (Updated with product_image and product_name for denormalization)
+CREATE INDEX idx_orders_user ON orders(user_id);
+CREATE INDEX idx_orders_status ON orders(status);
+CREATE INDEX idx_orders_phone ON orders(phone_number);
+
+-- Trigger for orders updated_at
+CREATE TRIGGER update_orders_updated_at BEFORE UPDATE ON orders
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Order Items Table
 CREATE TABLE order_items (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    order_id INT NOT NULL,
-    product_id INT NOT NULL,
+    id SERIAL PRIMARY KEY,
+    order_id INTEGER NOT NULL,
+    product_id INTEGER NOT NULL,
     product_name VARCHAR(255) NOT NULL,
     product_image VARCHAR(500),
-    quantity INT NOT NULL,
+    quantity INTEGER NOT NULL,
     unit_price DECIMAL(10, 2) NOT NULL,
     total_price DECIMAL(10, 2) NOT NULL,
     FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
@@ -98,7 +126,8 @@ INSERT INTO categories (name, slug, description) VALUES
 ('Electronics', 'electronics', 'Phones, laptops, and gadgets'),
 ('Fashion', 'fashion', 'Clothing, shoes, and accessories'),
 ('Home & Living', 'home', 'Furniture and home appliances'),
-('Agriculture', 'agriculture', 'Farming tools and supplies');
+('Agriculture', 'agriculture', 'Farming tools and supplies')
+ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO products (name, description, price, stock_quantity, category_id, image_url) VALUES 
 ('Samsung Galaxy A54', '6.4" 128GB 8GB RAM 5000mAh', 45999.00, 15, 1, 'https://via.placeholder.com/300x300?text=Galaxy+A54'),
@@ -107,6 +136,6 @@ INSERT INTO products (name, description, price, stock_quantity, category_id, ima
 ('Solar Panel Kit', '200W Solar Panel with Battery', 12500.00, 20, 4, 'https://via.placeholder.com/300x300?text=Solar+Kit');
 
 -- Admin user (password: admin123 - SHA256 hash)
--- Note: Using SHA256 hash as per your auth.py implementation
 INSERT INTO users (email, password_hash, full_name, phone_number) VALUES 
-('admin@kenyashop.co.ke', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', 'System Admin', '+254712345678');
+('admin@kenyashop.co.ke', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', 'System Admin', '+254712345678')
+ON CONFLICT (email) DO NOTHING;
