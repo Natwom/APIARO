@@ -144,12 +144,13 @@
                 <p>Sign in to your APIARO account</p>
             </div>
             
-            <form id="login-form" class="auth-form">
+            <!-- IMPORTANT: onsubmit="return false;" prevents default GET submission if JS fails -->
+            <form id="login-form" class="auth-form" onsubmit="return false;">
                 <div class="form-group">
                     <label for="email">Email Address</label>
                     <div class="input-group">
                         <i class="fas fa-envelope"></i>
-                        <input type="email" id="email" name="email" required placeholder="your@email.com">
+                        <input type="email" id="email" name="email" required placeholder="your@email.com" autocomplete="email">
                     </div>
                 </div>
 
@@ -157,7 +158,7 @@
                     <label for="password">Password</label>
                     <div class="input-group">
                         <i class="fas fa-lock"></i>
-                        <input type="password" id="password" name="password" required placeholder="••••••••">
+                        <input type="password" id="password" name="password" required placeholder="••••••••" autocomplete="current-password">
                     </div>
                 </div>
 
@@ -170,7 +171,7 @@
                     <a href="#" class="forgot-link" onclick="openForgotPasswordModal(event); return false;">Forgot password?</a>
                 </div>
 
-                <button type="submit" class="btn-auth">
+                <button type="submit" class="btn-auth" id="login-btn">
                     <span>Sign In</span>
                     <i class="fas fa-arrow-right"></i>
                 </button>
@@ -194,11 +195,11 @@
                     <p>Enter your email and we'll send a reset code to your phone</p>
                 </div>
                 
-                <form id="forgot-password-form" onsubmit="handleForgotPassword(event)">
+                <form id="forgot-password-form" onsubmit="handleForgotPassword(event); return false;">
                     <div class="form-group">
                         <div class="input-group">
                             <i class="fas fa-envelope"></i>
-                            <input type="email" id="reset-email" required placeholder="your@email.com">
+                            <input type="email" id="reset-email" required placeholder="your@email.com" autocomplete="email">
                         </div>
                     </div>
                     
@@ -222,14 +223,14 @@
                     <div id="masked-phone-display" class="masked-phone"></div>
                 </div>
                 
-                <form id="verify-code-form" onsubmit="handleVerifyCode(event)">
+                <form id="verify-code-form" onsubmit="handleVerifyCode(event); return false;">
                     <div class="code-inputs">
-                        <input type="text" class="code-input" maxlength="1" data-index="0" oninput="handleCodeInput(this, 0)" onkeydown="handleCodeKeydown(event, 0)">
-                        <input type="text" class="code-input" maxlength="1" data-index="1" oninput="handleCodeInput(this, 1)" onkeydown="handleCodeKeydown(event, 1)">
-                        <input type="text" class="code-input" maxlength="1" data-index="2" oninput="handleCodeInput(this, 2)" onkeydown="handleCodeKeydown(event, 2)">
-                        <input type="text" class="code-input" maxlength="1" data-index="3" oninput="handleCodeInput(this, 3)" onkeydown="handleCodeKeydown(event, 3)">
-                        <input type="text" class="code-input" maxlength="1" data-index="4" oninput="handleCodeInput(this, 4)" onkeydown="handleCodeKeydown(event, 4)">
-                        <input type="text" class="code-input" maxlength="1" data-index="5" oninput="handleCodeInput(this, 5)" onkeydown="handleCodeKeydown(event, 5)">
+                        <input type="text" class="code-input" maxlength="1" data-index="0" oninput="handleCodeInput(this, 0)" onkeydown="handleCodeKeydown(event, 0)" inputmode="numeric" pattern="[0-9]">
+                        <input type="text" class="code-input" maxlength="1" data-index="1" oninput="handleCodeInput(this, 1)" onkeydown="handleCodeKeydown(event, 1)" inputmode="numeric" pattern="[0-9]">
+                        <input type="text" class="code-input" maxlength="1" data-index="2" oninput="handleCodeInput(this, 2)" onkeydown="handleCodeKeydown(event, 2)" inputmode="numeric" pattern="[0-9]">
+                        <input type="text" class="code-input" maxlength="1" data-index="3" oninput="handleCodeInput(this, 3)" onkeydown="handleCodeKeydown(event, 3)" inputmode="numeric" pattern="[0-9]">
+                        <input type="text" class="code-input" maxlength="1" data-index="4" oninput="handleCodeInput(this, 4)" onkeydown="handleCodeKeydown(event, 4)" inputmode="numeric" pattern="[0-9]">
+                        <input type="text" class="code-input" maxlength="1" data-index="5" oninput="handleCodeInput(this, 5)" onkeydown="handleCodeKeydown(event, 5)" inputmode="numeric" pattern="[0-9]">
                     </div>
                     <input type="hidden" id="full-reset-code">
                     
@@ -259,12 +260,12 @@
                     <p>Create a strong password for your account</p>
                 </div>
                 
-                <form id="reset-password-form" onsubmit="handleResetPassword(event)">
+                <form id="reset-password-form" onsubmit="handleResetPassword(event); return false;">
                     <div class="form-group">
                         <label>New Password</label>
                         <div class="input-group">
                             <i class="fas fa-lock"></i>
-                            <input type="password" id="new-password" required minlength="6" placeholder="••••••••">
+                            <input type="password" id="new-password" required minlength="6" placeholder="••••••••" autocomplete="new-password">
                         </div>
                     </div>
                     
@@ -272,7 +273,7 @@
                         <label>Confirm Password</label>
                         <div class="input-group">
                             <i class="fas fa-lock"></i>
-                            <input type="password" id="confirm-password" required minlength="6" placeholder="••••••••">
+                            <input type="password" id="confirm-password" required minlength="6" placeholder="••••••••" autocomplete="new-password">
                         </div>
                     </div>
                     
@@ -301,11 +302,11 @@
 
     <div id="toast" class="toast"></div>
 
+    <!-- Load auth.js first (it should declare API_BASE_URL) -->
     <script src="js/auth.js"></script>
+    
+    <!-- Inline script uses API_BASE_URL from auth.js - NO REDECLARATION HERE -->
     <script>
-        // Use API_BASE_URL from auth.js (already declared)
-        // Removed: const API_BASE_URL = 'https://apiaro-backend.onrender.com';
-        
         // Store email for the flow
         let resetEmail = '';
         let resendTimer = null;
@@ -314,6 +315,11 @@
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             
+            const btn = document.getElementById('login-btn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing in...';
+            btn.disabled = true;
+
             const formData = {
                 email: document.getElementById('email').value,
                 password: document.getElementById('password').value
@@ -338,10 +344,14 @@
                     }, 1500);
                 } else {
                     showToast(data.detail || 'Login failed', 'error');
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
                 }
             } catch (error) {
                 showToast('Network error. Please try again.', 'error');
                 console.error('Login error:', error);
+                btn.innerHTML = originalText;
+                btn.disabled = false;
             }
         });
 
@@ -654,7 +664,7 @@
         }
 
         // Debug: Log when page loads
-        console.log('Login page loaded. API_BASE_URL:', typeof API_BASE_URL !== 'undefined' ? 'defined' : 'undefined');
+        console.log('Login page loaded. API_BASE_URL:', typeof API_BASE_URL !== 'undefined' ? API_BASE_URL : 'NOT DEFINED - Check auth.js!');
     </script>
 </body>
 </html>
