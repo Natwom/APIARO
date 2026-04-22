@@ -14,6 +14,145 @@
             gap: 20px;
             padding: 20px 0;
         }
+
+        /* ... keep all your existing styles ... */
+        
+        /* ===== ADDED: Search History Styles ===== */
+        .search-wrapper {
+            position: relative;
+            z-index: 100;
+        }
+        
+        .search-history-dropdown {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            border: 1px solid #e9ecef;
+            overflow: hidden;
+            animation: slideDown 0.2s ease;
+            max-height: 320px;
+            overflow-y: auto;
+        }
+        
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .search-history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e9ecef;
+            background: #f8f9fa;
+        }
+        
+        .search-history-header span {
+            font-size: 13px;
+            font-weight: 600;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .clear-history-btn {
+            background: none;
+            border: none;
+            color: #e63946;
+            font-size: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+        
+        .clear-history-btn:hover {
+            background: #fee;
+        }
+        
+        #search-history-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        #search-history-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-bottom: 1px solid #f1f3f5;
+        }
+        
+        #search-history-list li:last-child {
+            border-bottom: none;
+        }
+        
+        #search-history-list li:hover {
+            background: #f8f9fa;
+        }
+        
+        #search-history-list li .search-text {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #1d3557;
+            font-size: 14px;
+        }
+        
+        #search-history-list li .search-text i {
+            color: #adb5bd;
+            font-size: 13px;
+        }
+        
+        #search-history-list li .search-count {
+            font-size: 11px;
+            color: #adb5bd;
+            margin-left: 6px;
+        }
+        
+        #search-history-list li .delete-search-btn {
+            background: none;
+            border: none;
+            color: #adb5bd;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: all 0.2s;
+        }
+        
+        #search-history-list li:hover .delete-search-btn {
+            opacity: 1;
+        }
+        
+        #search-history-list li .delete-search-btn:hover {
+            background: #fee;
+            color: #e63946;
+        }
+        
+        .search-history-empty {
+            padding: 24px;
+            text-align: center;
+            color: #adb5bd;
+            font-size: 14px;
+        }
+    
+
+
         
         /* Ensure product cards have equal height */
         .product-card {
@@ -191,12 +330,24 @@
 
     <main class="products-page">
         <div class="container">
-            <div class="products-header">
+                     <div class="products-header">
                 <h1>All Products</h1>
-                <div class="search-bar">
-                    <input type="text" id="search-input" placeholder="Search products...">
-                    <button onclick="searchProducts()"><i class="fas fa-search"></i></button>
+                <div class="search-wrapper" style="position: relative;">
+                    <div class="search-bar">
+                        <input type="text" id="search-input" placeholder="Search products..." autocomplete="off">
+                        <button onclick="searchProducts()"><i class="fas fa-search"></i></button>
+                    </div>
+                    
+                    <!-- Search History Dropdown -->
+                    <div id="search-history-dropdown" class="search-history-dropdown" style="display: none;">
+                        <div class="search-history-header">
+                            <span><i class="fas fa-history"></i> Recent Searches</span>
+                            <button onclick="clearAllSearchHistory()" class="clear-history-btn">Clear All</button>
+                        </div>
+                        <ul id="search-history-list"></ul>
+                    </div>
                 </div>
+            </div>
             </div>
 
             <div class="products-layout">

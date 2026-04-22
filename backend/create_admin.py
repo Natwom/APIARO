@@ -25,7 +25,7 @@ else:
         email='admin@kenyashop.co.ke',
         password_hash='$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/X4.VTtYA.qGZvKG6G',
         full_name='System Admin',
-        phone_number='+254712345678'
+        phone_number='+254716889657'
     )
     db.add(admin)
     db.commit()

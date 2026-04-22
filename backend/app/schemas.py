@@ -23,7 +23,7 @@ class ForgotPasswordRequest(BaseModel):
 
 class ForgotPasswordResponse(BaseModel):
     message: str
-    phone_masked: Optional[str] = None  # Show masked phone for user confirmation
+    phone_masked: Optional[str] = None
 
 class VerifyResetCodeRequest(BaseModel):
     email: EmailStr
@@ -33,6 +33,25 @@ class ResetPasswordRequest(BaseModel):
     email: EmailStr
     reset_code: str = Field(..., min_length=6, max_length=6)
     new_password: str = Field(..., min_length=6)
+
+# ========== ADDED: Search History Schemas ==========
+class SearchHistoryBase(BaseModel):
+    search_query: str
+
+class SearchHistoryCreate(SearchHistoryBase):
+    pass
+
+class SearchHistoryResponse(SearchHistoryBase):
+    id: int
+    user_id: Optional[int] = None
+    search_count: int
+    last_searched: datetime
+    
+    class Config:
+        from_attributes = True
+
+class SearchHistoryList(BaseModel):
+    searches: List[SearchHistoryResponse]
 
 # User Schemas
 class UserBase(BaseModel):

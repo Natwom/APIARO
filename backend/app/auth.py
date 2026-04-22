@@ -10,7 +10,6 @@ import hashlib
 
 SECRET_KEY = "your-secret-key-change-in-production"
 ALGORITHM = "HS256"
-# CHANGED: 30 days instead of 24 hours (43200 minutes = 30 days)
 ACCESS_TOKEN_EXPIRE_MINUTES = 43200
 
 security = HTTPBearer()
@@ -27,7 +26,6 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     """Create JWT access token with timezone-aware expiration"""
     to_encode = data.copy()
     
-    # 30 days expiry
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
     else:
@@ -76,7 +74,6 @@ def get_current_user(
             print("No user_id in token")
             raise credentials_exception
             
-        # Check expiration
         current_timestamp = datetime.now(timezone.utc).timestamp()
         
         if exp and current_timestamp > exp:
@@ -91,7 +88,6 @@ def get_current_user(
         print(f"JWT Error: {e}")
         raise credentials_exception
     
-    # Get user from database
     try:
         user = db.query(models.User).filter(models.User.id == int(user_id)).first()
     except (ValueError, TypeError):
@@ -111,6 +107,34 @@ def get_current_user(
         
     print(f"Authenticated user: {user.email}")
     return user
+
+# ========== ADDED: Optional current user (for guest search history) ==========
+async def get_current_user_optional(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
+    db: Session = Depends(get_db)
+) -> Optional[models.User]:
+    """Get current user if logged in, else None (for guest users)."""
+    if not credentials:
+        return None
+    try:
+        payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            return None
+            
+        current_timestamp = datetime.now(timezone.utc).timestamp()
+        exp = payload.get("exp")
+        if exp and current_timestamp > exp:
+            return None
+            
+    except JWTError:
+        return None
+    
+    try:
+        user = db.query(models.User).filter(models.User.id == int(user_id)).first()
+        return user
+    except (ValueError, TypeError):
+        return None
 
 def get_current_active_user(current_user: models.User = Depends(get_current_user)):
     """Dependency to get current active user"""

@@ -139,3 +139,18 @@ INSERT INTO products (name, description, price, stock_quantity, category_id, ima
 INSERT INTO users (email, password_hash, full_name, phone_number) VALUES 
 ('admin@kenyashop.co.ke', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', 'System Admin', '+254712345678')
 ON CONFLICT (email) DO NOTHING;
+
+-- Your existing schema...
+
+-- ========== ADDED: Search History Table ==========
+CREATE TABLE IF NOT EXISTS search_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER,
+    search_query VARCHAR(255) NOT NULL,
+    search_count INTEGER DEFAULT 1,
+    last_searched TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_search_history_user ON search_history(user_id);
+CREATE INDEX IF NOT EXISTS idx_search_history_last ON search_history(last_searched);

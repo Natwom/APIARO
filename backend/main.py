@@ -11,7 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
 import traceback
 
-from app.routers import users, products, orders
+from app.routers import users, products, orders, search
 from app.database import engine, Base, DATABASE_URL
 
 # Create tables
@@ -45,6 +45,7 @@ app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 app.include_router(users.router)
 app.include_router(products.router)
 app.include_router(orders.router)
+app.include_router(search.router)
 
 @app.get("/")
 def read_root():

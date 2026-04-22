@@ -1,16 +1,262 @@
 // Products Management - Uses API_BASE_URL from auth.js
 
+// ========== ADDED: Search History Module ==========
+const SearchHistory = {
+    API_BASE: API_BASE_URL,
+    
+    init() {
+        this.searchInput = document.getElementById('search-input');
+        this.dropdown = document.getElementById('search-history-dropdown');
+        this.historyList = document.getElementById('search-history-list');
+        
+        if (!this.searchInput) return;
+        
+        this.attachEventListeners();
+        this.loadHistory();
+    },
+    
+    attachEventListeners() {
+        // Show dropdown on focus
+        this.searchInput.addEventListener('focus', () => {
+            this.showDropdown();
+            this.loadHistory();
+        });
+        
+        // Hide dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.search-wrapper')) {
+                this.hideDropdown();
+            }
+        });
+        
+        // Handle search submission
+        const searchBtn = document.querySelector('.search-bar button');
+        searchBtn?.addEventListener('click', () => {
+            this.performSearch(this.searchInput.value);
+        });
+        
+        this.searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                this.performSearch(this.searchInput.value);
+            }
+        });
+    },
+    
+    getToken() {
+        return localStorage.getItem('token') || sessionStorage.getItem('token');
+    },
+    
+    isLoggedIn() {
+        return !!this.getToken();
+    },
+    
+    async loadHistory() {
+        if (this.isLoggedIn()) {
+            try {
+                const response = await fetch(`${this.API_BASE}/search/history?limit=10`, {
+                    headers: { 'Authorization': `Bearer ${this.getToken()}` }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    this.renderHistory(data.searches || []);
+                    this.syncLocalToBackend();
+                }
+            } catch (err) {
+                console.error('Failed to load search history:', err);
+                this.loadFromLocalStorage();
+            }
+        } else {
+            this.loadFromLocalStorage();
+        }
+    },
+    
+    loadFromLocalStorage() {
+        const history = JSON.parse(localStorage.getItem('searchHistory') || '[]');
+        const formatted = history.map((item, index) => ({
+            id: `local_${index}`,
+            search_query: item.query,
+            search_count: item.count || 1,
+            last_searched: item.lastSearched
+        }));
+        this.renderHistory(formatted);
+    },
+    
+    saveToLocalStorage(query) {
+        let history = JSON.parse(localStorage.getItem('searchHistory') || '[]');
+        
+        const existing = history.find(h => h.query.toLowerCase() === query.toLowerCase());
+        if (existing) {
+            existing.count = (existing.count || 1) + 1;
+            existing.lastSearched = new Date().toISOString();
+            history = history.filter(h => h.query.toLowerCase() !== query.toLowerCase());
+            history.unshift(existing);
+        } else {
+            history.unshift({
+                query: query,
+                count: 1,
+                lastSearched: new Date().toISOString()
+            });
+        }
+        
+        history = history.slice(0, 20);
+        localStorage.setItem('searchHistory', JSON.stringify(history));
+    },
+    
+    async syncLocalToBackend() {
+        const token = this.getToken();
+        const localHistory = JSON.parse(localStorage.getItem('searchHistory') || '[]');
+        
+        if (!token || localHistory.length === 0) return;
+        
+        for (const item of localHistory) {
+            try {
+                await fetch(`${this.API_BASE}/search/history?query=${encodeURIComponent(item.query)}`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+            } catch (err) {
+                console.error('Sync failed for:', item.query);
+            }
+        }
+        
+        localStorage.removeItem('searchHistory');
+    },
+    
+    async performSearch(query) {
+        query = query.trim();
+        if (!query) return;
+        
+        const token = this.getToken();
+        
+        if (token) {
+            try {
+                await fetch(`${this.API_BASE}/search/history?query=${encodeURIComponent(query)}`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+            } catch (err) {
+                console.error('Failed to save search:', err);
+            }
+        } else {
+            this.saveToLocalStorage(query);
+        }
+        
+        this.hideDropdown();
+        loadProducts(null, query);
+    },
+    
+    renderHistory(searches) {
+        if (!this.historyList) return;
+        
+        if (!searches || searches.length === 0) {
+            this.historyList.innerHTML = '<li class="search-history-empty"><i class="fas fa-search" style="display:block; margin-bottom:8px; font-size:20px;"></i>No recent searches</li>';
+            return;
+        }
+        
+        this.historyList.innerHTML = searches.map(search => `
+            <li data-query="${this.escapeHtml(search.search_query)}" data-id="${search.id}">
+                <div class="search-text">
+                    <i class="fas fa-history"></i>
+                    <span>${this.escapeHtml(search.search_query)}</span>
+                    ${search.search_count > 1 ? `<span class="search-count">(${search.search_count}x)</span>` : ''}
+                </div>
+                <button class="delete-search-btn" data-id="${search.id}" data-query="${this.escapeHtml(search.search_query)}" title="Remove">
+                    <i class="fas fa-times"></i>
+                </button>
+            </li>
+        `).join('');
+        
+        // Click on search item to search
+        this.historyList.querySelectorAll('li[data-query]').forEach(li => {
+            li.addEventListener('click', (e) => {
+                if (e.target.closest('.delete-search-btn')) return;
+                const query = li.dataset.query;
+                this.searchInput.value = query;
+                this.performSearch(query);
+            });
+        });
+        
+        // Delete individual search
+        this.historyList.querySelectorAll('.delete-search-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const id = btn.dataset.id;
+                const query = btn.dataset.query;
+                await this.deleteSearch(id, query);
+            });
+        });
+    },
+    
+    async deleteSearch(id, query) {
+        const token = this.getToken();
+        
+        if (token && !String(id).startsWith('local_')) {
+            try {
+                await fetch(`${this.API_BASE}/search/history/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+            } catch (err) {
+                console.error('Failed to delete search:', err);
+            }
+        } else {
+            let history = JSON.parse(localStorage.getItem('searchHistory') || '[]');
+            history = history.filter(h => h.query.toLowerCase() !== query.toLowerCase());
+            localStorage.setItem('searchHistory', JSON.stringify(history));
+        }
+        
+        this.loadHistory();
+    },
+    
+    async clearAllSearchHistory() {
+        const token = this.getToken();
+        
+        if (token) {
+            try {
+                await fetch(`${this.API_BASE}/search/history`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+            } catch (err) {
+                console.error('Failed to clear history:', err);
+            }
+        }
+        
+        localStorage.removeItem('searchHistory');
+        this.loadHistory();
+    },
+    
+    showDropdown() {
+        if (this.dropdown) this.dropdown.style.display = 'block';
+    },
+    
+    hideDropdown() {
+        setTimeout(() => {
+            if (this.dropdown) this.dropdown.style.display = 'none';
+        }, 200);
+    },
+    
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+};
+
+// Make clearAllSearchHistory globally accessible for the HTML onclick
+window.clearAllSearchHistory = () => SearchHistory.clearAllSearchHistory();
+
+// ========== EXISTING: Categories & Products ==========
+
 async function loadCategories() {
     try {
         const response = await fetch(`${API_BASE_URL}/products/categories/all`);
         const data = await response.json();
         
-        // Handle both array and object response formats
         const categories = Array.isArray(data) ? data : (data.categories || []);
         
         const container = document.getElementById('category-filters');
         if (container && categories.length > 0) {
-            // Clear existing except "All Products"
             const allProductsLi = container.querySelector('li:first-child');
             container.innerHTML = '';
             if (allProductsLi) container.appendChild(allProductsLi);
@@ -24,7 +270,6 @@ async function loadCategories() {
         }
     } catch (error) {
         console.error('Error loading categories:', error);
-        // Don't break the page if categories fail to load
     }
 }
 
@@ -41,7 +286,6 @@ async function loadProducts(categoryId = null, searchQuery = null) {
         const response = await fetch(url);
         const data = await response.json();
         
-        // Handle both array and object response formats
         const products = Array.isArray(data) ? data : (data.products || []);
         
         renderProducts(products);
@@ -55,22 +299,18 @@ async function loadProducts(categoryId = null, searchQuery = null) {
 }
 
 function getImageUrl(imageUrl) {
-    // If no image, return placeholder
     if (!imageUrl) {
         return 'https://via.placeholder.com/300';
     }
     
-    // If it's already a full URL, use it as is
     if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
         return imageUrl;
     }
     
-    // If it's a data URI, use it as is
     if (imageUrl.startsWith('data:')) {
         return imageUrl;
     }
     
-    // Otherwise, prepend the API base URL
     return `${API_BASE_URL}${imageUrl}`;
 }
 
@@ -87,7 +327,6 @@ function renderProducts(products) {
     container.innerHTML = products.map(product => {
         const imageUrl = getImageUrl(product.image_url);
         
-        // Truncate description to 100 characters
         const description = product.description 
             ? product.description.substring(0, 100) + (product.description.length > 100 ? '...' : '')
             : '';
@@ -114,7 +353,6 @@ function renderProducts(products) {
 }
 
 function filterByCategory(categoryId) {
-    // Update active state
     document.querySelectorAll('.filters li').forEach(li => li.classList.remove('active'));
     if (event && event.target) event.target.classList.add('active');
     
@@ -124,7 +362,7 @@ function filterByCategory(categoryId) {
 // Search functionality
 function searchProducts() {
     const query = document.getElementById('search-input').value;
-    loadProducts(null, query);
+    SearchHistory.performSearch(query);
 }
 
 // Handle Enter key in search
@@ -135,4 +373,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.key === 'Enter') searchProducts();
         });
     }
+    
+    // Initialize search history
+    SearchHistory.init();
 });

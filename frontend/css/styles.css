@@ -2061,3 +2061,139 @@ body {
 ::-webkit-scrollbar-thumb:hover {
     background: var(--primary-dark);
 }
+
+
+/* ===== ADDED: Search History Styles ===== */
+
+.search-wrapper {
+    position: relative;
+    z-index: 100;
+}
+
+.search-history-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    border: 1px solid var(--light-gray);
+    overflow: hidden;
+    animation: slideDown 0.2s ease;
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.search-history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--light-gray);
+    background: #f8f9fa;
+}
+
+.search-history-header span {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gray);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.clear-history-btn {
+    background: none;
+    border: none;
+    color: var(--primary);
+    font-size: 12px;
+    cursor: pointer;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.clear-history-btn:hover {
+    background: #fee;
+}
+
+#search-history-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#search-history-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-bottom: 1px solid #f1f3f5;
+}
+
+#search-history-list li:last-child {
+    border-bottom: none;
+}
+
+#search-history-list li:hover {
+    background: #f8f9fa;
+}
+
+#search-history-list li .search-text {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--dark);
+    font-size: 14px;
+}
+
+#search-history-list li .search-text i {
+    color: #adb5bd;
+    font-size: 13px;
+}
+
+#search-history-list li .search-count {
+    font-size: 11px;
+    color: #adb5bd;
+    margin-left: 6px;
+}
+
+#search-history-list li .delete-search-btn {
+    background: none;
+    border: none;
+    color: #adb5bd;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: all 0.2s;
+}
+
+#search-history-list li:hover .delete-search-btn {
+    opacity: 1;
+}
+
+#search-history-list li .delete-search-btn:hover {
+    background: #fee;
+    color: var(--primary);
+}
+
+.search-history-empty {
+    padding: 24px;
+    text-align: center;
+    color: #adb5bd;
+    font-size: 14px;
+}

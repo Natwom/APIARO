@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, DECIMAL, Boolean, DateTime, ForeignKey, Enum
+from sqlalchemy import Column, Integer, String, Text, DECIMAL, Boolean, DateTime, ForeignKey, Enum, func
 from sqlalchemy.orm import relationship
 from app.database import Base
 import enum
@@ -29,6 +29,7 @@ class User(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     orders = relationship("Order", back_populates="user")
+    search_history = relationship("SearchHistory", back_populates="user", cascade="all, delete-orphan")
 
 class Category(Base):
     __tablename__ = "categories"
@@ -102,8 +103,26 @@ class PasswordResetToken(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String(255), nullable=False, index=True)
-    phone_number = Column(String(20), nullable=False)  # Store phone for reference
-    reset_code = Column(String(6), nullable=False)  # 6-digit SMS code
+    phone_number = Column(String(20), nullable=False)
+    reset_code = Column(String(6), nullable=False)
     expires_at = Column(DateTime, nullable=False)
     used = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+# ========== ADDED: Search History Model ==========
+class SearchHistory(Base):
+    __tablename__ = "search_history"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=True)
+    search_query = Column(String(255), nullable=False)
+    search_count = Column(Integer, default=1)
+    last_searched = Column(DateTime, default=func.now(), onupdate=func.now())
+    
+    user = relationship("User", back_populates="search_history")
+    
+    __table_args__ = (
+        # Unique constraint: one entry per user per query (case-insensitive handled in code)
+        # For SQLite we handle uniqueness in code; for PostgreSQL you could add:
+        # UniqueConstraint('user_id', func.lower('search_query'), name='unique_user_search'),
+    )
