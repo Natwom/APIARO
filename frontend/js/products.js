@@ -1,6 +1,5 @@
 // Products Management - Uses API_BASE_URL from auth.js
 
-// ========== ADDED: Search History Module ==========
 const SearchHistory = {
     API_BASE: API_BASE_URL,
     
@@ -240,8 +239,6 @@ const SearchHistory = {
 
 window.clearAllSearchHistory = () => SearchHistory.clearAllSearchHistory();
 
-// ========== CATEGORIES & PRODUCTS ==========
-
 async function loadCategories() {
     try {
         const response = await fetch(`${API_BASE_URL}/products/categories/all`);
@@ -308,7 +305,7 @@ function getImageUrl(imageUrl) {
     return `${API_BASE_URL}${imageUrl}`;
 }
 
-// ========== MODAL FUNCTIONS (NEW) ==========
+// ========== MODAL WITH FLIP CARD ==========
 
 async function openProductModal(productId) {
     try {
@@ -323,7 +320,35 @@ async function openProductModal(productId) {
                 <div style="background: white; border-radius: 12px; max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; animation: modalSlideIn 0.3s ease-out;" onclick="event.stopPropagation()">
                     <button onclick="closeProductModal()" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 24px; cursor: pointer; z-index: 10;">&times;</button>
                     
-                    <img src="${imageUrl}" style="width: 100%; height: 300px; object-fit: cover; border-radius: 12px 12px 0 0;" onerror="this.src='https://via.placeholder.com/600'">
+                    <!-- FLIP CARD IMAGE -->
+                    <div class="flip-card" onclick="this.classList.toggle('flipped')" title="Click to flip">
+                        <div class="flip-card-inner">
+                            <!-- FRONT: Image -->
+                            <div class="flip-card-front">
+                                <img src="${imageUrl}" style="width: 100%; height: 300px; object-fit: cover; border-radius: 12px 12px 0 0;" onerror="this.src='https://via.placeholder.com/600'">
+                                <div class="flip-hint"><i class="fas fa-sync-alt"></i> Click to see details</div>
+                            </div>
+                            <!-- BACK: Info -->
+                            <div class="flip-card-back">
+                                <div style="padding: 30px; text-align: center; height: 300px; display: flex; flex-direction: column; justify-content: center;">
+                                    <h3 style="margin: 0 0 15px 0; color: #fff;">${product.name}</h3>
+                                    <p style="color: #eee; font-size: 1.3em; font-weight: bold; margin: 0 0 15px 0;">KES ${parseFloat(product.price).toFixed(2)}</p>
+                                    <div style="color: #ddd; line-height: 1.6; margin-bottom: 15px;">
+                                        ${product.description ? `<p>${product.description}</p>` : '<p>No description available.</p>'}
+                                    </div>
+                                    <div style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
+                                        <span style="background: rgba(255,255,255,0.2); padding: 5px 12px; border-radius: 15px; font-size: 0.85em;">
+                                            <i class="fas fa-box"></i> Stock: ${product.stock_quantity}
+                                        </span>
+                                        <span style="background: rgba(255,255,255,0.2); padding: 5px 12px; border-radius: 15px; font-size: 0.85em;">
+                                            <i class="fas fa-tag"></i> ${product.is_active ? 'In Stock' : 'Out of Stock'}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="flip-hint"><i class="fas fa-sync-alt"></i> Click to see image</div>
+                            </div>
+                        </div>
+                    </div>
                     
                     <div style="padding: 25px;">
                         <h2 style="margin: 0 0 10px 0; color: #333;">${product.name}</h2>
@@ -369,8 +394,6 @@ function closeProductModal(event) {
         }
     }
 }
-
-// ========== RENDER PRODUCTS (MODIFIED) ==========
 
 function renderProducts(products) {
     const container = document.getElementById('products-container');
