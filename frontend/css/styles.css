@@ -3,7 +3,7 @@
     --primary-dark: #c1121f;
     --primary-light: #ff6b6b;
     --secondary: #457b9d;
-    --accent: #f4a261;
+    --accent: #f4a261; 
     --dark: #1d3557;
     --darker: #0d1b2a;
     --light: #f8f9fa;
@@ -2196,4 +2196,28 @@ body {
     text-align: center;
     color: #adb5bd;
     font-size: 14px;
+}
+
+.product-image {
+    transition: transform 0.2s;
+}
+
+.product-image:hover {
+    transform: scale(1.03);
+    opacity: 0.9;
+}
+
+.product-title:hover {
+    color: #2c5aa0;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }

@@ -16,20 +16,17 @@ const SearchHistory = {
     },
     
     attachEventListeners() {
-        // Show dropdown on focus
         this.searchInput.addEventListener('focus', () => {
             this.showDropdown();
             this.loadHistory();
         });
         
-        // Hide dropdown when clicking outside
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.search-wrapper')) {
                 this.hideDropdown();
             }
         });
         
-        // Handle search submission
         const searchBtn = document.querySelector('.search-bar button');
         searchBtn?.addEventListener('click', () => {
             this.performSearch(this.searchInput.value);
@@ -166,7 +163,6 @@ const SearchHistory = {
             </li>
         `).join('');
         
-        // Click on search item to search
         this.historyList.querySelectorAll('li[data-query]').forEach(li => {
             li.addEventListener('click', (e) => {
                 if (e.target.closest('.delete-search-btn')) return;
@@ -176,7 +172,6 @@ const SearchHistory = {
             });
         });
         
-        // Delete individual search
         this.historyList.querySelectorAll('.delete-search-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 e.stopPropagation();
@@ -243,10 +238,9 @@ const SearchHistory = {
     }
 };
 
-// Make clearAllSearchHistory globally accessible for the HTML onclick
 window.clearAllSearchHistory = () => SearchHistory.clearAllSearchHistory();
 
-// ========== EXISTING: Categories & Products ==========
+// ========== CATEGORIES & PRODUCTS ==========
 
 async function loadCategories() {
     try {
@@ -314,6 +308,70 @@ function getImageUrl(imageUrl) {
     return `${API_BASE_URL}${imageUrl}`;
 }
 
+// ========== MODAL FUNCTIONS (NEW) ==========
+
+async function openProductModal(productId) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/products/${productId}`);
+        if (!response.ok) throw new Error('Product not found');
+        
+        const product = await response.json();
+        const imageUrl = getImageUrl(product.image_url);
+        
+        const modalHtml = `
+            <div id="product-modal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px;" onclick="closeProductModal(event)">
+                <div style="background: white; border-radius: 12px; max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; animation: modalSlideIn 0.3s ease-out;" onclick="event.stopPropagation()">
+                    <button onclick="closeProductModal()" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 24px; cursor: pointer; z-index: 10;">&times;</button>
+                    
+                    <img src="${imageUrl}" style="width: 100%; height: 300px; object-fit: cover; border-radius: 12px 12px 0 0;" onerror="this.src='https://via.placeholder.com/600'">
+                    
+                    <div style="padding: 25px;">
+                        <h2 style="margin: 0 0 10px 0; color: #333;">${product.name}</h2>
+                        <p style="font-size: 1.5em; font-weight: bold; color: #e74c3c; margin: 0 0 15px 0;">KES ${parseFloat(product.price).toFixed(2)}</p>
+                        
+                        ${product.description ? `<p style="color: #555; line-height: 1.6; margin-bottom: 20px;">${product.description}</p>` : ''}
+                        
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px;">
+                            <span style="background: #f0f0f0; padding: 5px 12px; border-radius: 15px; font-size: 0.85em; color: #666;">
+                                <i class="fas fa-box"></i> Stock: ${product.stock_quantity}
+                            </span>
+                            <span style="background: #f0f0f0; padding: 5px 12px; border-radius: 15px; font-size: 0.85em; color: #666;">
+                                <i class="fas fa-tag"></i> ${product.is_active ? 'Available' : 'Out of Stock'}
+                            </span>
+                        </div>
+                        
+                        <button onclick='addToCart(${JSON.stringify(product).replace(/'/g, "&apos;")}); closeProductModal();' style="width: 100%; background: #2c5aa0; color: white; border: none; padding: 12px; border-radius: 6px; font-size: 1em; cursor: pointer;">
+                            <i class="fas fa-cart-plus"></i> Add to Cart
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        const existing = document.getElementById('product-modal');
+        if (existing) existing.remove();
+        
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        document.body.style.overflow = 'hidden';
+        
+    } catch (error) {
+        console.error('Error loading product:', error);
+        alert('Failed to load product details');
+    }
+}
+
+function closeProductModal(event) {
+    if (!event || event.target.id === 'product-modal' || event.target.tagName === 'BUTTON') {
+        const modal = document.getElementById('product-modal');
+        if (modal) {
+            modal.remove();
+            document.body.style.overflow = '';
+        }
+    }
+}
+
+// ========== RENDER PRODUCTS (MODIFIED) ==========
+
 function renderProducts(products) {
     const container = document.getElementById('products-container');
     
@@ -336,10 +394,11 @@ function renderProducts(products) {
             <img src="${imageUrl}" 
                  alt="${product.name}" 
                  class="product-image" 
-                 style="width: 100%; height: 200px; object-fit: cover;"
+                 style="width: 100%; height: 200px; object-fit: cover; cursor: pointer;"
+                 onclick="openProductModal(${product.id})"
                  onerror="this.src='https://via.placeholder.com/300'; this.onerror=null;">
             <div class="product-info" style="padding: 15px; display: flex; flex-direction: column; flex-grow: 1;">
-                <h3 class="product-title" style="margin: 0 0 8px 0; font-size: 1.1em; color: #333;">${product.name}</h3>
+                <h3 class="product-title" style="margin: 0 0 8px 0; font-size: 1.1em; color: #333; cursor: pointer;" onclick="openProductModal(${product.id})">${product.name}</h3>
                 ${description ? `<p class="product-description" style="color: #666; font-size: 0.9em; margin: 0 0 12px 0; line-height: 1.4; flex-grow: 1;">${description}</p>` : '<div style="flex-grow: 1;"></div>'}
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 10px; border-top: 1px solid #eee;">
                     <p class="product-price" style="font-weight: bold; color: #e74c3c; font-size: 1.2em; margin: 0;">KES ${parseFloat(product.price).toFixed(2)}</p>
@@ -359,13 +418,11 @@ function filterByCategory(categoryId) {
     loadProducts(categoryId);
 }
 
-// Search functionality
 function searchProducts() {
     const query = document.getElementById('search-input').value;
     SearchHistory.performSearch(query);
 }
 
-// Handle Enter key in search
 document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('search-input');
     if (searchInput) {
@@ -374,6 +431,5 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // Initialize search history
     SearchHistory.init();
 });
