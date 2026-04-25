@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from sqlalchemy.orm import Session
 from typing import List, Optional
-import shutil
-import os
-from pathlib import Path
+import io
 from datetime import datetime, timezone
+
+import cloudinary
+import cloudinary.uploader
 
 from app.database import get_db
 import app.models as models
@@ -13,10 +14,6 @@ from app import auth
 
 router = APIRouter(prefix="/products", tags=["products"])
 
-# Create uploads directory
-UPLOAD_DIR = Path("uploads/products")
-UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-
 # ============== ADMIN ENDPOINTS ==============
 
 @router.post("/admin/upload-image")
@@ -24,7 +21,7 @@ async def upload_product_image(
     file: UploadFile = File(...),
     current_user: models.User = Depends(auth.get_current_active_user)
 ):
-    """Upload a product image and return the URL"""
+    """Upload a product image to Cloudinary and return the URL"""
     print(f"Upload attempt by user: {current_user.email}")
     
     try:
@@ -43,27 +40,22 @@ async def upload_product_image(
         if len(file_content) > max_size:
             raise HTTPException(status_code=400, detail="File too large. Max size is 5MB.")
         
-        # Generate unique filename
-        file_ext = file.filename.split(".")[-1].lower()
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-        filename = f"product_{current_user.id}_{timestamp}_{os.urandom(4).hex()}.{file_ext}"
-        file_path = UPLOAD_DIR / filename
+        # Upload to Cloudinary
+        result = cloudinary.uploader.upload(
+            io.BytesIO(file_content),
+            folder="ecommerce_products",
+            resource_type="image"
+        )
         
-        # Save file
-        with open(file_path, "wb") as buffer:
-            buffer.write(file_content)
+        image_url = result["secure_url"]
         
-        # Return full URL
-        image_url = f"/uploads/products/{filename}"
-        full_url = f"https://apiaro-backend.onrender.com{image_url}"
-        
-        print(f"Image uploaded successfully: {filename}")
+        print(f"Image uploaded to Cloudinary: {image_url}")
         
         return {
             "success": True,
             "image_url": image_url,
-            "full_url": full_url,
-            "filename": filename
+            "full_url": image_url,
+            "filename": result.get("public_id", "unknown")
         }
         
     except HTTPException:

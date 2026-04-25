@@ -1,4 +1,4 @@
-// Admin Utilities - FIXED FOR FILE UPLOADS
+// Admin Utilities - CLOUDINARY FIXED
 const ADMIN_API_URL = 'https://apiaro-backend.onrender.com';
 
 function checkAdminAuth() {
@@ -21,17 +21,14 @@ function logout() {
 async function fetchWithAuth(url, options = {}) {
     const token = localStorage.getItem('admin_token');
     
-    // Default headers
     const headers = {
         'Authorization': `Bearer ${token}`
     };
     
-    // Only add Content-Type if NOT sending FormData (browser sets it for FormData)
     if (!(options.body instanceof FormData)) {
         headers['Content-Type'] = 'application/json';
     }
     
-    // Merge with any custom headers
     if (options.headers) {
         Object.assign(headers, options.headers);
     }
@@ -45,7 +42,7 @@ async function fetchWithAuth(url, options = {}) {
 }
 
 /**
- * UPLOAD IMAGE - Separate function for file uploads
+ * UPLOAD IMAGE - Uploads to Cloudinary via backend
  */
 async function uploadProductImage(file) {
     const formData = new FormData();
@@ -55,7 +52,6 @@ async function uploadProductImage(file) {
         const response = await fetchWithAuth(`${ADMIN_API_URL}/products/admin/upload-image`, {
             method: 'POST',
             body: formData
-            // NOTE: Do NOT set Content-Type here - browser sets it automatically for FormData
         });
         
         if (!response.ok) {
@@ -64,7 +60,7 @@ async function uploadProductImage(file) {
         }
         
         const data = await response.json();
-        return data.image_url; // Returns /uploads/products/filename
+        return data.image_url; // Returns full Cloudinary URL
         
     } catch (error) {
         console.error('Upload error:', error);
@@ -77,7 +73,6 @@ async function uploadProductImage(file) {
 
 async function loadDashboardStats() {
     try {
-        // Load products count
         const productsRes = await fetchWithAuth(`${ADMIN_API_URL}/products/admin/all`);
         if (!productsRes.ok) throw new Error('Failed to load products');
         const products = await productsRes.json();
@@ -85,7 +80,6 @@ async function loadDashboardStats() {
         const totalProductsEl = document.getElementById('total-products');
         if (totalProductsEl) totalProductsEl.textContent = products.length;
 
-        // Load orders stats
         const ordersRes = await fetchWithAuth(`${ADMIN_API_URL}/orders/admin/all`);
         if (!ordersRes.ok) throw new Error('Failed to load orders');
         const orders = await ordersRes.json();
@@ -102,7 +96,6 @@ async function loadDashboardStats() {
         const revenue = orders.reduce((sum, o) => sum + parseFloat(o.total_amount || 0), 0);
         if (totalRevenueEl) totalRevenueEl.textContent = `KES ${revenue.toFixed(2)}`;
         
-        // Recent orders table
         const recentOrders = orders.slice(0, 5);
         const tbody = document.getElementById('recent-orders-body');
         if (tbody) {
@@ -139,7 +132,7 @@ async function loadProducts() {
         if (tbody) {
             tbody.innerHTML = products.map(product => `
                 <tr>
-                    <td><img src="${product.image_url || 'https://via.placeholder.com/50'}" style="width:50px;height:50px;object-fit:cover;border-radius:5px;"></td>
+                    <td><img src="${product.image_url || 'https://via.placeholder.com/50'}" style="width:50px;height:50px;object-fit:cover;border-radius:5px;" onerror="this.src='https://via.placeholder.com/50'"></td>
                     <td>${product.name}</td>
                     <td>KES ${parseFloat(product.price).toFixed(2)}</td>
                     <td>${product.stock_quantity}</td>
@@ -196,7 +189,7 @@ async function saveProduct(event) {
     }
 }
 
-// Handle image file selection
+// FIXED: Cloudinary URLs are already full URLs - no prefix needed
 function handleImageSelect(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -212,7 +205,7 @@ function handleImageSelect(event) {
     uploadProductImage(file).then(url => {
         if (url) {
             document.getElementById('product-image').value = url;
-            document.getElementById('image-preview').src = ADMIN_API_URL + url;
+            document.getElementById('image-preview').src = url; // FIXED: was ADMIN_API_URL + url
         }
     });
 }
@@ -283,7 +276,6 @@ function openProductModal(productId = null) {
     document.getElementById('modal-title').textContent = productId ? 'Edit Product' : 'Add Product';
     
     if (productId) {
-        // Load product data for editing
         fetchWithAuth(`${ADMIN_API_URL}/products/${productId}`)
             .then(res => res.json())
             .then(product => {
@@ -296,7 +288,6 @@ function openProductModal(productId = null) {
                 document.getElementById('image-preview').src = product.image_url || 'https://via.placeholder.com/200';
             });
     } else {
-        // Clear form for new product
         document.getElementById('product-form').reset();
         document.getElementById('product-id').value = '';
         document.getElementById('image-preview').src = 'https://via.placeholder.com/200';
@@ -342,7 +333,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const token = checkAdminAuth();
     if (!token) return;
     
-    // Load data based on page
     if (document.getElementById('recent-orders-body')) {
         loadDashboardStats();
     }
@@ -353,7 +343,6 @@ document.addEventListener('DOMContentLoaded', () => {
         loadAllOrders();
     }
     
-    // Setup image upload handler
     const imageInput = document.getElementById('product-image-file');
     if (imageInput) {
         imageInput.addEventListener('change', handleImageSelect);

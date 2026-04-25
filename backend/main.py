@@ -7,19 +7,25 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
 import traceback
+
+# Cloudinary config
+import cloudinary
+import cloudinary.uploader
+from app.config import CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET
+
+cloudinary.config(
+    cloud_name=CLOUDINARY_CLOUD_NAME,
+    api_key=CLOUDINARY_API_KEY,
+    api_secret=CLOUDINARY_API_SECRET
+)
 
 from app.routers import users, products, orders, search
 from app.database import engine, Base, DATABASE_URL
 
 # Create tables
 Base.metadata.create_all(bind=engine)
-
-# Create uploads directory
-if not os.path.exists("uploads"):
-    os.makedirs("uploads")
 
 app = FastAPI(
     title="Kenya E-Commerce API",
@@ -37,9 +43,6 @@ app.add_middleware(
     expose_headers=["*"],
     max_age=3600,
 )
-
-# Static files
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 # Include routers
 app.include_router(users.router)
