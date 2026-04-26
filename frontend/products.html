@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Product Grid Layout */
         .products-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -15,7 +14,6 @@
             padding: 20px 0;
         }
 
-        /* ===== ADDED: Search History Styles ===== */
         .search-wrapper {
             position: relative;
             z-index: 100;
@@ -149,7 +147,6 @@
             font-size: 14px;
         }
     
-        /* Ensure product cards have equal height */
         .product-card {
             display: flex;
             flex-direction: column;
@@ -162,14 +159,12 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
         
-        /* Product info takes remaining space */
         .product-info {
             display: flex;
             flex-direction: column;
             flex-grow: 1;
         }
         
-        /* Description styling */
         .product-description {
             color: #666;
             font-size: 0.9em;
@@ -178,14 +173,12 @@
             flex-grow: 1;
         }
         
-        /* Price and button container */
         .product-card > div:last-child {
             margin-top: auto;
             padding-top: 10px;
             border-top: 1px solid #eee;
         }
         
-        /* Responsive adjustments */
         @media (max-width: 768px) {
             .products-grid {
                 grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -193,7 +186,6 @@
             }
         }
         
-        /* Modal styles for customer service messages */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -285,7 +277,6 @@
             }
         }
 
-        /* Footer link styles */
         .footer-bottom-links a {
             cursor: pointer;
             color: #666;
@@ -297,7 +288,6 @@
             color: #2c5aa0;
         }
 
-        /* ========== PRICE FILTER BUTTONS ========== */
         .price-filters {
             display: flex;
             gap: 8px;
@@ -332,6 +322,104 @@
         
         .price-filter-btn.active:hover {
             background: #1a3a6e !important;
+        }
+
+        .flip-card {
+            background-color: transparent;
+            width: 100%;
+            height: 300px;
+            perspective: 1000px;
+            cursor: pointer;
+        }
+
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+
+        .flip-card.flipped .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .flip-card-front, .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 12px 12px 0 0;
+            overflow: hidden;
+        }
+
+        .flip-card-front {
+            background-color: #fff;
+        }
+
+        .flip-card-front img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .flip-card-back {
+            background: linear-gradient(135deg, #2c5aa0 0%, #1a3a6e 100%);
+            color: white;
+            transform: rotateY(180deg);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .flip-hint {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.5);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            pointer-events: none;
+        }
+
+        .flip-card-back .flip-hint {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .gallery-thumb {
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .gallery-thumb:hover {
+            transform: scale(1.05);
+        }
+
+        .product-image {
+            transition: transform 0.2s;
+        }
+
+        .product-image:hover {
+            transform: scale(1.03);
+            opacity: 0.9;
+        }
+
+        .product-title:hover {
+            color: #2c5aa0;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
     </style>
 </head>
@@ -370,7 +458,6 @@
                         <button onclick="searchProducts()"><i class="fas fa-search"></i></button>
                     </div>
                     
-                    <!-- Search History Dropdown -->
                     <div id="search-history-dropdown" class="search-history-dropdown" style="display: none;">
                         <div class="search-history-header">
                             <span><i class="fas fa-history"></i> Recent Searches</span>
@@ -381,7 +468,6 @@
                 </div>
             </div>
 
-            <!-- Price Filter Buttons -->
             <div class="price-filters">
                 <button class="price-filter-btn active" data-filter="all" onclick="setPriceFilter('all')">
                     All Products
@@ -412,7 +498,6 @@
                 </aside>
 
                 <div class="products-grid" id="products-container">
-                    <!-- Products loaded dynamically -->
                 </div>
             </div>
         </div>
@@ -423,7 +508,7 @@
             <div class="footer-content">
                 <div class="footer-section">
                     <h4>About Apiaro</h4>
-                    <p>Kenya's premier online marketplace connecting buyers and sellers across all 47 counties. We offer quality products, secure payments via M-Pesa, and reliable delivery to your doorstep.</p>
+                    <p>Kenya's premier online marketplace connecting buyers and sellers across all 47 counties.</p>
                     <div class="social-links">
                         <a href="#" title="Facebook"><i class="fab fa-facebook-f"></i></a>
                         <a href="#" title="Twitter"><i class="fab fa-twitter"></i></a>
@@ -530,7 +615,6 @@
         </div>
     </footer>
 
-    <!-- Customer Service Modal -->
     <div id="help-modal" class="modal-overlay">
         <div class="modal-content">
             <button class="modal-close" onclick="closeHelpModal()">&times;</button>
@@ -538,13 +622,10 @@
                 <i class="fas fa-info-circle"></i>
                 <span>Help Center</span>
             </h3>
-            <div class="modal-body" id="modal-body">
-                <!-- Content loaded dynamically -->
-            </div>
+            <div class="modal-body" id="modal-body"></div>
         </div>
     </div>
 
-    <!-- Footer Links Modal -->
     <div id="footer-modal" class="modal-overlay">
         <div class="modal-content">
             <button class="modal-close" onclick="closeFooterModal()">&times;</button>
@@ -552,9 +633,7 @@
                 <i class="fas fa-info-circle"></i>
                 <span>Title</span>
             </h3>
-            <div class="modal-body" id="footer-modal-body">
-                <!-- Content loaded dynamically -->
-            </div>
+            <div class="modal-body" id="footer-modal-body"></div>
         </div>
     </div>
 
@@ -566,7 +645,6 @@
             document.querySelector('.nav-links').classList.toggle('active');
         }
 
-        // Customer Service Modal Functions
         const helpContent = {
             help: {
                 title: 'Help Center',
@@ -684,7 +762,6 @@
             }
         };
 
-        // Footer Links Modal Content
         const footerContent = {
             privacy: {
                 title: 'Privacy Policy',

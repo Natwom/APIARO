@@ -272,6 +272,11 @@ async function loadCategories() {
 
 async function loadProducts(categoryId = null, searchQuery = null) {
     try {
+        const container = document.getElementById('products-container');
+        if (container) {
+            container.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 40px;"><i class="fas fa-spinner fa-spin" style="font-size: 24px; color: #2c5aa0;"></i><p style="color: #666; margin-top: 10px;">Loading products...</p></div>';
+        }
+        
         let url = `${API_BASE_URL}/products/`;
         const params = new URLSearchParams();
         
@@ -345,6 +350,24 @@ function filterByCategory(categoryId) {
 function searchProducts() {
     currentSearchQuery = document.getElementById('search-input').value;
     SearchHistory.performSearch(currentSearchQuery);
+}
+
+function clearSearch() {
+    document.getElementById('search-input').value = '';
+    currentSearchQuery = null;
+    currentPriceFilter = 'all';
+    currentCategoryFilter = null;
+    
+    document.querySelectorAll('.price-filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.filter === 'all') btn.classList.add('active');
+    });
+    
+    document.querySelectorAll('#category-filters li').forEach(li => li.classList.remove('active'));
+    const allLi = document.querySelector('#category-filters li:first-child');
+    if (allLi) allLi.classList.add('active');
+    
+    loadProducts();
 }
 
 function getImageUrl(imageUrl) {
@@ -502,7 +525,21 @@ function renderProducts(products) {
     if (!container) return;
     
     if (!products || products.length === 0) {
-        container.innerHTML = '<p class="no-products">No products found.</p>';
+        const searchTerm = currentSearchQuery ? ` for "${currentSearchQuery}"` : '';
+        container.innerHTML = `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 40px;">
+                <i class="fas fa-search" style="font-size: 48px; color: #ddd; margin-bottom: 15px;"></i>
+                <p class="no-products" style="font-size: 1.2em; color: #666;">
+                    No products found${searchTerm}.
+                </p>
+                <p style="color: #999; margin-top: 10px;">
+                    Try a different search term or browse all products.
+                </p>
+                <button onclick="clearSearch()" style="margin-top: 15px; padding: 10px 20px; background: #2c5aa0; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                    <i class="fas fa-times"></i> Clear Search
+                </button>
+            </div>
+        `;
         return;
     }
     

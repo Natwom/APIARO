@@ -25,7 +25,6 @@ async def upload_product_image(
     print(f"Upload attempt by user: {current_user.email}")
     
     try:
-        # Validate file type
         allowed_types = ["image/jpeg", "image/png", "image/gif", "image/webp"]
         if file.content_type not in allowed_types:
             raise HTTPException(
@@ -33,14 +32,12 @@ async def upload_product_image(
                 detail=f"Invalid file type: {file.content_type}. Allowed: JPEG, PNG, GIF, WEBP"
             )
         
-        # Read file content for size check
         file_content = await file.read()
-        max_size = 5 * 1024 * 1024  # 5MB
+        max_size = 5 * 1024 * 1024
         
         if len(file_content) > max_size:
             raise HTTPException(status_code=400, detail="File too large. Max size is 5MB.")
         
-        # Upload to Cloudinary
         result = cloudinary.uploader.upload(
             io.BytesIO(file_content),
             folder="ecommerce_products",
@@ -79,6 +76,7 @@ def create_product(
             price=product.price,
             stock_quantity=product.stock_quantity,
             image_url=product.image_url,
+            gallery_images=product.gallery_images,
             category_id=product.category_id,
             is_active=True
         )
@@ -143,12 +141,24 @@ def delete_product(
 def get_products(
     skip: int = 0,
     limit: int = 100,
+    search: Optional[str] = None,
+    category_id: Optional[int] = None,
     db: Session = Depends(get_db)
 ):
-    """Get all active products"""
-    return db.query(models.Product).filter(
-        models.Product.is_active == True
-    ).order_by(models.Product.created_at.desc()).offset(skip).limit(limit).all()
+    """Get active products with optional search and category filter"""
+    query = db.query(models.Product).filter(models.Product.is_active == True)
+    
+    if category_id:
+        query = query.filter(models.Product.category_id == category_id)
+    
+    if search:
+        search_term = f"%{search}%"
+        query = query.filter(
+            (models.Product.name.ilike(search_term)) | 
+            (models.Product.description.ilike(search_term))
+        )
+    
+    return query.order_by(models.Product.created_at.desc()).offset(skip).limit(limit).all()
 
 @router.get("/{product_id}", response_model=schemas.ProductResponse)
 def get_product(product_id: int, db: Session = Depends(get_db)):
