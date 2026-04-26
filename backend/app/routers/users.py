@@ -16,7 +16,7 @@ if backend_dir not in sys.path:
 from services.sms_service import SMSServiceFactory
 
 router = APIRouter(prefix="/users", tags=["users"])
-# ... rest of your code
+
 
 def create_admin_user_if_not_exists(db: Session):
     """Auto-create admin user if it doesn't exist"""
@@ -37,6 +37,7 @@ def create_admin_user_if_not_exists(db: Session):
         db.refresh(admin_user)
         print(f"Admin user created with ID: {admin_user.id}")
     return admin_user
+
 
 @router.post("/register", response_model=schemas.UserResponse)
 def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
@@ -66,28 +67,33 @@ def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
     db.refresh(db_user)
     return db_user
 
+
 @router.post("/login")
 def login(user_credentials: schemas.UserLogin, db: Session = Depends(get_db)):
     # Auto-create admin if logging in as admin and doesn't exist
     if user_credentials.email == "admin@kenyashop.co.ke":
         create_admin_user_if_not_exists(db)
     
-    user = db.query(models.User).filter(models.User.email == user_credentials.email.lower()).first()
+    user = db.query(models.User).filter(
+        models.User.email == user_credentials.email.lower().strip()
+    ).first()
     
+    # CASE 1: Email not registered
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Account not found. Please register first."
         )
     
+    # CASE 2: Wrong password
     password_valid = auth.verify_password(user_credentials.password, user.password_hash)
-    
     if not password_valid:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password"
+            detail="Incorrect password. Please check your credentials and try again."
         )
     
+    # CASE 3: Success
     access_token = auth.create_access_token(data={"sub": str(user.id)})
     
     return {
@@ -101,6 +107,7 @@ def login(user_credentials: schemas.UserLogin, db: Session = Depends(get_db)):
         }
     }
 
+
 # ========== FORGOT PASSWORD WITH SMS ==========
 
 def mask_phone_number(phone: str) -> str:
@@ -109,9 +116,11 @@ def mask_phone_number(phone: str) -> str:
         return f"{phone[:5]}X XX XXX XXX"
     return phone[:5] + "XXXXXXX"
 
+
 def generate_reset_code() -> str:
     """Generate 6-digit random code"""
     return str(random.randint(100000, 999999))
+
 
 @router.post("/forgot-password", response_model=schemas.ForgotPasswordResponse)
 async def forgot_password(
@@ -186,6 +195,7 @@ async def forgot_password(
         "phone_masked": None
     }
 
+
 @router.post("/verify-reset-code")
 async def verify_reset_code(
     request: schemas.VerifyResetCodeRequest,
@@ -213,6 +223,7 @@ async def verify_reset_code(
         "valid": True,
         "message": "Code verified successfully"
     }
+
 
 @router.post("/reset-password")
 async def reset_password(
@@ -266,9 +277,11 @@ async def reset_password(
         "message": "Password reset successful. You can now login with your new password."
     }
 
+
 @router.get("/me", response_model=schemas.UserResponse)
 def get_current_user_info(current_user: models.User = Depends(auth.get_current_active_user)):
     return current_user
+
 
 @router.get("/admin/all", response_model=List[schemas.UserResponse])
 def get_all_users_admin(

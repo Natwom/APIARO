@@ -144,7 +144,6 @@
                 <p>Sign in to your APIARO account</p>
             </div>
             
-            <!-- IMPORTANT: onsubmit="return false;" prevents default GET submission if JS fails -->
             <form id="login-form" class="auth-form" onsubmit="return false;">
                 <div class="form-group">
                     <label for="email">Email Address</label>
@@ -305,13 +304,12 @@
     <!-- Load auth.js first (it should declare API_BASE_URL) -->
     <script src="js/auth.js"></script>
     
-    <!-- Inline script uses API_BASE_URL from auth.js - NO REDECLARATION HERE -->
     <script>
         // Store email for the flow
         let resetEmail = '';
         let resendTimer = null;
 
-        // ========== LOGIN FORM ==========
+        // ========== LOGIN FORM (RECTIFIED) ==========
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -321,7 +319,7 @@
             btn.disabled = true;
 
             const formData = {
-                email: document.getElementById('email').value,
+                email: document.getElementById('email').value.trim().toLowerCase(),
                 password: document.getElementById('password').value
             };
 
@@ -335,21 +333,36 @@
                 const data = await response.json();
 
                 if (response.ok) {
+                    // ✅ SUCCESS: Credentials match
                     localStorage.setItem('token', data.access_token);
                     localStorage.setItem('user', JSON.stringify(data.user));
                     
-                    showToast('Login successful! Redirecting...', 'success');
+                    showToast('✅ Logged in successfully! Welcome back.', 'success');
                     setTimeout(() => {
                         window.location.href = 'index.html';
                     }, 1500);
+                    
+                } else if (response.status === 404) {
+                    // ❌ NOT REGISTERED: Advise to register first
+                    showToast('📋 Account not found. Please register first.', 'warning');
+                    setTimeout(() => {
+                        window.location.href = 'register.html';
+                    }, 2500);
+                    
+                } else if (response.status === 401) {
+                    // ❌ WRONG PASSWORD: Credentials don't match
+                    showToast('🔒 Incorrect password. Please check your credentials and try again.', 'error');
+                    
                 } else {
-                    showToast(data.detail || 'Login failed', 'error');
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
+                    // ❌ OTHER ERRORS (500, validation, etc.)
+                    showToast(data.detail || 'Login failed. Please try again later.', 'error');
                 }
+
             } catch (error) {
-                showToast('Network error. Please try again.', 'error');
                 console.error('Login error:', error);
+                showToast('Network error. Please check your connection.', 'error');
+                
+            } finally {
                 btn.innerHTML = originalText;
                 btn.disabled = false;
             }
@@ -475,17 +488,14 @@
 
         // Code input handling
         function handleCodeInput(input, index) {
-            // Only allow numbers
             input.value = input.value.replace(/[^0-9]/g, '');
             
             const inputs = document.querySelectorAll('.code-input');
             
-            // Auto-focus next
             if (input.value && index < inputs.length - 1) {
                 inputs[index + 1].focus();
             }
             
-            // Update hidden full code
             const code = Array.from(inputs).map(i => i.value).join('');
             document.getElementById('full-reset-code').value = code;
         }
@@ -493,7 +503,6 @@
         function handleCodeKeydown(event, index) {
             const inputs = document.querySelectorAll('.code-input');
             
-            // Backspace to go back
             if (event.key === 'Backspace' && !event.target.value && index > 0) {
                 inputs[index - 1].focus();
             }
@@ -651,19 +660,16 @@
             toast.textContent = message;
             document.body.appendChild(toast);
             
-            // Animate in
             setTimeout(() => {
                 toast.style.transform = 'translateX(0)';
             }, 10);
             
-            // Animate out and remove
             setTimeout(() => {
                 toast.style.transform = 'translateX(100%)';
                 setTimeout(() => toast.remove(), 300);
             }, 3000);
         }
 
-        // Debug: Log when page loads
         console.log('Login page loaded. API_BASE_URL:', typeof API_BASE_URL !== 'undefined' ? API_BASE_URL : 'NOT DEFINED - Check auth.js!');
     </script>
 </body>
