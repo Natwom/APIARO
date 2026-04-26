@@ -3,15 +3,29 @@ const ADMIN_API_URL = 'https://apiaro-backend.onrender.com';
 
 function checkAdminAuth() {
     const token = localStorage.getItem('admin_token');
-    if (!token) {
+    const userStr = localStorage.getItem('admin_user');
+    
+    if (!token || !userStr) {
         window.location.href = 'login.html';
         return null;
     }
-    return token;
+    
+    try {
+        const user = JSON.parse(userStr);
+        if (!user.is_admin) {
+            logout();
+            return null;
+        }
+        return token;
+    } catch (e) {
+        logout();
+        return null;
+    }
 }
 
 function logout() {
     localStorage.removeItem('admin_token');
+    localStorage.removeItem('admin_user');
     window.location.href = 'login.html';
 }
 
@@ -38,6 +52,11 @@ async function fetchWithAuth(url, options = {}) {
         headers: headers
     });
     
+    // Auto-logout on 401 (token expired or invalid)
+    if (response.status === 401) {
+        logout();
+    }
+    
     return response;
 }
 
@@ -60,7 +79,7 @@ async function uploadProductImage(file) {
         }
         
         const data = await response.json();
-        return data.image_url; // Returns full Cloudinary URL
+        return data.image_url;
         
     } catch (error) {
         console.error('Upload error:', error);
@@ -113,7 +132,7 @@ async function loadDashboardStats() {
         }
     } catch (error) {
         console.error('Error loading stats:', error);
-        if (error.message.includes('Unauthorized')) {
+        if (error.message && error.message.includes('Unauthorized')) {
             logout();
         }
     }
@@ -189,23 +208,20 @@ async function saveProduct(event) {
     }
 }
 
-// FIXED: Cloudinary URLs are already full URLs - no prefix needed
 function handleImageSelect(event) {
     const file = event.target.files[0];
     if (!file) return;
     
-    // Preview
     const reader = new FileReader();
     reader.onload = function(e) {
         document.getElementById('image-preview').src = e.target.result;
     };
     reader.readAsDataURL(file);
     
-    // Upload
     uploadProductImage(file).then(url => {
         if (url) {
             document.getElementById('product-image').value = url;
-            document.getElementById('image-preview').src = url; // FIXED: was ADMIN_API_URL + url
+            document.getElementById('image-preview').src = url;
         }
     });
 }

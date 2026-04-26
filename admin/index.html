@@ -1,6 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- AUTH GUARD: Runs before anything renders -->
+    <script>
+        (function() {
+            const token = localStorage.getItem('admin_token');
+            const userStr = localStorage.getItem('admin_user');
+            
+            if (!token || !userStr) {
+                window.location.replace('login.html');
+                return;
+            }
+            
+            try {
+                const user = JSON.parse(userStr);
+                if (!user.is_admin) {
+                    localStorage.removeItem('admin_token');
+                    localStorage.removeItem('admin_user');
+                    window.location.replace('login.html');
+                }
+            } catch (e) {
+                window.location.replace('login.html');
+            }
+        })();
+    </script>
+    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Apiaro</title>
@@ -19,7 +43,7 @@
                 <a href="products.html"><i class="fas fa-box"></i> Products</a>
                 <a href="orders.html"><i class="fas fa-clipboard-list"></i> Orders</a>
                 <a href="users.html"><i class="fas fa-users"></i> Users</a>
-                <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                <a href="#" onclick="logout(); return false;"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </nav>
         </aside>
 
@@ -27,7 +51,7 @@
             <header class="admin-header">
                 <h1>Dashboard</h1>
                 <div class="admin-user">
-                    <span>Administrator</span>
+                    <span id="admin-name">Administrator</span>
                 </div>
             </header>
 
@@ -87,19 +111,38 @@
     </div>
 
     <script>
-        // Admin Utilities
         const ADMIN_API_URL = 'https://apiaro-backend.onrender.com';
         
         function checkAdminAuth() {
             const token = localStorage.getItem('admin_token');
-            if (!token) {
+            const userStr = localStorage.getItem('admin_user');
+            
+            if (!token || !userStr) {
                 window.location.href = 'login.html';
+                return null;
             }
-            return token;
+            
+            try {
+                const user = JSON.parse(userStr);
+                if (!user.is_admin) {
+                    logout();
+                    return null;
+                }
+                // Display admin name
+                const nameEl = document.getElementById('admin-name');
+                if (nameEl && user.full_name) {
+                    nameEl.textContent = user.full_name;
+                }
+                return token;
+            } catch (e) {
+                logout();
+                return null;
+            }
         }
 
         function logout() {
             localStorage.removeItem('admin_token');
+            localStorage.removeItem('admin_user');
             window.location.href = 'login.html';
         }
 
@@ -118,12 +161,10 @@
 
         async function loadDashboardStats() {
             try {
-                // Load products count
                 const productsRes = await fetchWithAuth(`${ADMIN_API_URL}/products/`);
                 const products = await productsRes.json();
                 document.getElementById('total-products').textContent = products.length;
 
-                // Load orders stats
                 const ordersRes = await fetchWithAuth(`${ADMIN_API_URL}/orders/admin/all`);
                 const orders = await ordersRes.json();
                 
@@ -134,7 +175,6 @@
                 const revenue = orders.reduce((sum, o) => sum + parseFloat(o.total_amount), 0);
                 document.getElementById('total-revenue').textContent = `KES ${revenue.toFixed(2)}`;
                 
-                // Recent orders table
                 const recentOrders = orders.slice(0, 5);
                 const tbody = document.getElementById('recent-orders-body');
                 if (tbody) {
@@ -156,7 +196,8 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            checkAdminAuth();
+            const token = checkAdminAuth();
+            if (!token) return;
             loadDashboardStats();
         });
     </script>

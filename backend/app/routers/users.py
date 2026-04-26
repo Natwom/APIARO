@@ -41,20 +41,16 @@ def create_admin_user_if_not_exists(db: Session):
 
 @router.post("/register", response_model=schemas.UserResponse)
 def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    # Normalize email
     email = user.email.lower().strip()
     
-    # Check if email exists
     db_user = db.query(models.User).filter(models.User.email == email).first()
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     
-    # Check if phone exists
     db_phone = db.query(models.User).filter(models.User.phone_number == user.phone_number).first()
     if db_phone:
         raise HTTPException(status_code=400, detail="Phone number already registered")
     
-    # Create new user
     hashed_password = auth.get_password_hash(user.password)
     db_user = models.User(
         email=email,
@@ -71,7 +67,7 @@ def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
 @router.post("/login")
 def login(user_credentials: schemas.UserLogin, db: Session = Depends(get_db)):
     # Auto-create admin if logging in as admin and doesn't exist
-    if user_credentials.email == "admin@kenyashop.co.ke":
+    if user_credentials.email.lower().strip() == "admin@kenyashop.co.ke":
         create_admin_user_if_not_exists(db)
     
     user = db.query(models.User).filter(
@@ -103,7 +99,8 @@ def login(user_credentials: schemas.UserLogin, db: Session = Depends(get_db)):
             "id": user.id,
             "email": user.email,
             "full_name": user.full_name,
-            "phone_number": user.phone_number
+            "phone_number": user.phone_number,
+            "is_admin": getattr(user, 'is_admin', user.email == "admin@kenyashop.co.ke")
         }
     }
 
@@ -111,14 +108,12 @@ def login(user_credentials: schemas.UserLogin, db: Session = Depends(get_db)):
 # ========== FORGOT PASSWORD WITH SMS ==========
 
 def mask_phone_number(phone: str) -> str:
-    """Mask phone number for privacy: +2547XX XXX XXX"""
     if len(phone) >= 12:
         return f"{phone[:5]}X XX XXX XXX"
     return phone[:5] + "XXXXXXX"
 
 
 def generate_reset_code() -> str:
-    """Generate 6-digit random code"""
     return str(random.randint(100000, 999999))
 
 
@@ -128,27 +123,19 @@ async def forgot_password(
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db)
 ):
-    """
-    Request password reset - sends 6-digit code via SMS
-    """
     email = request.email.lower().strip()
-    
-    # Find user
     user = db.query(models.User).filter(models.User.email == email).first()
     
-    # Generate code regardless of user existence (security: don't reveal if email exists)
     reset_code = generate_reset_code()
-    expires_at = datetime.now(timezone.utc) + timedelta(minutes=15)  # 15 min expiry
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=15)
     
-    # Invalidate any existing unused tokens for this email
     existing_tokens = db.query(models.PasswordResetToken).filter(
         models.PasswordResetToken.email == email,
         models.PasswordResetToken.used == False
     ).all()
     for token in existing_tokens:
-        token.used = True  # Mark as used to invalidate
+        token.used = True
     
-    # Save new token
     db_token = models.PasswordResetToken(
         email=email,
         phone_number=user.phone_number if user else "",
@@ -159,24 +146,14 @@ async def forgot_password(
     db.add(db_token)
     db.commit()
     
-    # Only send SMS if user exists
     if user:
-        # Initialize SMS service
         sms_service = SMSServiceFactory.get_service()
-        
         message = (
             f"Your APIARO password reset code is: {reset_code}. "
             f"Valid for 15 minutes. Do not share this code with anyone."
         )
+        background_tasks.add_task(sms_service.send_sms, user.phone_number, message)
         
-        # Send SMS in background
-        background_tasks.add_task(
-            sms_service.send_sms,
-            user.phone_number,
-            message
-        )
-        
-        # Also log for development
         print(f"\n{'='*60}")
         print(f"PASSWORD RESET SMS")
         print(f"To: {user.phone_number}")
@@ -189,7 +166,6 @@ async def forgot_password(
             "phone_masked": mask_phone_number(user.phone_number)
         }
     
-    # Return same message even if user doesn't exist (security)
     return {
         "message": "If an account exists with this email, you will receive a reset code via SMS.",
         "phone_masked": None
@@ -197,13 +173,7 @@ async def forgot_password(
 
 
 @router.post("/verify-reset-code")
-async def verify_reset_code(
-    request: schemas.VerifyResetCodeRequest,
-    db: Session = Depends(get_db)
-):
-    """
-    Verify if reset code is valid (optional step for UX)
-    """
+async def verify_reset_code(request: schemas.VerifyResetCodeRequest, db: Session = Depends(get_db)):
     email = request.email.lower().strip()
     
     reset_token = db.query(models.PasswordResetToken).filter(
@@ -214,28 +184,15 @@ async def verify_reset_code(
     ).first()
     
     if not reset_token:
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid or expired reset code"
-        )
+        raise HTTPException(status_code=400, detail="Invalid or expired reset code")
     
-    return {
-        "valid": True,
-        "message": "Code verified successfully"
-    }
+    return {"valid": True, "message": "Code verified successfully"}
 
 
 @router.post("/reset-password")
-async def reset_password(
-    request: schemas.ResetPasswordRequest,
-    db: Session = Depends(get_db)
-):
-    """
-    Reset password using SMS code
-    """
+async def reset_password(request: schemas.ResetPasswordRequest, db: Session = Depends(get_db)):
     email = request.email.lower().strip()
     
-    # Find valid token
     reset_token = db.query(models.PasswordResetToken).filter(
         models.PasswordResetToken.email == email,
         models.PasswordResetToken.reset_code == request.reset_code,
@@ -244,38 +201,27 @@ async def reset_password(
     ).first()
     
     if not reset_token:
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid or expired reset code. Please request a new one."
-        )
+        raise HTTPException(status_code=400, detail="Invalid or expired reset code. Please request a new one.")
     
-    # Find user
     user = db.query(models.User).filter(models.User.email == email).first()
-    
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    # Update password
     user.password_hash = auth.get_password_hash(request.new_password)
     reset_token.used = True
-    
     db.commit()
     
-    # Send confirmation SMS
     sms_service = SMSServiceFactory.get_service()
     confirm_message = (
         f"Your APIARO password has been reset successfully. "
         f"If you did not do this, please contact support immediately."
     )
-    
     try:
         sms_service.send_sms(user.phone_number, confirm_message)
     except Exception as e:
         print(f"Failed to send confirmation SMS: {e}")
     
-    return {
-        "message": "Password reset successful. You can now login with your new password."
-    }
+    return {"message": "Password reset successful. You can now login with your new password."}
 
 
 @router.get("/me", response_model=schemas.UserResponse)
@@ -288,6 +234,5 @@ def get_all_users_admin(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_active_user)
 ):
-    """Get all users for admin panel"""
     users = db.query(models.User).order_by(models.User.created_at.desc()).all()
     return users
