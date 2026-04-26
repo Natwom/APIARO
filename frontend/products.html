@@ -15,8 +15,6 @@
             padding: 20px 0;
         }
 
-        /* ... keep all your existing styles ... */
-        
         /* ===== ADDED: Search History Styles ===== */
         .search-wrapper {
             position: relative;
@@ -151,9 +149,6 @@
             font-size: 14px;
         }
     
-
-
-        
         /* Ensure product cards have equal height */
         .product-card {
             display: flex;
@@ -301,6 +296,43 @@
         .footer-bottom-links a:hover {
             color: #2c5aa0;
         }
+
+        /* ========== PRICE FILTER BUTTONS ========== */
+        .price-filters {
+            display: flex;
+            gap: 8px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .price-filter-btn {
+            padding: 8px 16px;
+            border: 1px solid #2c5aa0;
+            background: white;
+            color: #2c5aa0;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.2s ease;
+        }
+        
+        .price-filter-btn:hover {
+            background: #2c5aa0 !important;
+            color: white !important;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(44, 90, 160, 0.3);
+        }
+        
+        .price-filter-btn.active {
+            background: #2c5aa0 !important;
+            color: white !important;
+            font-weight: 600;
+        }
+        
+        .price-filter-btn.active:hover {
+            background: #1a3a6e !important;
+        }
     </style>
 </head>
 <body>
@@ -330,7 +362,7 @@
 
     <main class="products-page">
         <div class="container">
-                     <div class="products-header">
+            <div class="products-header">
                 <h1>All Products</h1>
                 <div class="search-wrapper" style="position: relative;">
                     <div class="search-bar">
@@ -348,6 +380,27 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Price Filter Buttons -->
+            <div class="price-filters">
+                <button class="price-filter-btn active" data-filter="all" onclick="setPriceFilter('all')">
+                    All Products
+                </button>
+                <button class="price-filter-btn" data-filter="low-to-high" onclick="setPriceFilter('low-to-high')">
+                    Price: Low to High
+                </button>
+                <button class="price-filter-btn" data-filter="high-to-low" onclick="setPriceFilter('high-to-low')">
+                    Price: High to Low
+                </button>
+                <button class="price-filter-btn" data-filter="under-1000" onclick="setPriceFilter('under-1000')">
+                    Under KES 1,000
+                </button>
+                <button class="price-filter-btn" data-filter="1000-5000" onclick="setPriceFilter('1000-5000')">
+                    KES 1,000 - 5,000
+                </button>
+                <button class="price-filter-btn" data-filter="over-5000" onclick="setPriceFilter('over-5000')">
+                    Over KES 5,000
+                </button>
             </div>
 
             <div class="products-layout">
@@ -844,7 +897,6 @@
             document.body.style.overflow = '';
         }
 
-        // Footer Modal Functions
         function showFooterModal(type) {
             const modal = document.getElementById('footer-modal');
             const titleEl = document.getElementById('footer-modal-title');
@@ -865,41 +917,19 @@
             document.body.style.overflow = '';
         }
 
-        // Close modals when clicking outside
         document.getElementById('help-modal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeHelpModal();
-            }
+            if (e.target === this) closeHelpModal();
         });
 
         document.getElementById('footer-modal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeFooterModal();
-            }
+            if (e.target === this) closeFooterModal();
         });
 
-        // Close modals with Escape key
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 closeHelpModal();
                 closeFooterModal();
             }
-        });
-
-        // Search functions
-        function searchProducts() {
-            const query = document.getElementById('search-input').value;
-            loadProducts(null, query);
-        }
-
-        document.getElementById('search-input').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') searchProducts();
-        });
-
-        document.addEventListener('DOMContentLoaded', () => {
-            checkAuth();
-            loadCategories();
-            loadProducts();
         });
     </script>
 </body>

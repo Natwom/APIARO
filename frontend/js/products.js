@@ -138,7 +138,8 @@ const SearchHistory = {
         }
         
         this.hideDropdown();
-        loadProducts(null, query);
+        currentSearchQuery = query;
+        loadProducts(currentCategoryFilter, query);
     },
     
     renderHistory(searches) {
@@ -239,7 +240,7 @@ const SearchHistory = {
 
 window.clearAllSearchHistory = () => SearchHistory.clearAllSearchHistory();
 
-// ========== PRICE FILTER STATE ==========
+// ========== FILTER STATE ==========
 let currentPriceFilter = 'all';
 let currentCategoryFilter = null;
 let currentSearchQuery = null;
@@ -284,7 +285,6 @@ async function loadProducts(categoryId = null, searchQuery = null) {
         
         let products = Array.isArray(data) ? data : (data.products || []);
         
-        // Apply price filter client-side
         products = applyPriceFilter(products, currentPriceFilter);
         
         renderProducts(products);
@@ -323,7 +323,6 @@ function applyPriceFilter(products, filter) {
 function setPriceFilter(filter) {
     currentPriceFilter = filter;
     
-    // Update active button state
     document.querySelectorAll('.price-filter-btn').forEach(btn => {
         btn.classList.remove('active');
         if (btn.dataset.filter === filter) {
@@ -331,7 +330,6 @@ function setPriceFilter(filter) {
         }
     });
     
-    // Reload products with current filters
     loadProducts(currentCategoryFilter, currentSearchQuery);
 }
 
@@ -348,13 +346,6 @@ function searchProducts() {
     currentSearchQuery = document.getElementById('search-input').value;
     SearchHistory.performSearch(currentSearchQuery);
 }
-
-// Override performSearch to track query
-const originalPerformSearch = SearchHistory.performSearch.bind(SearchHistory);
-SearchHistory.performSearch = function(query) {
-    currentSearchQuery = query;
-    originalPerformSearch(query);
-};
 
 function getImageUrl(imageUrl) {
     if (!imageUrl) {
@@ -553,4 +544,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     SearchHistory.init();
+    loadCategories();
+    loadProducts();
 });
