@@ -88,20 +88,12 @@ def debug_database():
         "solution": None if is_pg else "Set DATABASE_URL environment variable to use PostgreSQL"
     }
 
-# Global exception handler - NOW WITH CORS HEADERS
+# Global exception handler
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     print(f"❌ ERROR: {exc}")
     print(traceback.format_exc())
-    
-    # Build response with explicit CORS headers so the browser doesn't block it
     return JSONResponse(
         status_code=500,
-        content={"detail": "Internal server error", "error": str(exc)},
-        headers={
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Credentials": "true",
-            "Access-Control-Allow-Methods": "*",
-            "Access-Control-Allow-Headers": "*",
-        }
+        content={"detail": "Internal server error", "error": str(exc)}
     )
