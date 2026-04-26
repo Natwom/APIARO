@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 import io
 from datetime import datetime, timezone
+import traceback
 
 import cloudinary
 import cloudinary.uploader
@@ -172,90 +173,148 @@ def get_products(
     category_id: Optional[int] = None,
     min_price: Optional[float] = None,
     max_price: Optional[float] = None,
-    sort_by: str = Query("created_at", regex="^(created_at|price|name)$"),
-    sort_order: str = Query("desc", regex="^(asc|desc)$"),
+    sort_by: Optional[str] = "created_at",
+    sort_order: Optional[str] = "desc",
     db: Session = Depends(get_db)
 ):
     """
     Get active products with pagination, filtering, and sorting.
     Returns 12 products per page with optimized Cloudinary thumbnails.
     """
-    query = db.query(models.Product).filter(models.Product.is_active == True)
-    
-    if category_id:
-        query = query.filter(models.Product.category_id == category_id)
-    
-    if search:
-        search_term = f"%{search}%"
-        query = query.filter(
-            (models.Product.name.ilike(search_term)) | 
-            (models.Product.description.ilike(search_term))
-        )
-    
-    if min_price is not None:
-        query = query.filter(models.Product.price >= min_price)
-    if max_price is not None:
-        query = query.filter(models.Product.price <= max_price)
-    
-    # Sorting
-    sort_column = getattr(models.Product, sort_by)
-    if sort_order == "desc":
-        sort_column = sort_column.desc()
-    query = query.order_by(sort_column)
-    
-    # Get total count
-    total = query.count()
-    
-    # Pagination
-    offset = (page - 1) * per_page
-    products = query.offset(offset).limit(per_page).all()
-    
-    total_pages = (total + per_page - 1) // per_page if total > 0 else 1
-    
-    return {
-        "items": [
-            {
-                "id": p.id,
-                "name": p.name,
-                "description": p.description,
-                "price": float(p.price),
-                "stock_quantity": p.stock_quantity,
-                "image_url": optimize_cloudinary_url(p.image_url, 400, 300),
-                "gallery_images": [optimize_cloudinary_url(g, 400, 300) for g in (p.gallery_images or [])],
-                "category_id": p.category_id,
-                "is_active": p.is_active,
-                "created_at": p.created_at.isoformat() if p.created_at else None,
-            }
-            for p in products
-        ],
-        "total": total,
-        "page": page,
-        "per_page": per_page,
-        "total_pages": total_pages,
-        "has_next": page < total_pages,
-        "has_prev": page > 1
-    }
+    try:
+        # Manual validation (avoids Pydantic regex issues)
+        allowed_sort = {"created_at", "price", "name"}
+        allowed_order = {"asc", "desc"}
+        
+        if sort_by not in allowed_sort:
+            sort_by = "created_at"
+        if sort_order not in allowed_order:
+            sort_order = "desc"
+        
+        query = db.query(models.Product).filter(models.Product.is_active == True)
+        
+        if category_id:
+            query = query.filter(models.Product.category_id == category_id)
+        
+        if search:
+            search_term = f"%{search}%"
+            query = query.filter(
+                (models.Product.name.ilike(search_term)) | 
+                (models.Product.description.ilike(search_term))
+            )
+        
+        if min_price is not None:
+            query = query.filter(models.Product.price >= min_price)
+        if max_price is not None:
+            query = query.filter(models.Product.price <= max_price)
+        
+        # Sorting
+        sort_column = getattr(models.Product, sort_by)
+        if sort_order == "desc":
+            sort_column = sort_column.desc()
+        query = query.order_by(sort_column)
+        
+        # Get total count
+        total = query.count()
+        
+        # Pagination
+        offset = (page - 1) * per_page
+        products = query.offset(offset).limit(per_page).all()
+        
+        total_pages = (total + per_page - 1) // per_page if total > 0 else 1
+        
+        # Serialize safely
+        items = []
+        for p in products:
+            try:
+                # Handle both 'stock' and 'stock_quantity' column names
+                stock_val = getattr(p, "stock_quantity", None)
+                if stock_val is None:
+                    stock_val = getattr(p, "stock", 0)
+                
+                # Handle created_at safely
+                created_val = None
+                if hasattr(p, "created_at") and p.created_at is not None:
+                    if isinstance(p.created_at, datetime):
+                        created_val = p.created_at.isoformat()
+                    else:
+                        created_val = str(p.created_at)
+                
+                item = {
+                    "id": p.id,
+                    "name": p.name,
+                    "description": p.description,
+                    "price": float(p.price) if p.price is not None else 0.0,
+                    "stock_quantity": stock_val,
+                    "image_url": optimize_cloudinary_url(getattr(p, "image_url", None), 400, 300),
+                    "gallery_images": [],
+                    "category_id": getattr(p, "category_id", None),
+                    "is_active": getattr(p, "is_active", True),
+                    "created_at": created_val,
+                }
+                
+                # Handle gallery images safely
+                gallery = getattr(p, "gallery_images", None)
+                if gallery:
+                    if isinstance(gallery, list):
+                        item["gallery_images"] = [optimize_cloudinary_url(g, 400, 300) for g in gallery if g]
+                    elif isinstance(gallery, str):
+                        item["gallery_images"] = [optimize_cloudinary_url(gallery, 400, 300)]
+                
+                items.append(item)
+                
+            except Exception as item_err:
+                print(f"Error serializing product {getattr(p, 'id', 'unknown')}: {item_err}")
+                continue
+        
+        return {
+            "items": items,
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "total_pages": total_pages,
+            "has_next": page < total_pages,
+            "has_prev": page > 1
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"FATAL ERROR in get_products: {str(e)}")
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
 
 
 @router.get("/{product_id}", response_model=schemas.ProductResponse)
 def get_product(product_id: int, db: Session = Depends(get_db)):
     """Get a specific product with optimized detail-view image"""
-    product = db.query(models.Product).filter(
-        models.Product.id == product_id,
-        models.Product.is_active == True
-    ).first()
-    
-    if not product:
-        raise HTTPException(status_code=404, detail="Product not found")
-    
-    # Optimize to larger size for detail view but still compressed
-    if product.image_url and 'cloudinary.com' in product.image_url:
-        product.image_url = optimize_cloudinary_url(product.image_url, 800, 600)
-    
-    if product.gallery_images:
-        product.gallery_images = [
-            optimize_cloudinary_url(g, 800, 600) if 'cloudinary.com' in (g or '') else g
-            for g in product.gallery_images
-        ]
-    
-    return product
+    try:
+        product = db.query(models.Product).filter(
+            models.Product.id == product_id,
+            models.Product.is_active == True
+        ).first()
+        
+        if not product:
+            raise HTTPException(status_code=404, detail="Product not found")
+        
+        # Optimize to larger size for detail view but still compressed
+        if product.image_url and 'cloudinary.com' in product.image_url:
+            product.image_url = optimize_cloudinary_url(product.image_url, 800, 600)
+        
+        if product.gallery_images:
+            if isinstance(product.gallery_images, list):
+                product.gallery_images = [
+                    optimize_cloudinary_url(g, 800, 600) if g and 'cloudinary.com' in g else g
+                    for g in product.gallery_images
+                ]
+            elif isinstance(product.gallery_images, str):
+                product.gallery_images = [optimize_cloudinary_url(product.gallery_images, 800, 600)]
+        
+        return product
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error in get_product: {str(e)}")
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
