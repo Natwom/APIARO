@@ -6,6 +6,39 @@
     <title>Product Management - Apiaro Admin</title>
     <link rel="stylesheet" href="css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<script src="js/admin.js"></script>
+
+<head>
+    <!-- AUTH GUARD -->
+    <script>
+        (function() {
+            const token = localStorage.getItem('admin_token');
+            const userStr = localStorage.getItem('admin_user');
+            if (!token || !userStr) {
+                window.location.replace('login.html');
+                return;
+            }
+            try {
+                const user = JSON.parse(userStr);
+                if (!user.is_admin) {
+                    localStorage.removeItem('admin_token');
+                    localStorage.removeItem('admin_user');
+                    window.location.replace('login.html');
+                }
+            } catch (e) {
+                window.location.replace('login.html');
+            }
+        })();
+    </script>
+    <meta charset="UTF-8">
+    ...
+</head>
+
+
+
+
+
 </head>
 <body>
     <div class="admin-layout">
