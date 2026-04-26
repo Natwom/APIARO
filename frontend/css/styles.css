@@ -2312,3 +2312,25 @@ body {
 .flip-card-back .flip-hint {
     background: rgba(255,255,255,0.2);
 }
+
+/* ========== PRICE FILTER BUTTONS ========== */
+.price-filter-btn {
+    transition: all 0.2s ease;
+}
+
+.price-filter-btn:hover {
+    background: #2c5aa0 !important;
+    color: white !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(44, 90, 160, 0.3);
+}
+
+.price-filter-btn.active {
+    background: #2c5aa0 !important;
+    color: white !important;
+    font-weight: 600;
+}
+
+.price-filter-btn.active:hover {
+    background: #1a3a6e !important;
+}

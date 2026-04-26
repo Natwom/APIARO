@@ -239,6 +239,11 @@ const SearchHistory = {
 
 window.clearAllSearchHistory = () => SearchHistory.clearAllSearchHistory();
 
+// ========== PRICE FILTER STATE ==========
+let currentPriceFilter = 'all';
+let currentCategoryFilter = null;
+let currentSearchQuery = null;
+
 async function loadCategories() {
     try {
         const response = await fetch(`${API_BASE_URL}/products/categories/all`);
@@ -277,7 +282,10 @@ async function loadProducts(categoryId = null, searchQuery = null) {
         const response = await fetch(url);
         const data = await response.json();
         
-        const products = Array.isArray(data) ? data : (data.products || []);
+        let products = Array.isArray(data) ? data : (data.products || []);
+        
+        // Apply price filter client-side
+        products = applyPriceFilter(products, currentPriceFilter);
         
         renderProducts(products);
     } catch (error) {
@@ -288,6 +296,65 @@ async function loadProducts(categoryId = null, searchQuery = null) {
         }
     }
 }
+
+function applyPriceFilter(products, filter) {
+    const sorted = [...products];
+    
+    switch (filter) {
+        case 'low-to-high':
+            return sorted.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
+        case 'high-to-low':
+            return sorted.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
+        case 'under-1000':
+            return sorted.filter(p => parseFloat(p.price) < 1000);
+        case '1000-5000':
+            return sorted.filter(p => {
+                const price = parseFloat(p.price);
+                return price >= 1000 && price <= 5000;
+            });
+        case 'over-5000':
+            return sorted.filter(p => parseFloat(p.price) > 5000);
+        case 'all':
+        default:
+            return sorted;
+    }
+}
+
+function setPriceFilter(filter) {
+    currentPriceFilter = filter;
+    
+    // Update active button state
+    document.querySelectorAll('.price-filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.filter === filter) {
+            btn.classList.add('active');
+        }
+    });
+    
+    // Reload products with current filters
+    loadProducts(currentCategoryFilter, currentSearchQuery);
+}
+
+function filterByCategory(categoryId) {
+    currentCategoryFilter = categoryId;
+    
+    document.querySelectorAll('.filters li').forEach(li => li.classList.remove('active'));
+    if (event && event.target) event.target.classList.add('active');
+    
+    loadProducts(categoryId, currentSearchQuery);
+}
+
+function searchProducts() {
+    currentSearchQuery = document.getElementById('search-input').value;
+    SearchHistory.performSearch(currentSearchQuery);
+}
+
+// Override performSearch to track query
+const originalPerformSearch = SearchHistory.performSearch.bind(SearchHistory);
+SearchHistory.performSearch = function(query) {
+    currentSearchQuery = query;
+    originalPerformSearch(query);
+};
 
 function getImageUrl(imageUrl) {
     if (!imageUrl) {
@@ -305,7 +372,23 @@ function getImageUrl(imageUrl) {
     return `${API_BASE_URL}${imageUrl}`;
 }
 
-// ========== MODAL WITH FLIP CARD ==========
+// ========== MODAL WITH IMAGE GALLERY ==========
+
+let currentModalImages = [];
+let currentModalImageIndex = 0;
+
+function switchMainImage(index) {
+    currentModalImageIndex = index;
+    const mainImg = document.getElementById('modal-main-image');
+    const flipFrontImg = document.querySelector('.flip-card-front img');
+    
+    if (mainImg) mainImg.src = currentModalImages[index];
+    if (flipFrontImg) flipFrontImg.src = currentModalImages[index];
+    
+    document.querySelectorAll('.gallery-thumb').forEach((thumb, i) => {
+        thumb.style.border = i === index ? '2px solid #2c5aa0' : '2px solid transparent';
+    });
+}
 
 async function openProductModal(productId) {
     try {
@@ -313,22 +396,47 @@ async function openProductModal(productId) {
         if (!response.ok) throw new Error('Product not found');
         
         const product = await response.json();
-        const imageUrl = getImageUrl(product.image_url);
+        
+        currentModalImages = [];
+        if (product.image_url) currentModalImages.push(getImageUrl(product.image_url));
+        if (product.gallery_images && Array.isArray(product.gallery_images)) {
+            product.gallery_images.forEach(img => {
+                const url = getImageUrl(img);
+                if (!currentModalImages.includes(url)) currentModalImages.push(url);
+            });
+        }
+        
+        if (currentModalImages.length === 0) {
+            currentModalImages.push('https://via.placeholder.com/600');
+        }
+        
+        currentModalImageIndex = 0;
+        
+        const mainImage = currentModalImages[0];
+        const hasGallery = currentModalImages.length > 1;
+        
+        const galleryThumbs = hasGallery ? `
+            <div style="display: flex; gap: 8px; margin-top: 10px; overflow-x: auto; padding: 5px 0;">
+                ${currentModalImages.map((img, idx) => `
+                    <img src="${img}" 
+                         onclick="switchMainImage(${idx})" 
+                         class="gallery-thumb"
+                         style="width: 60px; height: 60px; object-fit: cover; border-radius: 5px; cursor: pointer; border: ${idx === 0 ? '2px solid #2c5aa0' : '2px solid transparent'}; flex-shrink: 0;">
+                `).join('')}
+            </div>
+        ` : '';
         
         const modalHtml = `
             <div id="product-modal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px;" onclick="closeProductModal(event)">
                 <div style="background: white; border-radius: 12px; max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; animation: modalSlideIn 0.3s ease-out;" onclick="event.stopPropagation()">
                     <button onclick="closeProductModal()" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 24px; cursor: pointer; z-index: 10;">&times;</button>
                     
-                    <!-- FLIP CARD IMAGE -->
                     <div class="flip-card" onclick="this.classList.toggle('flipped')" title="Click to flip">
                         <div class="flip-card-inner">
-                            <!-- FRONT: Image -->
                             <div class="flip-card-front">
-                                <img src="${imageUrl}" style="width: 100%; height: 300px; object-fit: cover; border-radius: 12px 12px 0 0;" onerror="this.src='https://via.placeholder.com/600'">
+                                <img id="modal-main-image" src="${mainImage}" style="width: 100%; height: 300px; object-fit: cover; border-radius: 12px 12px 0 0;" onerror="this.src='https://via.placeholder.com/600'">
                                 <div class="flip-hint"><i class="fas fa-sync-alt"></i> Click to see details</div>
                             </div>
-                            <!-- BACK: Info -->
                             <div class="flip-card-back">
                                 <div style="padding: 30px; text-align: center; height: 300px; display: flex; flex-direction: column; justify-content: center;">
                                     <h3 style="margin: 0 0 15px 0; color: #fff;">${product.name}</h3>
@@ -349,6 +457,8 @@ async function openProductModal(productId) {
                             </div>
                         </div>
                     </div>
+                    
+                    ${galleryThumbs}
                     
                     <div style="padding: 25px;">
                         <h2 style="margin: 0 0 10px 0; color: #333;">${product.name}</h2>
@@ -432,18 +542,6 @@ function renderProducts(products) {
             </div>
         </div>
     `}).join('');
-}
-
-function filterByCategory(categoryId) {
-    document.querySelectorAll('.filters li').forEach(li => li.classList.remove('active'));
-    if (event && event.target) event.target.classList.add('active');
-    
-    loadProducts(categoryId);
-}
-
-function searchProducts() {
-    const query = document.getElementById('search-input').value;
-    SearchHistory.performSearch(query);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
