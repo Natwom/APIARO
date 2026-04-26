@@ -240,10 +240,16 @@ const SearchHistory = {
 
 window.clearAllSearchHistory = () => SearchHistory.clearAllSearchHistory();
 
-// ========== FILTER STATE ==========
+
+// ========== PAGINATION & FILTER STATE ==========
+let currentPage = 1;
+let perPage = 12;
+let isLoading = false;
+let hasMore = true;
 let currentPriceFilter = 'all';
 let currentCategoryFilter = null;
 let currentSearchQuery = null;
+
 
 async function loadCategories() {
     try {
@@ -270,60 +276,179 @@ async function loadCategories() {
     }
 }
 
-async function loadProducts(categoryId = null, searchQuery = null) {
-    try {
-        const container = document.getElementById('products-container');
-        if (container) {
-            container.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 40px;"><i class="fas fa-spinner fa-spin" style="font-size: 24px; color: #2c5aa0;"></i><p style="color: #666; margin-top: 10px;">Loading products...</p></div>';
-        }
+
+function showSkeleton() {
+    const container = document.getElementById('products-container');
+    if (!container) return;
+    
+    const skeletonHTML = Array(6).fill(`
+        <div class="product-card skeleton" style="border: 1px solid #eee; border-radius: 8px; overflow: hidden; background: white;">
+            <div style="width: 100%; height: 200px; background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite;"></div>
+            <div style="padding: 15px;">
+                <div style="height: 20px; width: 80%; background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 4px; margin-bottom: 12px;"></div>
+                <div style="height: 16px; width: 50%; background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 4px; margin-bottom: 12px;"></div>
+                <div style="height: 16px; width: 40%; background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 4px;"></div>
+            </div>
+        </div>
+    `).join('');
+    
+    container.innerHTML = skeletonHTML;
+    
+    if (!document.getElementById('skeleton-styles')) {
+        const style = document.createElement('style');
+        style.id = 'skeleton-styles';
+        style.textContent = `
+            @keyframes shimmer {
+                0% { background-position: 200% 0; }
+                100% { background-position: -200% 0; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+}
+
+
+function hideSkeleton() {
+    // Skeleton is replaced when renderProducts is called
+}
+
+
+function updateLoadMoreButton() {
+    const btn = document.getElementById('load-more-btn');
+    const loader = document.getElementById('load-more-loader');
+    
+    if (loader) loader.style.display = 'none';
+    
+    if (!btn) return;
+    
+    if (hasMore) {
+        btn.style.display = 'block';
+        btn.textContent = 'Load More';
+        btn.disabled = false;
+    } else {
+        btn.style.display = 'none';
+    }
+}
+
+
+async function loadProducts(categoryId = null, searchQuery = null, append = false) {
+    if (isLoading) return;
+    if (!append && !hasMore && currentPage > 1) return;
+    
+    isLoading = true;
+    const container = document.getElementById('products-container');
+    
+    if (!append) {
+        currentPage = 1;
+        hasMore = true;
+        showSkeleton();
+    } else {
+        const loader = document.getElementById('load-more-loader');
+        if (loader) loader.style.display = 'block';
         
-        let url = `${API_BASE_URL}/products/`;
-        const params = new URLSearchParams();
+        const btn = document.getElementById('load-more-btn');
+        if (btn) {
+            btn.textContent = 'Loading...';
+            btn.disabled = true;
+        }
+    }
+    
+    try {
+        const params = new URLSearchParams({
+            page: currentPage,
+            per_page: perPage
+        });
         
         if (categoryId) params.append('category_id', categoryId);
         if (searchQuery) params.append('search', searchQuery);
         
-        if (params.toString()) url += '?' + params.toString();
+        // Send price filters to backend instead of filtering client-side
+        switch (currentPriceFilter) {
+            case 'under-1000':
+                params.append('max_price', '1000');
+                break;
+            case '1000-5000':
+                params.append('min_price', '1000');
+                params.append('max_price', '5000');
+                break;
+            case 'over-5000':
+                params.append('min_price', '5000');
+                break;
+            case 'low-to-high':
+                params.append('sort_by', 'price');
+                params.append('sort_order', 'asc');
+                break;
+            case 'high-to-low':
+                params.append('sort_by', 'price');
+                params.append('sort_order', 'desc');
+                break;
+        }
         
-        const response = await fetch(url);
+        const response = await fetch(`${API_BASE_URL}/products/?${params}`);
+        if (!response.ok) throw new Error('Failed to fetch');
+        
         const data = await response.json();
         
-        let products = Array.isArray(data) ? data : (data.products || []);
+        if (!append) hideSkeleton();
         
-        products = applyPriceFilter(products, currentPriceFilter);
+        if (!data.items || data.items.length === 0) {
+            hasMore = false;
+            if (!append) renderEmptyState(searchQuery);
+            updateLoadMoreButton();
+            return;
+        }
         
-        renderProducts(products);
+        renderProducts(data.items, append);
+        currentPage++;
+        hasMore = data.has_next;
+        updateLoadMoreButton();
+        
     } catch (error) {
         console.error('Error loading products:', error);
-        const container = document.getElementById('products-container');
-        if (container) {
-            container.innerHTML = '<p class="error">Failed to load products. Please try again.</p>';
-        }
+        if (!append) showError();
+    } finally {
+        isLoading = false;
     }
 }
 
-function applyPriceFilter(products, filter) {
-    const sorted = [...products];
+
+function renderEmptyState(searchTerm) {
+    const container = document.getElementById('products-container');
+    if (!container) return;
     
-    switch (filter) {
-        case 'low-to-high':
-            return sorted.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
-        case 'high-to-low':
-            return sorted.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
-        case 'under-1000':
-            return sorted.filter(p => parseFloat(p.price) < 1000);
-        case '1000-5000':
-            return sorted.filter(p => {
-                const price = parseFloat(p.price);
-                return price >= 1000 && price <= 5000;
-            });
-        case 'over-5000':
-            return sorted.filter(p => parseFloat(p.price) > 5000);
-        case 'all':
-        default:
-            return sorted;
+    const term = searchTerm ? ` for "${searchTerm}"` : '';
+    container.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; padding: 40px;">
+            <i class="fas fa-search" style="font-size: 48px; color: #ddd; margin-bottom: 15px;"></i>
+            <p class="no-products" style="font-size: 1.2em; color: #666;">
+                No products found${term}.
+            </p>
+            <p style="color: #999; margin-top: 10px;">
+                Try a different search term or browse all products.
+            </p>
+            <button onclick="clearSearch()" style="margin-top: 15px; padding: 10px 20px; background: #2c5aa0; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                <i class="fas fa-times"></i> Clear Search
+            </button>
+        </div>
+    `;
+}
+
+
+function showError() {
+    const container = document.getElementById('products-container');
+    if (container) {
+        container.innerHTML = `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 40px;">
+                <i class="fas fa-exclamation-circle" style="font-size: 48px; color: #e74c3c; margin-bottom: 15px;"></i>
+                <p style="color: #666; font-size: 1.2em;">Failed to load products.</p>
+                <button onclick="loadProducts(currentCategoryFilter, currentSearchQuery)" style="margin-top: 15px; padding: 10px 20px; background: #2c5aa0; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                    Retry
+                </button>
+            </div>
+        `;
     }
 }
+
 
 function setPriceFilter(filter) {
     currentPriceFilter = filter;
@@ -338,6 +463,7 @@ function setPriceFilter(filter) {
     loadProducts(currentCategoryFilter, currentSearchQuery);
 }
 
+
 function filterByCategory(categoryId) {
     currentCategoryFilter = categoryId;
     
@@ -347,10 +473,12 @@ function filterByCategory(categoryId) {
     loadProducts(categoryId, currentSearchQuery);
 }
 
+
 function searchProducts() {
     currentSearchQuery = document.getElementById('search-input').value;
     SearchHistory.performSearch(currentSearchQuery);
 }
+
 
 function clearSearch() {
     document.getElementById('search-input').value = '';
@@ -370,9 +498,10 @@ function clearSearch() {
     loadProducts();
 }
 
+
 function getImageUrl(imageUrl) {
     if (!imageUrl) {
-        return 'https://via.placeholder.com/300';
+        return 'https://via.placeholder.com/400';
     }
     
     if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
@@ -385,6 +514,7 @@ function getImageUrl(imageUrl) {
     
     return `${API_BASE_URL}${imageUrl}`;
 }
+
 
 // ========== MODAL WITH IMAGE GALLERY ==========
 
@@ -403,6 +533,7 @@ function switchMainImage(index) {
         thumb.style.border = i === index ? '2px solid #2c5aa0' : '2px solid transparent';
     });
 }
+
 
 async function openProductModal(productId) {
     try {
@@ -509,6 +640,7 @@ async function openProductModal(productId) {
     }
 }
 
+
 function closeProductModal(event) {
     if (!event || event.target.id === 'product-modal' || event.target.tagName === 'BUTTON') {
         const modal = document.getElementById('product-modal');
@@ -519,31 +651,18 @@ function closeProductModal(event) {
     }
 }
 
-function renderProducts(products) {
+
+function renderProducts(products, append = false) {
     const container = document.getElementById('products-container');
     
     if (!container) return;
     
     if (!products || products.length === 0) {
-        const searchTerm = currentSearchQuery ? ` for "${currentSearchQuery}"` : '';
-        container.innerHTML = `
-            <div style="grid-column: 1 / -1; text-align: center; padding: 40px;">
-                <i class="fas fa-search" style="font-size: 48px; color: #ddd; margin-bottom: 15px;"></i>
-                <p class="no-products" style="font-size: 1.2em; color: #666;">
-                    No products found${searchTerm}.
-                </p>
-                <p style="color: #999; margin-top: 10px;">
-                    Try a different search term or browse all products.
-                </p>
-                <button onclick="clearSearch()" style="margin-top: 15px; padding: 10px 20px; background: #2c5aa0; color: white; border: none; border-radius: 5px; cursor: pointer;">
-                    <i class="fas fa-times"></i> Clear Search
-                </button>
-            </div>
-        `;
+        if (!append) renderEmptyState(currentSearchQuery);
         return;
     }
     
-    container.innerHTML = products.map(product => {
+    const html = products.map(product => {
         const imageUrl = getImageUrl(product.image_url);
         
         const description = product.description 
@@ -556,6 +675,7 @@ function renderProducts(products) {
                  alt="${product.name}" 
                  class="product-image" 
                  style="width: 100%; height: 200px; object-fit: cover; cursor: pointer;"
+                 loading="lazy"
                  onclick="openProductModal(${product.id})"
                  onerror="this.src='https://via.placeholder.com/300'; this.onerror=null;">
             <div class="product-info" style="padding: 15px; display: flex; flex-direction: column; flex-grow: 1;">
@@ -570,7 +690,31 @@ function renderProducts(products) {
             </div>
         </div>
     `}).join('');
+    
+    if (append) {
+        container.insertAdjacentHTML('beforeend', html);
+    } else {
+        container.innerHTML = html;
+    }
 }
+
+
+// ========== INFINITE SCROLL ==========
+function setupInfiniteScroll() {
+    const sentinel = document.getElementById('scroll-sentinel');
+    if (!sentinel) return;
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting && hasMore && !isLoading) {
+                loadProducts(currentCategoryFilter, currentSearchQuery, true);
+            }
+        });
+    }, { rootMargin: '400px' });
+    
+    observer.observe(sentinel);
+}
+
 
 document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('search-input');
@@ -583,4 +727,5 @@ document.addEventListener('DOMContentLoaded', () => {
     SearchHistory.init();
     loadCategories();
     loadProducts();
+    setupInfiniteScroll();
 });
