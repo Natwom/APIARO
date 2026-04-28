@@ -6,6 +6,82 @@
     <title>Register - APIARO</title>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Password Toggle Styles */
+        .password-wrapper {
+            position: relative;
+            width: 100%;
+        }
+        
+        .password-wrapper input {
+            width: 100%;
+            padding-right: 40px !important;
+        }
+        
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #6b7280;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s;
+        }
+        
+        .toggle-password:hover {
+            color: #667eea;
+        }
+        
+        .toggle-password:focus {
+            outline: none;
+            color: #667eea;
+        }
+        
+        /* Password Match Indicator */
+        .match-indicator {
+            font-size: 0.85rem;
+            margin-top: 4px;
+            display: none;
+        }
+        
+        .match-indicator.match {
+            color: #10b981;
+            display: block;
+        }
+        
+        .match-indicator.no-match {
+            color: #ef4444;
+            display: block;
+        }
+        
+        /* Password Strength */
+        .strength-bar {
+            height: 4px;
+            border-radius: 2px;
+            margin-top: 6px;
+            transition: all 0.3s;
+            width: 0%;
+        }
+        
+        .strength-weak { background: #ef4444; width: 33%; }
+        .strength-medium { background: #f59e0b; width: 66%; }
+        .strength-strong { background: #10b981; width: 100%; }
+        
+        .strength-text {
+            font-size: 0.8rem;
+            margin-top: 2px;
+            color: #6b7280;
+        }
+    </style>
 </head>
 <body class="auth-page">
     <div class="auth-container">
@@ -49,9 +125,31 @@
                     <label for="password">Password</label>
                     <div class="input-group">
                         <i class="fas fa-lock"></i>
-                        <input type="password" id="password" name="password" required 
-                               placeholder="••••••••" minlength="6">
+                        <div class="password-wrapper">
+                            <input type="password" id="password" name="password" required 
+                                   placeholder="••••••••" minlength="6" oninput="checkPasswordStrength()">
+                            <button type="button" class="toggle-password" onclick="togglePassword('password', this)" title="Show/Hide Password">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
                     </div>
+                    <div id="strength-bar" class="strength-bar"></div>
+                    <div id="strength-text" class="strength-text"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirm_password">Confirm Password</label>
+                    <div class="input-group">
+                        <i class="fas fa-lock"></i>
+                        <div class="password-wrapper">
+                            <input type="password" id="confirm_password" name="confirm_password" required 
+                                   placeholder="••••••••" minlength="6" oninput="checkPasswordMatch()">
+                            <button type="button" class="toggle-password" onclick="togglePassword('confirm_password', this)" title="Show/Hide Password">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <small id="match-indicator" class="match-indicator"></small>
                 </div>
 
                 <div class="form-group terms">
@@ -62,7 +160,7 @@
                     </label>
                 </div>
 
-                <button type="submit" class="btn-auth">
+                <button type="submit" class="btn-auth" id="register-btn">
                     <span>Create Account</span>
                     <i class="fas fa-user-plus"></i>
                 </button>
@@ -78,14 +176,110 @@
     <div id="toast" class="toast"></div>
 
     <script>
+        // ========== PASSWORD TOGGLE FUNCTION ==========
+        function togglePassword(inputId, btn) {
+            const input = document.getElementById(inputId);
+            const icon = btn.querySelector('i');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+                btn.title = 'Hide Password';
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+                btn.title = 'Show Password';
+            }
+        }
+
+        // ========== PASSWORD STRENGTH CHECKER ==========
+        function checkPasswordStrength() {
+            const password = document.getElementById('password').value;
+            const bar = document.getElementById('strength-bar');
+            const text = document.getElementById('strength-text');
+            
+            let strength = 0;
+            if (password.length >= 6) strength++;
+            if (password.length >= 8) strength++;
+            if (/[A-Z]/.test(password)) strength++;
+            if (/[0-9]/.test(password)) strength++;
+            if (/[^A-Za-z0-9]/.test(password)) strength++;
+            
+            bar.className = 'strength-bar';
+            
+            if (password.length === 0) {
+                text.textContent = '';
+            } else if (strength <= 2) {
+                bar.classList.add('strength-weak');
+                text.textContent = 'Weak password';
+                text.style.color = '#ef4444';
+            } else if (strength <= 3) {
+                bar.classList.add('strength-medium');
+                text.textContent = 'Medium strength';
+                text.style.color = '#f59e0b';
+            } else {
+                bar.classList.add('strength-strong');
+                text.textContent = 'Strong password';
+                text.style.color = '#10b981';
+            }
+            
+            checkPasswordMatch();
+        }
+
+        // ========== PASSWORD MATCH CHECKER ==========
+        function checkPasswordMatch() {
+            const password = document.getElementById('password').value;
+            const confirm = document.getElementById('confirm_password').value;
+            const indicator = document.getElementById('match-indicator');
+            
+            if (confirm.length === 0) {
+                indicator.style.display = 'none';
+                return;
+            }
+            
+            indicator.style.display = 'block';
+            if (password === confirm) {
+                indicator.textContent = '✓ Passwords match';
+                indicator.className = 'match-indicator match';
+            } else {
+                indicator.textContent = '✗ Passwords do not match';
+                indicator.className = 'match-indicator no-match';
+            }
+        }
+
+        // ========== REGISTER FORM ==========
         document.getElementById('register-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm_password').value;
+            
+            // Validate password match
+            if (password !== confirmPassword) {
+                showToast('Passwords do not match! Please check and try again.', 'error');
+                document.getElementById('confirm_password').focus();
+                return;
+            }
+            
+            // Validate minimum length
+            if (password.length < 6) {
+                showToast('Password must be at least 6 characters long.', 'error');
+                document.getElementById('password').focus();
+                return;
+            }
+            
+            const btn = document.getElementById('register-btn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating account...';
+            btn.disabled = true;
             
             const formData = {
                 full_name: document.getElementById('full_name').value,
                 email: document.getElementById('email').value,
                 phone_number: document.getElementById('phone').value,
-                password: document.getElementById('password').value
+                password: password
             };
 
             try {
@@ -108,6 +302,9 @@
             } catch (error) {
                 showToast('Network error. Please try again.', 'error');
                 console.error('Registration error:', error);
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
             }
         });
 
