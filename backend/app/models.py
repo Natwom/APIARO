@@ -52,6 +52,7 @@ class Product(Base):
     stock_quantity = Column(Integer, default=0)
     category_id = Column(Integer, ForeignKey("categories.id"))
     image_url = Column(String(500))
+    gallery_images = Column(Text, nullable=True)  # JSON string: '["url1", "url2"]'
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -97,7 +98,6 @@ class OrderItem(Base):
     order = relationship("Order", back_populates="items")
     product = relationship("Product", back_populates="order_items")
 
-# ========== ADDED: Password Reset Token Model ==========
 class PasswordResetToken(Base):
     __tablename__ = "password_reset_tokens"
     
@@ -109,7 +109,6 @@ class PasswordResetToken(Base):
     used = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-# ========== ADDED: Search History Model ==========
 class SearchHistory(Base):
     __tablename__ = "search_history"
     
@@ -120,9 +119,3 @@ class SearchHistory(Base):
     last_searched = Column(DateTime, default=func.now(), onupdate=func.now())
     
     user = relationship("User", back_populates="search_history")
-    
-    __table_args__ = (
-        # Unique constraint: one entry per user per query (case-insensitive handled in code)
-        # For SQLite we handle uniqueness in code; for PostgreSQL you could add:
-        # UniqueConstraint('user_id', func.lower('search_query'), name='unique_user_search'),
-    )

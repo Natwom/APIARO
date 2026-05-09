@@ -17,7 +17,7 @@ class OrderStatus(str, Enum):
     delivered = "delivered"
     cancelled = "cancelled"
 
-# ========== ADDED: Password Reset Schemas ==========
+# Password Reset Schemas
 class ForgotPasswordRequest(BaseModel):
     email: EmailStr
 
@@ -34,7 +34,7 @@ class ResetPasswordRequest(BaseModel):
     reset_code: str = Field(..., min_length=6, max_length=6)
     new_password: str = Field(..., min_length=6)
 
-# ========== ADDED: Search History Schemas ==========
+# Search History Schemas
 class SearchHistoryBase(BaseModel):
     search_query: str
 
@@ -80,6 +80,7 @@ class ProductBase(BaseModel):
     price: Decimal
     stock_quantity: int = 0
     image_url: Optional[str] = None
+    gallery_images: Optional[List[str]] = None
 
 class ProductResponse(ProductBase):
     id: int
@@ -95,6 +96,7 @@ class ProductCreate(BaseModel):
     price: Decimal
     stock_quantity: int = 0
     image_url: Optional[str] = None
+    gallery_images: Optional[List[str]] = None
     category_id: Optional[int] = None
     
     class Config:
@@ -106,6 +108,7 @@ class ProductUpdate(BaseModel):
     price: Optional[Decimal] = None
     stock_quantity: Optional[int] = None
     image_url: Optional[str] = None
+    gallery_images: Optional[List[str]] = None
     category_id: Optional[int] = None
     is_active: Optional[bool] = None
     

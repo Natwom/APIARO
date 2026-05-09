@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import io
+import json
 from datetime import datetime, timezone
 
 import cloudinary
@@ -70,19 +71,27 @@ def create_product(
 ):
     """Create a new product"""
     try:
+        # Convert gallery_images list to JSON string for storage
+        gallery_json = json.dumps(product.gallery_images) if product.gallery_images else None
+        
         db_product = models.Product(
             name=product.name,
             description=product.description,
             price=product.price,
             stock_quantity=product.stock_quantity,
             image_url=product.image_url,
-            gallery_images=product.gallery_images,
+            gallery_images=gallery_json,
             category_id=product.category_id,
             is_active=True
         )
         db.add(db_product)
         db.commit()
         db.refresh(db_product)
+        
+        # Convert back to list for response
+        if db_product.gallery_images:
+            db_product.gallery_images = json.loads(db_product.gallery_images)
+        
         return db_product
     except Exception as e:
         db.rollback()
@@ -94,7 +103,14 @@ def get_all_products_admin(
     current_user: models.User = Depends(auth.get_current_active_user)
 ):
     """Get all products for admin"""
-    return db.query(models.Product).order_by(models.Product.created_at.desc()).all()
+    products = db.query(models.Product).order_by(models.Product.created_at.desc()).all()
+    
+    # Parse gallery_images JSON for each product
+    for p in products:
+        if p.gallery_images and isinstance(p.gallery_images, str):
+            p.gallery_images = json.loads(p.gallery_images)
+    
+    return products
 
 @router.put("/admin/{product_id}", response_model=schemas.ProductResponse)
 def update_product(
@@ -110,11 +126,21 @@ def update_product(
     
     try:
         update_data = product_update.dict(exclude_unset=True)
+        
+        # Handle gallery_images conversion
+        if "gallery_images" in update_data and update_data["gallery_images"] is not None:
+            update_data["gallery_images"] = json.dumps(update_data["gallery_images"])
+        
         for field, value in update_data.items():
             setattr(db_product, field, value)
         
         db.commit()
         db.refresh(db_product)
+        
+        # Parse gallery_images back to list for response
+        if db_product.gallery_images and isinstance(db_product.gallery_images, str):
+            db_product.gallery_images = json.loads(db_product.gallery_images)
+        
         return db_product
     except Exception as e:
         db.rollback()
@@ -158,7 +184,14 @@ def get_products(
             (models.Product.description.ilike(search_term))
         )
     
-    return query.order_by(models.Product.created_at.desc()).offset(skip).limit(limit).all()
+    products = query.order_by(models.Product.created_at.desc()).offset(skip).limit(limit).all()
+    
+    # Parse gallery_images JSON for each product
+    for p in products:
+        if p.gallery_images and isinstance(p.gallery_images, str):
+            p.gallery_images = json.loads(p.gallery_images)
+    
+    return products
 
 @router.get("/{product_id}", response_model=schemas.ProductResponse)
 def get_product(product_id: int, db: Session = Depends(get_db)):
@@ -170,4 +203,9 @@ def get_product(product_id: int, db: Session = Depends(get_db)):
     
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
+    
+    # Parse gallery_images JSON
+    if product.gallery_images and isinstance(product.gallery_images, str):
+        product.gallery_images = json.loads(product.gallery_images)
+    
     return product
