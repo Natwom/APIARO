@@ -172,5 +172,32 @@
             }
         });
     </script>
+
+    <script>
+    (function(){
+        function toggleSidebar() {
+            var sb = document.getElementById('admin-sidebar');
+            var ov = document.querySelector('.sidebar-overlay');
+            if (!sb) { console.error('Sidebar not found'); return; }
+            sb.classList.toggle('active');
+            if (ov) ov.classList.toggle('active');
+            document.body.style.overflow = sb.classList.contains('active') ? 'hidden' : '';
+        }
+        window.toggleSidebar = toggleSidebar;
+        document.addEventListener('DOMContentLoaded', function(){
+            var sb = document.getElementById('admin-sidebar');
+            if (sb) {
+                sb.querySelectorAll('a').forEach(function(a){
+                    a.addEventListener('click', function(){
+                        if (window.innerWidth <= 768) toggleSidebar();
+                    });
+                });
+            }
+            // Also close on overlay click
+            var ov = document.querySelector('.sidebar-overlay');
+            if (ov) ov.addEventListener('click', toggleSidebar);
+        });
+    })();
+    </script>
 </body>
 </html>
