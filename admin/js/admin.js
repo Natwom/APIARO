@@ -28,7 +28,7 @@ async function fetchWithAuth(url, options = {}) {
 
 async function loadDashboardStats() {
     try {
-        const response = await fetchWithAuth('http://localhost:8000/orders/admin/all');
+        const response = await fetchWithAuth('https://apiaro-backend.onrender.com/orders/admin/all');
         const orders = await response.json();
         
         document.getElementById('total-orders').textContent = orders.length;
@@ -63,7 +63,7 @@ async function loadDashboardStats() {
 
 async function loadAllOrders(status = '') {
     try {
-        let url = 'http://localhost:8000/orders/admin/all';
+        let url = 'https://apiaro-backend.onrender.com/orders/admin/all';
         if (status) url += `?status=${status}`;
         
         const response = await fetchWithAuth(url);

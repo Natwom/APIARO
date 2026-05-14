@@ -121,12 +121,12 @@
         async function loadDashboardStats() {
             try {
                 // Load products count
-                const productsRes = await fetchWithAuth('http://localhost:8000/products/');
+                const productsRes = await fetchWithAuth('https://apiaro-backend.onrender.com/products/');
                 const products = await productsRes.json();
                 document.getElementById('total-products').textContent = products.length;
 
                 // Load orders stats
-                const ordersRes = await fetchWithAuth('http://localhost:8000/orders/admin/all');
+                const ordersRes = await fetchWithAuth('https://apiaro-backend.onrender.com/orders/admin/all');
                 const orders = await ordersRes.json();
                 
                 document.getElementById('total-orders').textContent = orders.length;

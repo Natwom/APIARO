@@ -104,7 +104,7 @@
                 
                 debugDiv.innerHTML = 'Token found: ' + token.substring(0, 30) + '...<br>';
                 
-                const res = await fetchWithAuth('http://localhost:8000/users/admin/all');
+                const res = await fetchWithAuth('https://apiaro-backend.onrender.com/users/admin/all');
                 
                 debugDiv.innerHTML += 'Response status: ' + res.status + '<br>';
                 
