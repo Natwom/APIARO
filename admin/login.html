@@ -3,62 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login - Apiaro</title>
+    <title>Admin Login - KenyaShop</title>
     <link rel="stylesheet" href="css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        /* Password Toggle Styles */
-        .password-wrapper {
-            position: relative;
-            width: 100%;
-        }
-        
-        .password-wrapper input {
-            width: 100%;
-            padding-right: 40px !important;
-        }
-        
-        .toggle-password {
-            position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            color: #6b7280;
-            cursor: pointer;
-            font-size: 1rem;
-            padding: 0;
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: color 0.2s;
-        }
-        
-        .toggle-password:hover {
-            color: #667eea;
-        }
-        
-        .toggle-password:focus {
-            outline: none;
-            color: #667eea;
-        }
-    </style>
-
-    <style>
-    @media (max-width: 768px) {
-        #admin-sidebar { position: fixed !important; top: 0 !important; left: -260px !important; width: 260px !important; height: 100vh !important; z-index: 1000 !important; transition: left 0.3s ease !important; }
-        #admin-sidebar.active, #admin-sidebar[style*="left: 0px"] { left: 0 !important; }
-        #admin-ham { display: block !important; }
-        .main-content { margin-left: 0 !important; padding-top: 60px !important; width: 100% !important; }
-    }
-    </style>
 </head>
 <body class="auth-page">
-    <button class="admin-hamburger" onclick="toggleSidebar()">☰</button>
-    <div class="sidebar-overlay" onclick="toggleSidebar()" id="admin-sidebar" style="position:fixed;top:0;left:-260px;width:260px;height:100vh;background:var(--dark);color:white;z-index:1000;transition:left 0.3s ease;overflow-y:auto;"></div>
     <div class="auth-container">
         <div class="auth-box">
             <div class="auth-header">
@@ -74,68 +23,52 @@
                 </div>
                 <div class="form-group">
                     <label>Password</label>
-                    <div class="password-wrapper">
-                        <input type="password" id="password" required value="admin123">
-                        <button type="button" class="toggle-password" onclick="togglePassword('password', this)" title="Show/Hide Password">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
+                    <input type="password" id="password" required value="admin123">
                 </div>
-                <button type="submit" class="btn-auth" id="login-btn">Login to Dashboard</button>
+                <button type="submit" class="btn-auth">Login to Dashboard</button>
                 <div id="error-message" style="color: red; margin-top: 10px; display: none;"></div>
             </form>
         </div>
     </div>
 
-    
-
     <script>
-    (function(){
-        var sb = document.getElementById('admin-sidebar');
-        var ham = document.getElementById('admin-ham');
-        var ov = document.getElementById('admin-overlay');
-        
-        window.toggleSidebar = function() {
-            if (!sb) { alert('Sidebar not found!'); return; }
-            var isOpen = sb.style.left === '0px';
-            if (isOpen) {
-                sb.style.left = '-260px';
-                if (ov) ov.style.display = 'none';
-                document.body.style.overflow = '';
-            } else {
-                sb.style.left = '0px';
-                if (ov) ov.style.display = 'block';
-                document.body.style.overflow = 'hidden';
-            }
-        };
-        
-        // Show hamburger on mobile
-        function checkMobile() {
-            if (ham) {
-                if (window.innerWidth <= 768) {
-                    ham.style.display = 'block';
-                } else {
-                    ham.style.display = 'none';
-                    // Reset sidebar on desktop
-                    if (sb) sb.style.left = '';
-                    if (ov) ov.style.display = 'none';
-                    document.body.style.overflow = '';
-                }
-            }
-        }
-        
-        window.addEventListener('resize', checkMobile);
-        document.addEventListener('DOMContentLoaded', checkMobile);
-        
-        // Close sidebar when clicking links
-        if (sb) {
-            sb.querySelectorAll('a').forEach(function(a){
-                a.addEventListener('click', function(){
-                    if (window.innerWidth <= 768) toggleSidebar();
+        document.getElementById('admin-login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.style.display = 'none';
+            
+            const credentials = {
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value
+            };
+            
+            try {
+                console.log('Attempting login with:', credentials.email);
+                
+                const response = await fetch('http://localhost:8000/users/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(credentials)
                 });
-            });
-        }
-    })();
+                
+                const data = await response.json();
+                console.log('Login response:', response.status, data);
+                
+                if (response.ok && data.access_token) {
+                    localStorage.setItem('admin_token', data.access_token);
+                    console.log('Token stored successfully');
+                    window.location.href = 'index.html';
+                } else {
+                    errorDiv.textContent = 'Login failed: ' + (data.detail || 'Invalid credentials');
+                    errorDiv.style.display = 'block';
+                }
+            } catch (error) {
+                errorDiv.textContent = 'Network error: ' + error.message;
+                errorDiv.style.display = 'block';
+                console.error('Login error:', error);
+            }
+        });
     </script>
 </body>
 </html>

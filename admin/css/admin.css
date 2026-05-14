@@ -27,7 +27,6 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 1rem;
 }
 
 .auth-container {
@@ -71,7 +70,6 @@ body {
     padding: 0.75rem;
     border: 1px solid #ddd;
     border-radius: 5px;
-    font-size: 16px;
 }
 
 .form-group textarea {
@@ -114,7 +112,6 @@ body {
     transition: all 0.3s;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    min-height: 44px;
 }
 
 .btn-auth:hover {
@@ -135,8 +132,6 @@ body {
     position: fixed;
     height: 100vh;
     overflow-y: auto;
-    transition: left 0.3s ease;
-    z-index: 1000;
 }
 
 .sidebar-header {
@@ -179,7 +174,6 @@ body {
     flex: 1;
     margin-left: 260px;
     padding: 2rem;
-    min-width: 0;
 }
 
 .admin-header {
@@ -189,36 +183,6 @@ body {
     margin-bottom: 2rem;
     padding-bottom: 1rem;
     border-bottom: 1px solid #ddd;
-    flex-wrap: wrap;
-    gap: 1rem;
-}
-
-/* Admin hamburger button */
-.admin-hamburger {
-    display: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: var(--dark);
-    background: none;
-    border: none;
-    padding: 0.5rem;
-    z-index: 1001;
-}
-
-.sidebar-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-    z-index: 999;
-    backdrop-filter: blur(2px);
-}
-
-.sidebar-overlay.active {
-    display: block;
 }
 
 /* Dashboard Stats */
@@ -264,14 +228,11 @@ body {
     border-radius: 10px;
     overflow: hidden;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
 }
 
 table {
     width: 100%;
     border-collapse: collapse;
-    min-width: 600px;
 }
 
 th, td {
@@ -296,7 +257,6 @@ tr:hover {
     border-radius: 20px;
     font-size: 0.85rem;
     font-weight: 500;
-    white-space: nowrap;
 }
 
 .status-pending { background: #fff3cd; color: #856404; }
@@ -319,7 +279,6 @@ tr:hover {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    min-height: 44px;
 }
 
 .btn-primary:hover {
@@ -335,7 +294,6 @@ tr:hover {
     border-radius: 5px;
     cursor: pointer;
     font-weight: 600;
-    min-height: 44px;
 }
 
 .btn-danger {
@@ -346,7 +304,6 @@ tr:hover {
     border-radius: 5px;
     cursor: pointer;
     font-weight: 600;
-    min-height: 44px;
 }
 
 .btn-small {
@@ -367,7 +324,6 @@ tr:hover {
     justify-content: center;
     z-index: 9999;
     backdrop-filter: blur(5px);
-    padding: 1rem;
 }
 
 .modal-content {
@@ -378,7 +334,6 @@ tr:hover {
     max-width: 400px;
     max-height: 90vh;
     overflow-y: auto;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
 }
 
 .modal-large {
@@ -396,7 +351,6 @@ tr:hover {
     margin: 1rem 0;
     border: 1px solid #ddd;
     border-radius: 5px;
-    font-size: 16px;
 }
 
 .modal-actions {
@@ -406,7 +360,6 @@ tr:hover {
     margin-top: 1.5rem;
     padding-top: 1rem;
     border-top: 1px solid #eee;
-    flex-wrap: wrap;
 }
 
 /* Filters */
@@ -414,7 +367,6 @@ tr:hover {
     padding: 0.5rem 1rem;
     border: 1px solid #ddd;
     border-radius: 5px;
-    font-size: 16px;
 }
 
 /* SMS Indicator */
@@ -435,7 +387,39 @@ tr:hover {
     transform: scale(1.1);
 }
 
-/* Users Table */
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        position: relative;
+        height: auto;
+    }
+
+    .main-content {
+        margin-left: 0;
+    }
+
+    .admin-layout {
+        flex-direction: column;
+    }
+
+    .dashboard-stats,
+    .products-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+}
+
+
 .users-table-container {
     background: white;
     border-radius: 10px;
@@ -472,7 +456,6 @@ tr:hover {
     border-radius: 20px;
     font-size: 0.85rem;
     font-weight: 600;
-    white-space: nowrap;
 }
 
 .stats-summary {
@@ -484,53 +467,50 @@ tr:hover {
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-
-
-
 /* ============================================
-   DEFINITIVE MOBILE SIDEBAR FIX
+   MOBILE SIDEBAR FIX - Added for phone support
    ============================================ */
 
+/* Hamburger button - hidden on desktop */
 .admin-hamburger {
     display: none;
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 1001;
+    font-size: 24px;
+    background: var(--dark);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 12px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 
+/* Dark overlay behind sidebar */
 .sidebar-overlay {
     display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 999;
+    backdrop-filter: blur(3px);
 }
 
+.sidebar-overlay.active {
+    display: block;
+}
+
+/* Mobile: show hamburger, hide sidebar off-screen */
 @media (max-width: 768px) {
     .admin-hamburger {
         display: block !important;
-        position: fixed;
-        top: 1rem;
-        left: 1rem;
-        z-index: 1001;
-        font-size: 1.5rem;
-        background: none;
-        border: none;
-        color: var(--dark);
-        cursor: pointer;
-        padding: 0.5rem;
     }
-
-    .sidebar-overlay {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.5);
-        z-index: 999;
-        backdrop-filter: blur(2px);
-    }
-
-    .sidebar-overlay.active {
-        display: block !important;
-    }
-
-    #admin-sidebar,
+    
     .sidebar {
         position: fixed !important;
         top: 0 !important;
@@ -539,51 +519,34 @@ tr:hover {
         height: 100vh !important;
         z-index: 1000 !important;
         transition: left 0.3s ease !important;
-        box-shadow: 2px 0 10px rgba(0,0,0,0.3) !important;
+        box-shadow: 2px 0 15px rgba(0,0,0,0.3) !important;
         margin-left: 0 !important;
     }
-
-    #admin-sidebar.active,
+    
     .sidebar.active {
         left: 0 !important;
     }
-
+    
     .main-content {
         margin-left: 0 !important;
         padding: 1rem !important;
-        padding-top: 4rem !important;
+        padding-top: 70px !important;
         width: 100% !important;
     }
-}
-
-
-/* ============================================
-   CLEAN MOBILE SIDEBAR RULES
-   ============================================ */
-@media (max-width: 768px) {
-    #admin-ham {
-        display: block !important;
-    }
-    #admin-sidebar {
-        position: fixed !important;
-        top: 0 !important;
-        left: -260px !important;
-        width: 260px !important;
-        height: 100vh !important;
-        z-index: 1000 !important;
-        transition: left 0.3s ease !important;
-        box-shadow: 2px 0 10px rgba(0,0,0,0.3) !important;
-    }
-    #admin-sidebar.active {
-        left: 0 !important;
-    }
-    .main-content {
-        margin-left: 0 !important;
-        padding: 1rem !important;
-        padding-top: 60px !important;
-        width: 100% !important;
-    }
+    
     .admin-header {
         padding-top: 0.5rem !important;
+        flex-direction: column !important;
+        gap: 1rem !important;
+    }
+    
+    /* Make tables scrollable on small screens */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    table {
+        min-width: 600px;
     }
 }
