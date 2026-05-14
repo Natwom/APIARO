@@ -2,232 +2,54 @@
 <html lang="en">
 <head>
     <!-- AUTH GUARD: Runs before anything renders -->
-    <script>
-        (function() {
-            const token = localStorage.getItem('admin_token');
-            const userStr = localStorage.getItem('admin_user');
-            
-            if (!token || !userStr) {
-                window.location.replace('login.html');
-                return;
-            }
-            
-            try {
-                const user = JSON.parse(userStr);
-                if (!user.is_admin) {
-                    localStorage.removeItem('admin_token');
-                    localStorage.removeItem('admin_user');
-                    window.location.replace('login.html');
-                }
-            } catch (e) {
-                window.location.replace('login.html');
-            }
-        })();
-    </script>
     
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - Apiaro</title>
-    <link rel="stylesheet" href="css/admin.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
-<body>
-    <button class="admin-hamburger" onclick="toggleSidebar()">☰</button>
-    <div class="sidebar-overlay" onclick="toggleSidebar()" id="admin-sidebar"></div>
-    <div class="admin-layout">
-        <aside class="sidebar" id="admin-sidebar">
-            <div class="sidebar-header" id="admin-sidebar">
-                <h2><i class="fas fa-shopping-bag"></i> Apiaro</h2>
-                <p>Admin Panel</p>
-            </div>
-            <nav class="sidebar-nav" id="admin-sidebar">
-                <a href="index.html" class="active"><i class="fas fa-home"></i> Dashboard</a>
-                <a href="products.html"><i class="fas fa-box"></i> Products</a>
-                <a href="orders.html"><i class="fas fa-clipboard-list"></i> Orders</a>
-                <a href="users.html"><i class="fas fa-users"></i> Users</a>
-                <a href="#" onclick="logout(); return false;"><i class="fas fa-sign-out-alt"></i> Logout</a>
-            </nav>
-        </aside>
-
-        <main class="main-content">
-            <header class="admin-header">
-                <h1>Dashboard</h1>
-                <div class="admin-user">
-                    <span id="admin-name">Administrator</span>
-                </div>
-            </header>
-
-            <div class="dashboard-stats">
-                <div class="stat-card">
-                    <i class="fas fa-box"></i>
-                    <div>
-                        <h3 id="total-products">0</h3>
-                        <p>Total Products</p>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <i class="fas fa-shopping-cart"></i>
-                    <div>
-                        <h3 id="total-orders">0</h3>
-                        <p>Total Orders</p>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <i class="fas fa-clock"></i>
-                    <div>
-                        <h3 id="pending-orders">0</h3>
-                        <p>Pending Orders</p>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <i class="fas fa-money-bill-wave"></i>
-                    <div>
-                        <h3 id="total-revenue">KES 0</h3>
-                        <p>Revenue</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="recent-orders">
-                <h2>Recent Orders</h2>
-                <div class="table-responsive">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Order ID</th>
-                                <th>Customer</th>
-                                <th>Phone</th>
-                                <th>Total</th>
-                                <th>Status</th>
-                                <th>Date</th>
-                                <th>SMS</th>
-                            </tr>
-                        </thead>
-                        <tbody id="recent-orders-body">
-                            <!-- Loaded dynamically -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <script>
-        const ADMIN_API_URL = 'https://apiaro-backend.onrender.com';
-        
-        function checkAdminAuth() {
-            const token = localStorage.getItem('admin_token');
-            const userStr = localStorage.getItem('admin_user');
-            
-            if (!token || !userStr) {
-                window.location.href = 'login.html';
-                return null;
-            }
-            
-            try {
-                const user = JSON.parse(userStr);
-                if (!user.is_admin) {
-                    logout();
-                    return null;
-                }
-                // Display admin name
-                const nameEl = document.getElementById('admin-name');
-                if (nameEl && user.full_name) {
-                    nameEl.textContent = user.full_name;
-                }
-                return token;
-            } catch (e) {
-                logout();
-                return null;
-            }
-        }
-
-        function logout() {
-            localStorage.removeItem('admin_token');
-            localStorage.removeItem('admin_user');
-            window.location.href = 'login.html';
-        }
-
-        async function fetchWithAuth(url, options = {}) {
-            const token = localStorage.getItem('admin_token');
-            
-            const defaultOptions = {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                }
-            };
-            
-            return fetch(url, { ...defaultOptions, ...options });
-        }
-
-        async function loadDashboardStats() {
-            try {
-                const productsRes = await fetchWithAuth(`${ADMIN_API_URL}/products/`);
-                const products = await productsRes.json();
-                document.getElementById('total-products').textContent = products.length;
-
-                const ordersRes = await fetchWithAuth(`${ADMIN_API_URL}/orders/admin/all`);
-                const orders = await ordersRes.json();
-                
-                document.getElementById('total-orders').textContent = orders.length;
-                document.getElementById('pending-orders').textContent = 
-                    orders.filter(o => o.status === 'pending').length;
-                
-                const revenue = orders.reduce((sum, o) => sum + parseFloat(o.total_amount), 0);
-                document.getElementById('total-revenue').textContent = `KES ${revenue.toFixed(2)}`;
-                
-                const recentOrders = orders.slice(0, 5);
-                const tbody = document.getElementById('recent-orders-body');
-                if (tbody) {
-                    tbody.innerHTML = recentOrders.map(order => `
-                        <tr>
-                            <td>#${order.id}</td>
-                            <td>${order.full_name}</td>
-                            <td>${order.phone_number}</td>
-                            <td>KES ${order.total_amount}</td>
-                            <td><span class="status-badge status-${order.status}">${order.status}</span></td>
-                            <td>${new Date(order.created_at).toLocaleDateString()}</td>
-                            <td>${order.sms_sent ? '<i class="fas fa-check sms-sent"></i>' : '<i class="fas fa-times sms-pending"></i>'}</td>
-                        </tr>
-                    `).join('');
-                }
-            } catch (error) {
-                console.error('Error loading stats:', error);
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const token = checkAdminAuth();
-            if (!token) return;
-            loadDashboardStats();
-        });
-    </script>
 
     <script>
     (function(){
-        function toggleSidebar() {
-            var sb = document.getElementById('admin-sidebar');
-            var ov = document.querySelector('.sidebar-overlay');
-            if (!sb) { console.error('Sidebar not found'); return; }
-            sb.classList.toggle('active');
-            if (ov) ov.classList.toggle('active');
-            document.body.style.overflow = sb.classList.contains('active') ? 'hidden' : '';
-        }
-        window.toggleSidebar = toggleSidebar;
-        document.addEventListener('DOMContentLoaded', function(){
-            var sb = document.getElementById('admin-sidebar');
-            if (sb) {
-                sb.querySelectorAll('a').forEach(function(a){
-                    a.addEventListener('click', function(){
-                        if (window.innerWidth <= 768) toggleSidebar();
-                    });
-                });
+        var sb = document.getElementById('admin-sidebar');
+        var ham = document.getElementById('admin-ham');
+        var ov = document.getElementById('admin-overlay');
+        
+        window.toggleSidebar = function() {
+            if (!sb) { alert('Sidebar not found!'); return; }
+            var isOpen = sb.style.left === '0px';
+            if (isOpen) {
+                sb.style.left = '-260px';
+                if (ov) ov.style.display = 'none';
+                document.body.style.overflow = '';
+            } else {
+                sb.style.left = '0px';
+                if (ov) ov.style.display = 'block';
+                document.body.style.overflow = 'hidden';
             }
-            // Also close on overlay click
-            var ov = document.querySelector('.sidebar-overlay');
-            if (ov) ov.addEventListener('click', toggleSidebar);
-        });
+        };
+        
+        // Show hamburger on mobile
+        function checkMobile() {
+            if (ham) {
+                if (window.innerWidth <= 768) {
+                    ham.style.display = 'block';
+                } else {
+                    ham.style.display = 'none';
+                    // Reset sidebar on desktop
+                    if (sb) sb.style.left = '';
+                    if (ov) ov.style.display = 'none';
+                    document.body.style.overflow = '';
+                }
+            }
+        }
+        
+        window.addEventListener('resize', checkMobile);
+        document.addEventListener('DOMContentLoaded', checkMobile);
+        
+        // Close sidebar when clicking links
+        if (sb) {
+            sb.querySelectorAll('a').forEach(function(a){
+                a.addEventListener('click', function(){
+                    if (window.innerWidth <= 768) toggleSidebar();
+                });
+            });
+        }
     })();
     </script>
 </body>

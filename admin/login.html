@@ -46,10 +46,19 @@
             color: #667eea;
         }
     </style>
+
+    <style>
+    @media (max-width: 768px) {
+        #admin-sidebar { position: fixed !important; top: 0 !important; left: -260px !important; width: 260px !important; height: 100vh !important; z-index: 1000 !important; transition: left 0.3s ease !important; }
+        #admin-sidebar.active, #admin-sidebar[style*="left: 0px"] { left: 0 !important; }
+        #admin-ham { display: block !important; }
+        .main-content { margin-left: 0 !important; padding-top: 60px !important; width: 100% !important; }
+    }
+    </style>
 </head>
 <body class="auth-page">
     <button class="admin-hamburger" onclick="toggleSidebar()">☰</button>
-    <div class="sidebar-overlay" onclick="toggleSidebar()" id="admin-sidebar"></div>
+    <div class="sidebar-overlay" onclick="toggleSidebar()" id="admin-sidebar" style="position:fixed;top:0;left:-260px;width:260px;height:100vh;background:var(--dark);color:white;z-index:1000;transition:left 0.3s ease;overflow-y:auto;"></div>
     <div class="auth-container">
         <div class="auth-box">
             <div class="auth-header">
@@ -78,106 +87,54 @@
         </div>
     </div>
 
-    <script>
-        // ========== PASSWORD TOGGLE FUNCTION ==========
-        function togglePassword(inputId, btn) {
-            const input = document.getElementById(inputId);
-            const icon = btn.querySelector('i');
-            
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.classList.remove('fa-eye');
-                icon.classList.add('fa-eye-slash');
-                btn.title = 'Hide Password';
-            } else {
-                input.type = 'password';
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-eye');
-                btn.title = 'Show Password';
-            }
-        }
-
-        document.getElementById('admin-login-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const errorDiv = document.getElementById('error-message');
-            const btn = document.getElementById('login-btn');
-            errorDiv.style.display = 'none';
-            
-            const originalText = btn.textContent;
-            btn.textContent = 'Signing in...';
-            btn.disabled = true;
-            
-            const credentials = {
-                email: document.getElementById('email').value.trim().toLowerCase(),
-                password: document.getElementById('password').value
-            };
-            
-            try {
-                const response = await fetch('https://apiaro-backend.onrender.com/users/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(credentials)
-                });
-                
-                const data = await response.json();
-                
-                if (!response.ok) {
-                    errorDiv.textContent = data.detail || 'Login failed';
-                    errorDiv.style.display = 'block';
-                    btn.textContent = originalText;
-                    btn.disabled = false;
-                    return;
-                }
-                
-                // CRITICAL: Verify this is actually an admin
-                if (!data.user || !data.user.is_admin) {
-                    errorDiv.textContent = 'Access denied. Admin privileges required.';
-                    errorDiv.style.display = 'block';
-                    btn.textContent = originalText;
-                    btn.disabled = false;
-                    return;
-                }
-                
-                // Store admin session
-                localStorage.setItem('admin_token', data.access_token);
-                localStorage.setItem('admin_user', JSON.stringify(data.user));
-                
-                window.location.href = 'index.html';
-                
-            } catch (error) {
-                errorDiv.textContent = 'Network error: ' + error.message;
-                errorDiv.style.display = 'block';
-                btn.textContent = originalText;
-                btn.disabled = false;
-            }
-        });
-    </script>
+    
 
     <script>
     (function(){
-        function toggleSidebar() {
-            var sb = document.getElementById('admin-sidebar');
-            var ov = document.querySelector('.sidebar-overlay');
-            if (!sb) { console.error('Sidebar not found'); return; }
-            sb.classList.toggle('active');
-            if (ov) ov.classList.toggle('active');
-            document.body.style.overflow = sb.classList.contains('active') ? 'hidden' : '';
-        }
-        window.toggleSidebar = toggleSidebar;
-        document.addEventListener('DOMContentLoaded', function(){
-            var sb = document.getElementById('admin-sidebar');
-            if (sb) {
-                sb.querySelectorAll('a').forEach(function(a){
-                    a.addEventListener('click', function(){
-                        if (window.innerWidth <= 768) toggleSidebar();
-                    });
-                });
+        var sb = document.getElementById('admin-sidebar');
+        var ham = document.getElementById('admin-ham');
+        var ov = document.getElementById('admin-overlay');
+        
+        window.toggleSidebar = function() {
+            if (!sb) { alert('Sidebar not found!'); return; }
+            var isOpen = sb.style.left === '0px';
+            if (isOpen) {
+                sb.style.left = '-260px';
+                if (ov) ov.style.display = 'none';
+                document.body.style.overflow = '';
+            } else {
+                sb.style.left = '0px';
+                if (ov) ov.style.display = 'block';
+                document.body.style.overflow = 'hidden';
             }
-            // Also close on overlay click
-            var ov = document.querySelector('.sidebar-overlay');
-            if (ov) ov.addEventListener('click', toggleSidebar);
-        });
+        };
+        
+        // Show hamburger on mobile
+        function checkMobile() {
+            if (ham) {
+                if (window.innerWidth <= 768) {
+                    ham.style.display = 'block';
+                } else {
+                    ham.style.display = 'none';
+                    // Reset sidebar on desktop
+                    if (sb) sb.style.left = '';
+                    if (ov) ov.style.display = 'none';
+                    document.body.style.overflow = '';
+                }
+            }
+        }
+        
+        window.addEventListener('resize', checkMobile);
+        document.addEventListener('DOMContentLoaded', checkMobile);
+        
+        // Close sidebar when clicking links
+        if (sb) {
+            sb.querySelectorAll('a').forEach(function(a){
+                a.addEventListener('click', function(){
+                    if (window.innerWidth <= 768) toggleSidebar();
+                });
+            });
+        }
     })();
     </script>
 </body>

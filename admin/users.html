@@ -9,17 +9,26 @@
     <link rel="stylesheet" href="css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+
+    <style>
+    @media (max-width: 768px) {
+        #admin-sidebar { position: fixed !important; top: 0 !important; left: -260px !important; width: 260px !important; height: 100vh !important; z-index: 1000 !important; transition: left 0.3s ease !important; }
+        #admin-sidebar.active, #admin-sidebar[style*="left: 0px"] { left: 0 !important; }
+        #admin-ham { display: block !important; }
+        .main-content { margin-left: 0 !important; padding-top: 60px !important; width: 100% !important; }
+    }
+    </style>
 </head>
 <body>
     <button class="admin-hamburger" onclick="toggleSidebar()">☰</button>
-    <div class="sidebar-overlay" onclick="toggleSidebar()" id="admin-sidebar"></div>
+    <div class="sidebar-overlay" onclick="toggleSidebar()" id="admin-sidebar" style="position:fixed;top:0;left:-260px;width:260px;height:100vh;background:var(--dark);color:white;z-index:1000;transition:left 0.3s ease;overflow-y:auto;"></div>
     <div class="admin-layout">
-        <aside class="sidebar" id="admin-sidebar">
-            <div class="sidebar-header" id="admin-sidebar">
+        <aside class="sidebar" id="admin-sidebar" style="position:fixed;top:0;left:-260px;width:260px;height:100vh;background:var(--dark);color:white;z-index:1000;transition:left 0.3s ease;overflow-y:auto;">
+            <div class="sidebar-header" id="admin-sidebar" style="position:fixed;top:0;left:-260px;width:260px;height:100vh;background:var(--dark);color:white;z-index:1000;transition:left 0.3s ease;overflow-y:auto;">
                 <h2><i class="fas fa-shopping-bag"></i> Apiaro</h2>
                 <p>Admin Panel</p>
             </div>
-            <nav class="sidebar-nav" id="admin-sidebar">
+            <nav class="sidebar-nav" id="admin-sidebar" style="position:fixed;top:0;left:-260px;width:260px;height:100vh;background:var(--dark);color:white;z-index:1000;transition:left 0.3s ease;overflow-y:auto;">
                 <a href="index.html"><i class="fas fa-home"></i> Dashboard</a>
                 <a href="products.html"><i class="fas fa-box"></i> Products</a>
                 <a href="orders.html"><i class="fas fa-clipboard-list"></i> Orders</a>
@@ -59,144 +68,54 @@
         </main>
     </div>
 
-    <script>
-        const ADMIN_API_URL = 'https://apiaro-backend.onrender.com';
-        
-        function checkAdminAuth() {
-            const token = localStorage.getItem('admin_token');
-            console.log('Checking auth, token exists:', !!token);
-            console.log('Token preview:', token ? token.substring(0, 50) + '...' : 'none');
-            
-            if (!token) {
-                window.location.href = 'login.html';
-                return null;
-            }
-            return token;
-        }
-
-        function logout() {
-            localStorage.removeItem('admin_token');
-            window.location.href = 'login.html';
-        }
-
-        async function fetchWithAuth(url, options = {}) {
-            const token = localStorage.getItem('admin_token');
-            const headers = {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + token,
-                ...options.headers
-            };
-            
-            console.log('Fetching:', url);
-            console.log('Headers:', { ...headers, 'Authorization': 'Bearer ' + token.substring(0, 20) + '...' });
-            
-            return fetch(url, {
-                ...options,
-                headers: headers
-            });
-        }
-
-        async function loadUsers() {
-            const debugDiv = document.getElementById('debug-info');
-            debugDiv.style.display = 'block';
-            
-            try {
-                const token = localStorage.getItem('admin_token');
-                if (!token) {
-                    throw new Error('No admin token found - please login first');
-                }
-                
-                debugDiv.innerHTML = 'Token found: ' + token.substring(0, 30) + '...<br>';
-                
-                const res = await fetchWithAuth(`${ADMIN_API_URL}/users/admin/all`);
-                
-                debugDiv.innerHTML += 'Response status: ' + res.status + '<br>';
-                
-                if (res.status === 401) {
-                    throw new Error('401 Unauthorized - Token invalid or expired. Please logout and login again.');
-                }
-                
-                if (!res.ok) {
-                    const errorText = await res.text();
-                    throw new Error(`HTTP ${res.status}: ${errorText}`);
-                }
-                
-                const users = await res.json();
-                debugDiv.innerHTML += 'Data received: ' + (Array.isArray(users) ? 'Array with ' + users.length + ' items' : typeof users) + '<br>';
-                
-                // Handle case where API might return object with users key
-                let usersArray = users;
-                if (!Array.isArray(users) && users.users) {
-                    usersArray = users.users;
-                }
-                
-                if (!Array.isArray(usersArray)) {
-                    throw new Error('Expected array of users, got: ' + typeof users);
-                }
-                
-                document.getElementById('total-users').textContent = usersArray.length + ' Users';
-                
-                const tbody = document.getElementById('users-table-body');
-                if (usersArray.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;">No users found</td></tr>';
-                    return;
-                }
-                
-                tbody.innerHTML = usersArray.map(user => `
-                    <tr>
-                        <td>#${user.id}</td>
-                        <td><strong>${user.full_name || 'N/A'}</strong></td>
-                        <td>${user.email}</td>
-                        <td>${user.phone_number || 'N/A'}</td>
-                        <td>${user.created_at ? new Date(user.created_at).toLocaleDateString('en-KE') : 'N/A'}</td>
-                    </tr>
-                `).join('');
-                
-                debugDiv.innerHTML += 'Users loaded successfully!<br>';
-                
-            } catch (error) {
-                console.error('Error loading users:', error);
-                debugDiv.innerHTML += 'ERROR: ' + error.message + '<br>';
-                document.getElementById('users-table-body').innerHTML = 
-                    `<tr><td colspan="5" style="text-align:center;padding:2rem;color:red;">
-                        Error: ${error.message}<br>
-                        <button onclick="logout()" style="margin-top: 10px; padding: 5px 15px;">Go to Login</button>
-                    </td></tr>`;
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const token = checkAdminAuth();
-            if (token) {
-                loadUsers();
-            }
-        });
-    </script>
+    
 
     <script>
     (function(){
-        function toggleSidebar() {
-            var sb = document.getElementById('admin-sidebar');
-            var ov = document.querySelector('.sidebar-overlay');
-            if (!sb) { console.error('Sidebar not found'); return; }
-            sb.classList.toggle('active');
-            if (ov) ov.classList.toggle('active');
-            document.body.style.overflow = sb.classList.contains('active') ? 'hidden' : '';
-        }
-        window.toggleSidebar = toggleSidebar;
-        document.addEventListener('DOMContentLoaded', function(){
-            var sb = document.getElementById('admin-sidebar');
-            if (sb) {
-                sb.querySelectorAll('a').forEach(function(a){
-                    a.addEventListener('click', function(){
-                        if (window.innerWidth <= 768) toggleSidebar();
-                    });
-                });
+        var sb = document.getElementById('admin-sidebar');
+        var ham = document.getElementById('admin-ham');
+        var ov = document.getElementById('admin-overlay');
+        
+        window.toggleSidebar = function() {
+            if (!sb) { alert('Sidebar not found!'); return; }
+            var isOpen = sb.style.left === '0px';
+            if (isOpen) {
+                sb.style.left = '-260px';
+                if (ov) ov.style.display = 'none';
+                document.body.style.overflow = '';
+            } else {
+                sb.style.left = '0px';
+                if (ov) ov.style.display = 'block';
+                document.body.style.overflow = 'hidden';
             }
-            // Also close on overlay click
-            var ov = document.querySelector('.sidebar-overlay');
-            if (ov) ov.addEventListener('click', toggleSidebar);
-        });
+        };
+        
+        // Show hamburger on mobile
+        function checkMobile() {
+            if (ham) {
+                if (window.innerWidth <= 768) {
+                    ham.style.display = 'block';
+                } else {
+                    ham.style.display = 'none';
+                    // Reset sidebar on desktop
+                    if (sb) sb.style.left = '';
+                    if (ov) ov.style.display = 'none';
+                    document.body.style.overflow = '';
+                }
+            }
+        }
+        
+        window.addEventListener('resize', checkMobile);
+        document.addEventListener('DOMContentLoaded', checkMobile);
+        
+        // Close sidebar when clicking links
+        if (sb) {
+            sb.querySelectorAll('a').forEach(function(a){
+                a.addEventListener('click', function(){
+                    if (window.innerWidth <= 768) toggleSidebar();
+                });
+            });
+        }
     })();
     </script>
 </body>

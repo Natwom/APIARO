@@ -6,17 +6,26 @@
     <title>Product Management - Apiaro Admin</title>
     <link rel="stylesheet" href="css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+    @media (max-width: 768px) {
+        #admin-sidebar { position: fixed !important; top: 0 !important; left: -260px !important; width: 260px !important; height: 100vh !important; z-index: 1000 !important; transition: left 0.3s ease !important; }
+        #admin-sidebar.active, #admin-sidebar[style*="left: 0px"] { left: 0 !important; }
+        #admin-ham { display: block !important; }
+        .main-content { margin-left: 0 !important; padding-top: 60px !important; width: 100% !important; }
+    }
+    </style>
 </head>
 <body>
     <button class="admin-hamburger" onclick="toggleSidebar()">☰</button>
-    <div class="sidebar-overlay" onclick="toggleSidebar()" id="admin-sidebar"></div>
+    <div class="sidebar-overlay" onclick="toggleSidebar()" id="admin-sidebar" style="position:fixed;top:0;left:-260px;width:260px;height:100vh;background:var(--dark);color:white;z-index:1000;transition:left 0.3s ease;overflow-y:auto;"></div>
     <div class="admin-layout">
-        <aside class="sidebar" id="admin-sidebar">
-            <div class="sidebar-header" id="admin-sidebar">
+        <aside class="sidebar" id="admin-sidebar" style="position:fixed;top:0;left:-260px;width:260px;height:100vh;background:var(--dark);color:white;z-index:1000;transition:left 0.3s ease;overflow-y:auto;">
+            <div class="sidebar-header" id="admin-sidebar" style="position:fixed;top:0;left:-260px;width:260px;height:100vh;background:var(--dark);color:white;z-index:1000;transition:left 0.3s ease;overflow-y:auto;">
                 <h2><i class="fas fa-shopping-bag"></i> Apiaro</h2>
                 <p>Admin Panel</p>
             </div>
-            <nav class="sidebar-nav" id="admin-sidebar">
+            <nav class="sidebar-nav" id="admin-sidebar" style="position:fixed;top:0;left:-260px;width:260px;height:100vh;background:var(--dark);color:white;z-index:1000;transition:left 0.3s ease;overflow-y:auto;">
                 <a href="index.html"><i class="fas fa-home"></i> Dashboard</a>
                 <a href="products.html" class="active"><i class="fas fa-box"></i> Products</a>
                 <a href="orders.html"><i class="fas fa-clipboard-list"></i> Orders</a>
@@ -158,240 +167,54 @@
         </div>
     </div>
 
-    <script>
-        const ADMIN_API_URL = 'https://apiaro-backend.onrender.com';
-        
-        function checkAdminAuth() {
-            const token = localStorage.getItem('admin_token');
-            if (!token) window.location.href = 'login.html';
-            return token;
-        }
-
-        function logout() {
-            localStorage.removeItem('admin_token');
-            window.location.href = 'login.html';
-        }
-
-        // Updated fetchWithAuth to handle FormData
-        async function fetchWithAuth(url, options = {}) {
-            const token = localStorage.getItem('admin_token');
-            const headers = {
-                'Authorization': 'Bearer ' + token,
-                ...options.headers
-            };
-            
-            // Don't set Content-Type if it's FormData (browser sets it automatically with boundary)
-            if (options.body instanceof FormData) {
-                delete headers['Content-Type'];
-            } else if (!headers['Content-Type']) {
-                headers['Content-Type'] = 'application/json';
-            }
-            
-            return fetch(url, {
-                ...options,
-                headers: headers
-            });
-        }
-
-        function getCategoryName(id) {
-            return {1:'Electronics',2:'Fashion',3:'Home & Living',4:'Agriculture'}[id]||'Other';
-        }
-
-        // Image preview function
-        function previewImage(input) {
-            const file = input.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('image-preview').src = e.target.result;
-                    document.getElementById('image-preview').style.display = 'block';
-                    document.getElementById('image-placeholder').style.display = 'none';
-                    document.getElementById('selected-filename').textContent = 'Selected: ' + file.name;
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        async function loadProducts() {
-            try {
-                const res = await fetchWithAuth(`${ADMIN_API_URL}/products/`);
-                const products = await res.json();
-                document.getElementById('total-products').textContent = products.length;
-                document.getElementById('active-products').textContent = products.filter(p=>p.is_active).length;
-                document.getElementById('low-stock').textContent = products.filter(p=>p.stock_quantity<5).length;
-                
-                document.getElementById('products-table-body').innerHTML = products.map(p=>{
-                    // Construct full image URL if it's a relative path
-                    let imgUrl = p.image_url || 'https://via.placeholder.com/50';
-                    if (imgUrl && !imgUrl.startsWith('http') && !imgUrl.startsWith('data:')) {
-                        imgUrl = ADMIN_API_URL + imgUrl;
-                    }
-                    
-                    return `
-                    <tr>
-                        <td>#${p.id}</td>
-                        <td><img src="${imgUrl}" style="width:50px;height:50px;object-fit:cover;border-radius:5px;" onerror="this.src='https://via.placeholder.com/50'"></td>
-                        <td><strong>${p.name}</strong><br><small>${p.description?p.description.substring(0,50)+'...':''}</small></td>
-                        <td>${getCategoryName(p.category_id)}</td>
-                        <td>KES ${parseFloat(p.price).toFixed(2)}</td>
-                        <td style="${p.stock_quantity<5?'color:red;font-weight:bold':''}">${p.stock_quantity}</td>
-                        <td><span class="status-badge ${p.is_active?'status-delivered':'status-cancelled'}">${p.is_active?'Active':'Inactive'}</span></td>
-                        <td>
-                            <button onclick="editProduct(${p.id})" class="btn-primary btn-small"><i class="fas fa-edit"></i></button>
-                        </td>
-                    </tr>
-                `}).join('');
-            } catch(e) { 
-                console.error('Error loading products:', e); 
-            }
-        }
-
-        function openAddModal() {
-            document.getElementById('modal-title').textContent='Add New Product';
-            document.getElementById('product-form').reset();
-            document.getElementById('product-id').value='';
-            document.getElementById('product-image-url').value='';
-            document.getElementById('image-preview').style.display='none';
-            document.getElementById('image-placeholder').style.display='block';
-            document.getElementById('selected-filename').textContent='';
-            document.getElementById('product-modal').style.display='flex';
-        }
-
-        async function editProduct(id) {
-            const res=await fetchWithAuth(`${ADMIN_API_URL}/products/${id}`);
-            const p=await res.json();
-            document.getElementById('modal-title').textContent='Edit Product';
-            document.getElementById('product-id').value=p.id;
-            document.getElementById('product-name').value=p.name;
-            document.getElementById('product-category').value=p.category_id||'';
-            document.getElementById('product-price').value=p.price;
-            document.getElementById('product-stock').value=p.stock_quantity;
-            document.getElementById('product-image-url').value=p.image_url||'';
-            document.getElementById('product-description').value=p.description||'';
-            document.getElementById('product-active').checked=p.is_active;
-            
-            // Show existing image if available
-            if (p.image_url) {
-                let imgUrl = p.image_url;
-                if (!imgUrl.startsWith('http') && !imgUrl.startsWith('data:')) {
-                    imgUrl = ADMIN_API_URL + imgUrl;
-                }
-                document.getElementById('image-preview').src = imgUrl;
-                document.getElementById('image-preview').style.display = 'block';
-                document.getElementById('image-placeholder').style.display = 'none';
-            } else {
-                document.getElementById('image-preview').style.display = 'none';
-                document.getElementById('image-placeholder').style.display = 'block';
-            }
-            
-            document.getElementById('product-modal').style.display='flex';
-        }
-
-        function closeModal() { 
-            document.getElementById('product-modal').style.display='none'; 
-        }
-
-        // Handle form submission with image upload
-        document.getElementById('product-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const id = document.getElementById('product-id').value;
-            const imageFile = document.getElementById('product-image-file').files[0];
-            let imageUrl = document.getElementById('product-image-url').value;
-            
-            try {
-                // Step 1: Upload image if a new file is selected
-                if (imageFile) {
-                    console.log('Uploading image...');
-                    const formData = new FormData();
-                    formData.append('file', imageFile);
-                    
-                    const uploadRes = await fetchWithAuth(`${ADMIN_API_URL}/products/admin/upload-image`, {
-                        method: 'POST',
-                        body: formData
-                    });
-                    
-                    if (!uploadRes.ok) {
-                        const error = await uploadRes.json();
-                        throw new Error('Image upload failed: ' + (error.detail || 'Unknown error'));
-                    }
-                    
-                    const uploadData = await uploadRes.json();
-                    imageUrl = uploadData.image_url;
-                    console.log('Image uploaded:', imageUrl);
-                }
-                
-                // Step 2: Create or update product
-                const data = {
-                    name: document.getElementById('product-name').value,
-                    category_id: parseInt(document.getElementById('product-category').value) || null,
-                    price: parseFloat(document.getElementById('product-price').value),
-                    stock_quantity: parseInt(document.getElementById('product-stock').value),
-                    image_url: imageUrl || null,
-                    description: document.getElementById('product-description').value || null,
-                    is_active: document.getElementById('product-active').checked
-                };
-                
-                console.log('Saving product:', data);
-                
-                const url = id ? `${ADMIN_API_URL}/products/admin/${id}` : `${ADMIN_API_URL}/products/admin/`;
-                const method = id ? 'PUT' : 'POST';
-                
-                const res = await fetchWithAuth(url, {
-                    method: method,
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                
-                if (res.ok) {
-                    closeModal();
-                    loadProducts();
-                    alert(id ? 'Product updated successfully!' : 'Product created successfully!');
-                } else {
-                    const error = await res.json();
-                    alert('Failed to save: ' + (error.detail || 'Unknown error'));
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Error: ' + error.message);
-            }
-        });
-
-        // Close modal when clicking outside
-        document.getElementById('product-modal').addEventListener('click', (e) => {
-            if (e.target.id === 'product-modal') closeModal();
-        });
-
-        document.addEventListener('DOMContentLoaded', () => {
-            checkAdminAuth();
-            loadProducts();
-        });
-    </script>
+    
 
     <script>
     (function(){
-        function toggleSidebar() {
-            var sb = document.getElementById('admin-sidebar');
-            var ov = document.querySelector('.sidebar-overlay');
-            if (!sb) { console.error('Sidebar not found'); return; }
-            sb.classList.toggle('active');
-            if (ov) ov.classList.toggle('active');
-            document.body.style.overflow = sb.classList.contains('active') ? 'hidden' : '';
-        }
-        window.toggleSidebar = toggleSidebar;
-        document.addEventListener('DOMContentLoaded', function(){
-            var sb = document.getElementById('admin-sidebar');
-            if (sb) {
-                sb.querySelectorAll('a').forEach(function(a){
-                    a.addEventListener('click', function(){
-                        if (window.innerWidth <= 768) toggleSidebar();
-                    });
-                });
+        var sb = document.getElementById('admin-sidebar');
+        var ham = document.getElementById('admin-ham');
+        var ov = document.getElementById('admin-overlay');
+        
+        window.toggleSidebar = function() {
+            if (!sb) { alert('Sidebar not found!'); return; }
+            var isOpen = sb.style.left === '0px';
+            if (isOpen) {
+                sb.style.left = '-260px';
+                if (ov) ov.style.display = 'none';
+                document.body.style.overflow = '';
+            } else {
+                sb.style.left = '0px';
+                if (ov) ov.style.display = 'block';
+                document.body.style.overflow = 'hidden';
             }
-            // Also close on overlay click
-            var ov = document.querySelector('.sidebar-overlay');
-            if (ov) ov.addEventListener('click', toggleSidebar);
-        });
+        };
+        
+        // Show hamburger on mobile
+        function checkMobile() {
+            if (ham) {
+                if (window.innerWidth <= 768) {
+                    ham.style.display = 'block';
+                } else {
+                    ham.style.display = 'none';
+                    // Reset sidebar on desktop
+                    if (sb) sb.style.left = '';
+                    if (ov) ov.style.display = 'none';
+                    document.body.style.overflow = '';
+                }
+            }
+        }
+        
+        window.addEventListener('resize', checkMobile);
+        document.addEventListener('DOMContentLoaded', checkMobile);
+        
+        // Close sidebar when clicking links
+        if (sb) {
+            sb.querySelectorAll('a').forEach(function(a){
+                a.addEventListener('click', function(){
+                    if (window.innerWidth <= 768) toggleSidebar();
+                });
+            });
+        }
     })();
     </script>
 </body>
