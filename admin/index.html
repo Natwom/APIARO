@@ -1,37 +1,57 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- AUTH GUARD: Runs before anything renders -->
+    <script>
+        (function() {
+            const token = localStorage.getItem('admin_token');
+            const userStr = localStorage.getItem('admin_user');
+            
+            if (!token || !userStr) {
+                window.location.replace('login.html');
+                return;
+            }
+            
+            try {
+                const user = JSON.parse(userStr);
+                if (!user.is_admin) {
+                    localStorage.removeItem('admin_token');
+                    localStorage.removeItem('admin_user');
+                    window.location.replace('login.html');
+                }
+            } catch (e) {
+                window.location.replace('login.html');
+            }
+        })();
+    </script>
+    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - KenyaShop</title>
+    <title>Admin Dashboard - Apiaro</title>
     <link rel="stylesheet" href="css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<<body>
-<<div id="admin-loading-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(29,53,87,0.95);z-index:99999;justify-content:center;align-items:center;flex-direction:column;">
-    <div style="width:60px;height:60px;border:4px solid rgba(230,57,70,0.2);border-top-color:#e63946;border-radius:50%;animation:adminSpin 1s linear infinite;"></div>
-    <p style="color:white;margin-top:20px;font-size:1.1rem;font-weight:500;">Authenticating...</p>
-</div>
-<style>
-@keyframes adminSpin { 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
-</style>
+<body>
+    <!-- Auth Check Overlay -->
+    <div id="auth-check-overlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <p class="loading-text">Checking authentication...</p>
+    </div>
 
-    <button class="admin-hamburger" onclick="toggleSidebar()" aria-label="Menu">☰</button>
-    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
-
+    <button class="admin-hamburger" onclick="toggleSidebar()">☰</button>
+    <div class="sidebar-overlay" onclick="toggleSidebar()" id="admin-sidebar"></div>
     <div class="admin-layout">
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <h2><i class="fas fa-shopping-bag"></i> KenyaShop</h2>
+        <aside class="sidebar" id="admin-sidebar">
+            <div class="sidebar-header" id="admin-sidebar">
+                <h2><i class="fas fa-shopping-bag"></i> Apiaro</h2>
                 <p>Admin Panel</p>
             </div>
-            <nav class="sidebar-nav">
-
+            <nav class="sidebar-nav" id="admin-sidebar">
                 <a href="index.html" class="active"><i class="fas fa-home"></i> Dashboard</a>
                 <a href="products.html"><i class="fas fa-box"></i> Products</a>
                 <a href="orders.html"><i class="fas fa-clipboard-list"></i> Orders</a>
                 <a href="users.html"><i class="fas fa-users"></i> Users</a>
-                <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                <a href="#" onclick="logout(); return false;"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </nav>
         </aside>
 
@@ -39,7 +59,7 @@
             <header class="admin-header">
                 <h1>Dashboard</h1>
                 <div class="admin-user">
-                    <span>Administrator</span>
+                    <span id="admin-name">Administrator</span>
                 </div>
             </header>
 
@@ -99,17 +119,38 @@
     </div>
 
     <script>
-        // Admin Utilities
+        const ADMIN_API_URL = 'https://apiaro-backend.onrender.com';
+        
         function checkAdminAuth() {
             const token = localStorage.getItem('admin_token');
-            if (!token) {
+            const userStr = localStorage.getItem('admin_user');
+            
+            if (!token || !userStr) {
                 window.location.href = 'login.html';
+                return null;
             }
-            return token;
+            
+            try {
+                const user = JSON.parse(userStr);
+                if (!user.is_admin) {
+                    logout();
+                    return null;
+                }
+                // Display admin name
+                const nameEl = document.getElementById('admin-name');
+                if (nameEl && user.full_name) {
+                    nameEl.textContent = user.full_name;
+                }
+                return token;
+            } catch (e) {
+                logout();
+                return null;
+            }
         }
 
         function logout() {
             localStorage.removeItem('admin_token');
+            localStorage.removeItem('admin_user');
             window.location.href = 'login.html';
         }
 
@@ -128,13 +169,11 @@
 
         async function loadDashboardStats() {
             try {
-                // Load products count
-                const productsRes = await fetchWithAuth('https://apiaro-backend.onrender.com/products/');
+                const productsRes = await fetchWithAuth(`${ADMIN_API_URL}/products/`);
                 const products = await productsRes.json();
                 document.getElementById('total-products').textContent = products.length;
 
-                // Load orders stats
-                const ordersRes = await fetchWithAuth('https://apiaro-backend.onrender.com/orders/admin/all');
+                const ordersRes = await fetchWithAuth(`${ADMIN_API_URL}/orders/admin/all`);
                 const orders = await ordersRes.json();
                 
                 document.getElementById('total-orders').textContent = orders.length;
@@ -144,7 +183,6 @@
                 const revenue = orders.reduce((sum, o) => sum + parseFloat(o.total_amount), 0);
                 document.getElementById('total-revenue').textContent = `KES ${revenue.toFixed(2)}`;
                 
-                // Recent orders table
                 const recentOrders = orders.slice(0, 5);
                 const tbody = document.getElementById('recent-orders-body');
                 if (tbody) {
@@ -166,47 +204,42 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            checkAdminAuth();
+            const token = checkAdminAuth();
+            if (!token) return;
+            
+            // Hide auth check overlay once authenticated
+            const overlay = document.getElementById('auth-check-overlay');
+            if (overlay) overlay.classList.add('hidden');
+            
             loadDashboardStats();
         });
     </script>
 
     <script>
-    function toggleSidebar() {
-        var sidebar = document.querySelector('.sidebar');
-        var overlay = document.querySelector('.sidebar-overlay');
-        if (!sidebar) return;
-        sidebar.classList.toggle('active');
-        if (overlay) overlay.classList.toggle('active');
-        document.body.style.overflow = sidebar.classList.contains('active') ? 'hidden' : '';
-    }
-    // Close sidebar when clicking nav links on mobile
-    document.addEventListener('DOMContentLoaded', function() {
-        var sidebar = document.querySelector('.sidebar');
-        if (sidebar) {
-            sidebar.querySelectorAll('a').forEach(function(link) {
-                link.addEventListener('click', function() {
-                    if (window.innerWidth <= 768) toggleSidebar();
-                });
-            });
+    (function(){
+        function toggleSidebar() {
+            var sb = document.getElementById('admin-sidebar');
+            var ov = document.querySelector('.sidebar-overlay');
+            if (!sb) { console.error('Sidebar not found'); return; }
+            sb.classList.toggle('active');
+            if (ov) ov.classList.toggle('active');
+            document.body.style.overflow = sb.classList.contains('active') ? 'hidden' : '';
         }
-    });
+        window.toggleSidebar = toggleSidebar;
+        document.addEventListener('DOMContentLoaded', function(){
+            var sb = document.getElementById('admin-sidebar');
+            if (sb) {
+                sb.querySelectorAll('a').forEach(function(a){
+                    a.addEventListener('click', function(){
+                        if (window.innerWidth <= 768) toggleSidebar();
+                    });
+                });
+            }
+            // Also close on overlay click
+            var ov = document.querySelector('.sidebar-overlay');
+            if (ov) ov.addEventListener('click', toggleSidebar);
+        });
+    })();
     </script>
-
-
-<script>
-function showAdminLoading(text) {
-    var ov = document.getElementById('admin-loading-overlay');
-    if (ov) {
-        ov.querySelector('p').textContent = text || 'Authenticating...';
-        ov.style.display = 'flex';
-    }
-}
-function hideAdminLoading() {
-    var ov = document.getElementById('admin-loading-overlay');
-    if (ov) ov.style.display = 'none';
-}
-</script>
-
 </body>
 </html>
