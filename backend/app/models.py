@@ -25,6 +25,7 @@ class User(Base):
     password_hash = Column(String(255), nullable=False)
     full_name = Column(String(255), nullable=False)
     phone_number = Column(String(20), nullable=False)
+    is_admin = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -67,6 +68,7 @@ class Order(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     full_name = Column(String(255), nullable=False)
     phone_number = Column(String(20), nullable=False)
+    is_admin = Column(Boolean, default=False)
     email = Column(String(255), nullable=False)
     county = Column(String(100), nullable=False)
     town = Column(String(100), nullable=False)
@@ -104,6 +106,7 @@ class PasswordResetToken(Base):
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String(255), nullable=False, index=True)
     phone_number = Column(String(20), nullable=False)
+    is_admin = Column(Boolean, default=False)
     reset_code = Column(String(6), nullable=False)
     expires_at = Column(DateTime, nullable=False)
     used = Column(Boolean, default=False)
