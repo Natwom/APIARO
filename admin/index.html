@@ -32,12 +32,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <!-- Auth Check Overlay -->
-    <div id="auth-check-overlay" class="loading-overlay">
-        <div class="spinner"></div>
-        <p class="loading-text">Checking authentication...</p>
-    </div>
-
     <button class="admin-hamburger" onclick="toggleSidebar()">☰</button>
     <div class="sidebar-overlay" onclick="toggleSidebar()" id="admin-sidebar"></div>
     <div class="admin-layout">
@@ -206,11 +200,6 @@
         document.addEventListener('DOMContentLoaded', () => {
             const token = checkAdminAuth();
             if (!token) return;
-            
-            // Hide auth check overlay once authenticated
-            const overlay = document.getElementById('auth-check-overlay');
-            if (overlay) overlay.classList.add('hidden');
-            
             loadDashboardStats();
         });
     </script>

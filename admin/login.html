@@ -3,17 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login - Apiaro</title>
+    <title>Admin Login - KenyaShop</title>
     <link rel="stylesheet" href="css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="auth-page">
-    <!-- Loading Overlay -->
-    <div id="login-loading" class="loading-overlay hidden">
-        <div class="spinner"></div>
-        <p class="loading-text">Signing in...</p>
-    </div>
-
     <div class="auth-container">
         <div class="auth-box">
             <div class="auth-header">
@@ -31,37 +25,18 @@
                     <label>Password</label>
                     <input type="password" id="password" required value="admin123">
                 </div>
-                <button type="submit" class="btn-auth" id="login-btn">
-                    <span id="btn-text">Login to Dashboard</span>
-                </button>
+                <button type="submit" class="btn-auth">Login to Dashboard</button>
                 <div id="error-message" style="color: red; margin-top: 10px; display: none;"></div>
             </form>
         </div>
     </div>
 
     <script>
-        const loginBtn = document.getElementById('login-btn');
-        const btnText = document.getElementById('btn-text');
-        const loadingOverlay = document.getElementById('login-loading');
-
-        function setLoading(isLoading) {
-            if (isLoading) {
-                loadingOverlay.classList.remove('hidden');
-                loginBtn.disabled = true;
-                btnText.innerHTML = '<span class="btn-spinner"></span> Signing in...';
-            } else {
-                loadingOverlay.classList.add('hidden');
-                loginBtn.disabled = false;
-                btnText.textContent = 'Login to Dashboard';
-            }
-        }
-
         document.getElementById('admin-login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             
             const errorDiv = document.getElementById('error-message');
             errorDiv.style.display = 'none';
-            setLoading(true);
             
             const credentials = {
                 email: document.getElementById('email').value,
@@ -82,33 +57,13 @@
                 
                 if (response.ok && data.access_token) {
                     localStorage.setItem('admin_token', data.access_token);
-                    
-                    // Store user info if backend sends it, otherwise fetch profile
-                    if (data.user) {
-                        localStorage.setItem('admin_user', JSON.stringify(data.user));
-                    } else {
-                        try {
-                            const userRes = await fetch('https://apiaro-backend.onrender.com/users/me', {
-                                headers: { 'Authorization': `Bearer ${data.access_token}` }
-                            });
-                            if (userRes.ok) {
-                                const userData = await userRes.json();
-                                localStorage.setItem('admin_user', JSON.stringify(userData));
-                            }
-                        } catch (e) {
-                            console.error('Could not fetch user profile', e);
-                        }
-                    }
-                    
                     console.log('Token stored successfully');
                     window.location.href = 'index.html';
                 } else {
-                    setLoading(false);
                     errorDiv.textContent = 'Login failed: ' + (data.detail || 'Invalid credentials');
                     errorDiv.style.display = 'block';
                 }
             } catch (error) {
-                setLoading(false);
                 errorDiv.textContent = 'Network error: ' + error.message;
                 errorDiv.style.display = 'block';
                 console.error('Login error:', error);
