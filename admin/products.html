@@ -9,14 +9,14 @@
 </head>
 <body>
     <button class="admin-hamburger" onclick="toggleSidebar()">☰</button>
-    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+    <div class="sidebar-overlay" onclick="toggleSidebar()" id="admin-sidebar"></div>
     <div class="admin-layout">
-        <aside class="sidebar">
-            <div class="sidebar-header">
+        <aside class="sidebar" id="admin-sidebar">
+            <div class="sidebar-header" id="admin-sidebar">
                 <h2><i class="fas fa-shopping-bag"></i> Apiaro</h2>
                 <p>Admin Panel</p>
             </div>
-            <nav class="sidebar-nav">
+            <nav class="sidebar-nav" id="admin-sidebar">
                 <a href="index.html"><i class="fas fa-home"></i> Dashboard</a>
                 <a href="products.html" class="active"><i class="fas fa-box"></i> Products</a>
                 <a href="orders.html"><i class="fas fa-clipboard-list"></i> Orders</a>
