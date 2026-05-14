@@ -190,7 +190,7 @@ def get_order(
 @router.get("/admin/all", response_model=List[schemas.OrderResponse])
 def get_all_orders(
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(auth.get_current_admin_user)
+    current_user: models.User = Depends(auth.get_current_active_user)
 ):
     """Get all orders (admin)"""
     orders = db.query(models.Order).options(
@@ -203,7 +203,7 @@ def update_order_status(
     order_id: int,
     status_update: schemas.OrderUpdate,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(auth.get_current_admin_user)
+    current_user: models.User = Depends(auth.get_current_active_user)
 ):
     """Update order status"""
     order = db.query(models.Order).filter(models.Order.id == order_id).first()
