@@ -1,25 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- AUTH GUARD: Runs before anything renders -->
+    <!-- AUTH GUARD: No token = instant redirect to login -->
     <script>
         (function() {
             const token = localStorage.getItem('admin_token');
-            const userStr = localStorage.getItem('admin_user');
-            
-            if (!token || !userStr) {
-                window.location.replace('login.html');
-                return;
-            }
-            
-            try {
-                const user = JSON.parse(userStr);
-                if (!user.is_admin) {
-                    localStorage.removeItem('admin_token');
-                    localStorage.removeItem('admin_user');
-                    window.location.replace('login.html');
-                }
-            } catch (e) {
+            if (!token) {
                 window.location.replace('login.html');
             }
         })();
@@ -28,20 +14,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Apiaro</title>
-    <link rel="icon" type="image/png" href="Apiaro.png">
+    <link rel="icon" type="image/png" href="favicon.png">
     <link rel="stylesheet" href="css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <button class="admin-hamburger" onclick="toggleSidebar()">☰</button>
-    <div class="sidebar-overlay" onclick="toggleSidebar()" id="admin-sidebar"></div>
+    
+    <!-- Overlay for mobile sidebar -->
+    <div class="sidebar-overlay" onclick="toggleSidebar()" id="sidebar-overlay"></div>
+    
     <div class="admin-layout">
+        <!-- Sidebar -->
         <aside class="sidebar" id="admin-sidebar">
-            <div class="sidebar-header" id="admin-sidebar">
+            <div class="sidebar-header">
                 <h2><i class="fas fa-shopping-bag"></i> Apiaro</h2>
                 <p>Admin Panel</p>
             </div>
-            <nav class="sidebar-nav" id="admin-sidebar">
+            <nav class="sidebar-nav">
                 <a href="index.html" class="active"><i class="fas fa-home"></i> Dashboard</a>
                 <a href="products.html"><i class="fas fa-box"></i> Products</a>
                 <a href="orders.html"><i class="fas fa-clipboard-list"></i> Orders</a>
@@ -50,6 +40,7 @@
             </nav>
         </aside>
 
+        <!-- Main Content -->
         <main class="main-content">
             <header class="admin-header">
                 <h1>Dashboard</h1>
@@ -113,6 +104,7 @@
         </main>
     </div>
 
+    <!-- Dashboard Scripts -->
     <script>
         const ADMIN_API_URL = 'https://apiaro-backend.onrender.com';
         
@@ -120,26 +112,28 @@
             const token = localStorage.getItem('admin_token');
             const userStr = localStorage.getItem('admin_user');
             
-            if (!token || !userStr) {
+            if (!token) {
                 window.location.href = 'login.html';
                 return null;
             }
             
             try {
-                const user = JSON.parse(userStr);
-                if (!user.is_admin) {
+                const user = userStr ? JSON.parse(userStr) : {};
+                if (userStr && !user.is_admin) {
                     logout();
                     return null;
                 }
-                // Display admin name
+                // Display admin name if available
                 const nameEl = document.getElementById('admin-name');
                 if (nameEl && user.full_name) {
                     nameEl.textContent = user.full_name;
                 }
                 return token;
             } catch (e) {
-                logout();
-                return null;
+                // If user data is corrupt but token exists, still allow
+                // (the API calls will fail with 401 if token is truly bad)
+                console.warn('Admin user data corrupt, but token exists');
+                return token;
             }
         }
 
@@ -205,17 +199,19 @@
         });
     </script>
 
+    <!-- Sidebar Toggle -->
     <script>
     (function(){
         function toggleSidebar() {
             var sb = document.getElementById('admin-sidebar');
-            var ov = document.querySelector('.sidebar-overlay');
+            var ov = document.getElementById('sidebar-overlay');
             if (!sb) { console.error('Sidebar not found'); return; }
             sb.classList.toggle('active');
             if (ov) ov.classList.toggle('active');
             document.body.style.overflow = sb.classList.contains('active') ? 'hidden' : '';
         }
         window.toggleSidebar = toggleSidebar;
+        
         document.addEventListener('DOMContentLoaded', function(){
             var sb = document.getElementById('admin-sidebar');
             if (sb) {
@@ -225,8 +221,7 @@
                     });
                 });
             }
-            // Also close on overlay click
-            var ov = document.querySelector('.sidebar-overlay');
+            var ov = document.getElementById('sidebar-overlay');
             if (ov) ov.addEventListener('click', toggleSidebar);
         });
     })();
