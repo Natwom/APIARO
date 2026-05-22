@@ -5,14 +5,20 @@ if ('serviceWorker' in navigator) {
     .catch(err => console.log('❌ SW failed:', err));
 }
 
-// PWA Install Banner
+// PWA Install Logic
 let deferredPrompt;
 
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
+  showInstallButton();
   showInstallBanner();
 });
+
+function showInstallButton() {
+  const btn = document.getElementById('install-btn');
+  if (btn) btn.style.display = 'inline-block';
+}
 
 function showInstallBanner() {
   if (window.matchMedia('(display-mode: standalone)').matches) return;
@@ -50,12 +56,20 @@ function showInstallBanner() {
 }
 
 function installPWA() {
-  if (!deferredPrompt) return;
+  if (!deferredPrompt) {
+    alert('To install Apiaro:\n\nAndroid Chrome: Tap menu (⋮) → "Add to Home screen"\niPhone Safari: Tap Share → "Add to Home Screen"');
+    return;
+  }
+  
   deferredPrompt.prompt();
   deferredPrompt.userChoice.then((choice) => {
-    if (choice.outcome === 'accepted') console.log('User installed Apiaro');
+    if (choice.outcome === 'accepted') {
+      console.log('User installed Apiaro');
+      alert('✅ Apiaro installed successfully!');
+    }
     deferredPrompt = null;
     dismissPWA();
+    hideInstallButton();
   });
 }
 
@@ -65,8 +79,14 @@ function dismissPWA() {
   document.body.style.paddingTop = '0';
 }
 
+function hideInstallButton() {
+  const btn = document.getElementById('install-btn');
+  if (btn) btn.style.display = 'none';
+}
+
 window.addEventListener('appinstalled', () => {
   dismissPWA();
   deferredPrompt = null;
+  hideInstallButton();
   console.log('Apiaro was installed');
 });
