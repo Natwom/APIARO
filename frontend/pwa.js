@@ -8,17 +8,17 @@ if ('serviceWorker' in navigator) {
 // PWA Install Logic
 let deferredPrompt;
 
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  showInstallButton();
-  showInstallBanner();
-});
-
-function showInstallButton() {
+// Show install button immediately if not already installed
+if (!window.matchMedia('(display-mode: standalone)').matches) {
   const btn = document.getElementById('install-btn');
   if (btn) btn.style.display = 'inline-block';
 }
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  showInstallBanner();
+});
 
 function showInstallBanner() {
   if (window.matchMedia('(display-mode: standalone)').matches) return;
@@ -57,7 +57,7 @@ function showInstallBanner() {
 
 function installPWA() {
   if (!deferredPrompt) {
-    alert('To install Apiaro:\n\nAndroid Chrome: Tap menu (⋮) → "Add to Home screen"\niPhone Safari: Tap Share → "Add to Home Screen"');
+    alert('To install Apiaro:\n\n📱 Android Chrome: Tap menu (⋮) → "Add to Home screen"\n🍎 iPhone Safari: Tap Share → "Add to Home Screen"\n💻 Desktop Chrome: Look for the install icon (➕) in the address bar');
     return;
   }
   
