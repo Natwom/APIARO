@@ -2,12 +2,12 @@
   "name": "Apiaro",
   "short_name": "Apiaro",
   "description": "Kenya's Online Marketplace",
-  "start_url": "/index.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#ff6b00",
   "orientation": "portrait",
-  "scope": "/",
+  "scope": ".",
   "icons": [
     {
       "src": "favicon.png",
