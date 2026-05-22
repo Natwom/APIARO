@@ -753,13 +753,10 @@
         console.log('Login page loaded. API_BASE_URL:', typeof API_BASE_URL !== 'undefined' ? API_BASE_URL : 'NOT DEFINED - Check auth.js!');
     </script>
 <script>
-  if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
-      navigator.serviceWorker.register("sw.js")
-        .then((reg) => console.log("SW registered:", reg.scope))
-        .catch((err) => console.log("SW failed:", err));
     });
   }
 </script>
+<script src="pwa.js"></script>
 </body>
 </html>
