@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- AUTH GUARD: No token = instant redirect to login -->
+    <script>
+        (function() {
+            const token = localStorage.getItem('admin_token');
+            if (!token) {
+                window.location.replace('login.html');
+            }
+        })();
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Management - KenyaShop Admin</title>
