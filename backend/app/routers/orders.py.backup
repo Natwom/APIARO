@@ -5,7 +5,6 @@ from typing import List
 from decimal import Decimal
 from datetime import datetime, timedelta, timezone
 import threading
-import time
 
 from app.database import get_db, DATABASE_URL
 from app import models, schemas, auth
@@ -13,28 +12,8 @@ from services.sms_service import send_order_confirmation
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 
+# Lock for SQLite to prevent race conditions
 db_lock = threading.Lock()
-
-_orders_cache = {"data": None, "timestamp": 0, "ttl": 30}
-
-def get_cached_orders(db: Session):
-    now = time.time()
-    if _orders_cache["data"] and (now - _orders_cache["timestamp"]) < _orders_cache["ttl"]:
-        print("📦 CACHE HIT: orders")
-        return _orders_cache["data"]
-    
-    print("🗄️ DB HIT: orders")
-    orders = db.query(models.Order).options(
-        joinedload(models.Order.items)
-    ).order_by(models.Order.created_at.desc()).all()
-    
-    _orders_cache["data"] = orders
-    _orders_cache["timestamp"] = now
-    return orders
-
-def invalidate_orders_cache():
-    _orders_cache["data"] = None
-    _orders_cache["timestamp"] = 0
 
 @router.post("/", response_model=schemas.OrderResponse, status_code=status.HTTP_201_CREATED)
 def create_order(
@@ -43,9 +22,16 @@ def create_order(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_active_user)
 ):
-    if not order.terms_accepted:
-        raise HTTPException(status_code=400, detail="Accept terms required")
+    """Create new order with DUPLICATE PREVENTION"""
     
+    # Validate terms
+    if not order.terms_accepted:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="You must accept the Terms and Conditions"
+        )
+    
+    # Calculate totals and validate products
     total_amount = Decimal('0.00')
     order_items_data = []
     
@@ -59,7 +45,10 @@ def create_order(
             raise HTTPException(status_code=404, detail=f"Product {item.product_id} not found")
         
         if product.stock_quantity < item.quantity:
-            raise HTTPException(status_code=400, detail=f"Insufficient stock: {product.name}")
+            raise HTTPException(
+                status_code=400,
+                detail=f"Insufficient stock for {product.name}"
+            )
         
         item_total = Decimal(str(product.price)) * item.quantity
         total_amount += item_total
@@ -73,9 +62,11 @@ def create_order(
             "total_price": item_total
         })
     
-    total_amount += Decimal('300.00')
+    total_amount += Decimal('300.00')  # Delivery fee
     
+    # ===== DUPLICATE PREVENTION (90-second window) =====
     ninety_seconds_ago = datetime.now(timezone.utc) - timedelta(seconds=90)
+    
     recent_duplicate = db.query(models.Order).filter(
         and_(
             models.Order.user_id == current_user.id,
@@ -87,16 +78,21 @@ def create_order(
     ).order_by(models.Order.created_at.desc()).first()
     
     if recent_duplicate:
+        print(f"🚫 DUPLICATE BLOCKED: Returning existing order #{recent_duplicate.id}")
         return recent_duplicate
+    # ===== END DUPLICATE PREVENTION =====
     
+    # Use lock for SQLite
     is_sqlite = "sqlite" in str(DATABASE_URL)
     lock_acquired = False
+    
     if is_sqlite:
         lock_acquired = db_lock.acquire(timeout=10)
         if not lock_acquired:
-            raise HTTPException(status_code=503, detail="Server busy")
+            raise HTTPException(status_code=503, detail="Server busy, please retry")
     
     try:
+        # Create order
         db_order = models.Order(
             user_id=current_user.id,
             full_name=order.full_name,
@@ -118,6 +114,7 @@ def create_order(
         db.commit()
         db.refresh(db_order)
         
+        # Create order items and update stock
         for item_data in order_items_data:
             db_item = models.OrderItem(
                 order_id=db_order.id,
@@ -130,6 +127,7 @@ def create_order(
             )
             db.add(db_item)
             
+            # Update stock
             product = db.query(models.Product).filter(
                 models.Product.id == item_data["product_id"]
             ).first()
@@ -138,8 +136,10 @@ def create_order(
         
         db.commit()
         db.refresh(db_order)
-        invalidate_orders_cache()
         
+        print(f"✅ Order #{db_order.id} created")
+        
+        # Send SMS
         try:
             background_tasks.add_task(
                 send_order_confirmation,
@@ -154,7 +154,8 @@ def create_order(
         
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Failed: {str(e)}")
+        print(f"❌ Order error: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to create order: {str(e)}")
     finally:
         if lock_acquired:
             db_lock.release()
@@ -164,9 +165,11 @@ def get_user_orders(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_active_user)
 ):
-    return db.query(models.Order).filter(
+    """Get all orders for current user"""
+    orders = db.query(models.Order).filter(
         models.Order.user_id == current_user.id
     ).order_by(models.Order.created_at.desc()).all()
+    return orders
 
 @router.get("/{order_id}", response_model=schemas.OrderResponse)
 def get_order(
@@ -174,10 +177,12 @@ def get_order(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_active_user)
 ):
+    """Get specific order"""
     order = db.query(models.Order).filter(
         models.Order.id == order_id,
         models.Order.user_id == current_user.id
     ).first()
+    
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
     return order
@@ -187,7 +192,11 @@ def get_all_orders(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_active_user)
 ):
-    return get_cached_orders(db)
+    """Get all orders (admin)"""
+    orders = db.query(models.Order).options(
+        joinedload(models.Order.items)
+    ).order_by(models.Order.created_at.desc()).all()
+    return orders
 
 @router.patch("/admin/{order_id}/status", response_model=schemas.OrderResponse)
 def update_order_status(
@@ -196,6 +205,7 @@ def update_order_status(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_active_user)
 ):
+    """Update order status"""
     order = db.query(models.Order).filter(models.Order.id == order_id).first()
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
@@ -203,5 +213,5 @@ def update_order_status(
     order.status = status_update.status
     db.commit()
     db.refresh(order)
-    invalidate_orders_cache()
+    
     return order

@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 import io
 import json
-import time
+from datetime import datetime, timezone
 
 import cloudinary
 import cloudinary.uploader
@@ -15,44 +15,29 @@ from app import auth
 
 router = APIRouter(prefix="/products", tags=["products"])
 
-_products_cache = {"data": None, "timestamp": 0, "ttl": 60}
-
-def get_cached_products(db: Session):
-    now = time.time()
-    if _products_cache["data"] and (now - _products_cache["timestamp"]) < _products_cache["ttl"]:
-        print("📦 CACHE HIT: products")
-        return _products_cache["data"]
-    
-    print("🗄️ DB HIT: products")
-    products = db.query(models.Product).filter(
-        models.Product.is_active == True
-    ).order_by(models.Product.created_at.desc()).all()
-    
-    for p in products:
-        if p.gallery_images and isinstance(p.gallery_images, str):
-            p.gallery_images = json.loads(p.gallery_images)
-    
-    _products_cache["data"] = products
-    _products_cache["timestamp"] = now
-    return products
-
-def invalidate_products_cache():
-    _products_cache["data"] = None
-    _products_cache["timestamp"] = 0
+# ============== ADMIN ENDPOINTS ==============
 
 @router.post("/admin/upload-image")
 async def upload_product_image(
     file: UploadFile = File(...),
     current_user: models.User = Depends(auth.get_current_active_user)
 ):
+    """Upload a product image to Cloudinary and return the URL"""
+    print(f"Upload attempt by user: {current_user.email}")
+    
     try:
         allowed_types = ["image/jpeg", "image/png", "image/gif", "image/webp"]
         if file.content_type not in allowed_types:
-            raise HTTPException(status_code=400, detail=f"Invalid file type")
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Invalid file type: {file.content_type}. Allowed: JPEG, PNG, GIF, WEBP"
+            )
         
         file_content = await file.read()
-        if len(file_content) > 5 * 1024 * 1024:
-            raise HTTPException(status_code=400, detail="File too large")
+        max_size = 5 * 1024 * 1024
+        
+        if len(file_content) > max_size:
+            raise HTTPException(status_code=400, detail="File too large. Max size is 5MB.")
         
         result = cloudinary.uploader.upload(
             io.BytesIO(file_content),
@@ -60,11 +45,21 @@ async def upload_product_image(
             resource_type="image"
         )
         
-        return {"success": True, "image_url": result["secure_url"]}
+        image_url = result["secure_url"]
+        
+        print(f"Image uploaded to Cloudinary: {image_url}")
+        
+        return {
+            "success": True,
+            "image_url": image_url,
+            "full_url": image_url,
+            "filename": result.get("public_id", "unknown")
+        }
         
     except HTTPException:
         raise
     except Exception as e:
+        print(f"Upload error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
 
 @router.post("/admin", response_model=schemas.ProductResponse, status_code=status.HTTP_201_CREATED)
@@ -74,7 +69,9 @@ def create_product(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_active_user)
 ):
+    """Create a new product"""
     try:
+        # Convert gallery_images list to JSON string for storage
         gallery_json = json.dumps(product.gallery_images) if product.gallery_images else None
         
         db_product = models.Product(
@@ -91,25 +88,28 @@ def create_product(
         db.commit()
         db.refresh(db_product)
         
-        invalidate_products_cache()
-        
+        # Convert back to list for response
         if db_product.gallery_images:
             db_product.gallery_images = json.loads(db_product.gallery_images)
         
         return db_product
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to create product: {str(e)}")
 
 @router.get("/admin/all", response_model=List[schemas.ProductResponse])
 def get_all_products_admin(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_active_user)
 ):
+    """Get all products for admin"""
     products = db.query(models.Product).order_by(models.Product.created_at.desc()).all()
+    
+    # Parse gallery_images JSON for each product
     for p in products:
         if p.gallery_images and isinstance(p.gallery_images, str):
             p.gallery_images = json.loads(p.gallery_images)
+    
     return products
 
 @router.put("/admin/{product_id}", response_model=schemas.ProductResponse)
@@ -119,12 +119,15 @@ def update_product(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_active_user)
 ):
+    """Update a product"""
     db_product = db.query(models.Product).filter(models.Product.id == product_id).first()
     if not db_product:
         raise HTTPException(status_code=404, detail="Product not found")
     
     try:
         update_data = product_update.dict(exclude_unset=True)
+        
+        # Handle gallery_images conversion
         if "gallery_images" in update_data and update_data["gallery_images"] is not None:
             update_data["gallery_images"] = json.dumps(update_data["gallery_images"])
         
@@ -133,15 +136,15 @@ def update_product(
         
         db.commit()
         db.refresh(db_product)
-        invalidate_products_cache()
         
+        # Parse gallery_images back to list for response
         if db_product.gallery_images and isinstance(db_product.gallery_images, str):
             db_product.gallery_images = json.loads(db_product.gallery_images)
         
         return db_product
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to update product: {str(e)}")
 
 @router.delete("/admin/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_product(
@@ -149,14 +152,16 @@ def delete_product(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_active_user)
 ):
+    """Soft delete a product"""
     db_product = db.query(models.Product).filter(models.Product.id == product_id).first()
     if not db_product:
         raise HTTPException(status_code=404, detail="Product not found")
     
     db_product.is_active = False
     db.commit()
-    invalidate_products_cache()
     return None
+
+# ============== PUBLIC ENDPOINTS ==============
 
 @router.get("/", response_model=List[schemas.ProductResponse])
 def get_products(
@@ -166,9 +171,7 @@ def get_products(
     category_id: Optional[int] = None,
     db: Session = Depends(get_db)
 ):
-    if not search and not category_id and skip == 0 and limit >= 100:
-        return get_cached_products(db)
-    
+    """Get active products with optional search and category filter"""
     query = db.query(models.Product).filter(models.Product.is_active == True)
     
     if category_id:
@@ -183,6 +186,7 @@ def get_products(
     
     products = query.order_by(models.Product.created_at.desc()).offset(skip).limit(limit).all()
     
+    # Parse gallery_images JSON for each product
     for p in products:
         if p.gallery_images and isinstance(p.gallery_images, str):
             p.gallery_images = json.loads(p.gallery_images)
@@ -191,6 +195,7 @@ def get_products(
 
 @router.get("/{product_id}", response_model=schemas.ProductResponse)
 def get_product(product_id: int, db: Session = Depends(get_db)):
+    """Get a specific product"""
     product = db.query(models.Product).filter(
         models.Product.id == product_id,
         models.Product.is_active == True
@@ -199,6 +204,7 @@ def get_product(product_id: int, db: Session = Depends(get_db)):
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
     
+    # Parse gallery_images JSON
     if product.gallery_images and isinstance(product.gallery_images, str):
         product.gallery_images = json.loads(product.gallery_images)
     

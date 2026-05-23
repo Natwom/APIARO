@@ -60,10 +60,6 @@ def read_root():
     }
 
 @app.get("/health")
-@app.get("/ping")
-def ping():
-    return {"status": "alive", "timestamp": datetime.now(timezone.utc).isoformat()}
-
 def health_check():
     """Health check endpoint"""
     return {
