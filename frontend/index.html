@@ -4,760 +4,133 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>APIARO - Your Online Marketplace</title>
+    
+    <!-- SPLASH SCREEN CSS - INLINE FOR INSTANT RENDER -->
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        #apiaro-splash {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: #ffffff;
+            z-index: 999999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+        
+        #apiaro-splash.hide {
+            opacity: 0;
+            transform: scale(1.1);
+            pointer-events: none;
+        }
+        
+        .splash-logo {
+            width: 150px; height: 150px;
+            margin-bottom: 30px;
+            animation: splashPulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes splashPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+        }
+        
+        .splash-brand {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #1a1a2e;
+            letter-spacing: -1px;
+            margin-bottom: 8px;
+        }
+        
+        .splash-brand span { color: #ff6b00; }
+        
+        .splash-tagline {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #ff6b00;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 40px;
+        }
+        
+        .splash-loader {
+            width: 180px; height: 3px;
+            background: #f0f0f0;
+            border-radius: 3px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .splash-loader::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -50%;
+            width: 50%; height: 100%;
+            background: linear-gradient(90deg, #ff6b00, #ff8533);
+            border-radius: 3px;
+            animation: splashSlide 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes splashSlide {
+            0% { left: -50%; }
+            100% { left: 100%; }
+        }
+        
+        .app-content {
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        
+        .app-content.show { opacity: 1; }
+    </style>
+    
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#ff6b00">
-    <link rel="stylesheet" href="css/loading.css">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        /* Modal styles for customer service messages */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.6);
-            z-index: 10000;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .modal-overlay.active {
-            display: flex;
-        }
-        
-        .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            max-width: 500px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-            position: relative;
-            animation: slideIn 0.3s ease;
-        }
-        
-        .modal-close {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: none;
-            border: none;
-            font-size: 1.5em;
-            cursor: pointer;
-            color: #666;
-        }
-        
-        .modal-close:hover {
-            color: #333;
-        }
-        
-        .modal-title {
-            margin-bottom: 15px;
-            color: #2c5aa0;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .modal-body {
-            line-height: 1.6;
-            color: #555;
-        }
-        
-        .modal-body ul {
-            margin: 10px 0;
-            padding-left: 20px;
-        }
-        
-        .modal-body li {
-            margin: 8px 0;
-        }
-        
-        .contact-box {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 15px;
-        }
-        
-        .contact-box p {
-            margin: 5px 0;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        @keyframes slideIn {
-            from {
-                transform: translateY(-50px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
-        /* Footer link styles */
-        .footer-bottom-links a {
-            cursor: pointer;
-            color: #666;
-            text-decoration: none;
-            transition: color 0.3s;
-        }
-        
-        .footer-bottom-links a:hover {
-            color: #2c5aa0;
-        }
-    </style>
 </head>
 <body>
-    <!-- LOADING SCREEN -->
-    <div class="loading-overlay" id="loading-screen">
-        <div class="loading-bag"></div>
-        <div class="loading-dots">
-            <span></span>
-            <span></span>
-            <span></span>
-        </div>
-        <div class="loading-text">Loading Apiaro</div>
-        <div class="loading-tagline">Shop More. Live Better.</div>
-        <div class="loading-progress">
-            <div class="loading-progress-bar"></div>
-        </div>
+    <!-- SPLASH SCREEN -->
+    <div id="apiaro-splash">
+        <img src="icon-512x512.png" alt="Apiaro" class="splash-logo">
+        <div class="splash-brand">Api<span>aro</span></div>
+        <div class="splash-tagline">Shop More. Live Better.</div>
+        <div class="splash-loader"></div>
     </div>
-    <!-- END LOADING SCREEN -->
-    <nav class="navbar">
-        <div class="nav-container">
-            <a href="index.html" class="logo">
-                <i class="fas fa-shopping-bag"></i> APIARO
-            </a>
-            <div class="nav-links">
-                <a href="products.html">Shop</a>
-                <a href="cart.html"><i class="fas fa-shopping-cart"></i> Cart <span id="cart-count" class="badge">0</span></a>
-                <a href="orders.html">My Orders</a>
-                <a href="#" id="install-btn" onclick="installPWA(); return false;"><i class="fas fa-download"></i> Install App</a>
-                <div id="auth-links">
-                    <a href="login.html">Login</a>
-                    <a href="register.html" class="btn-primary">Register</a>
-                </div>
-                <div id="user-links" style="display:none;">
-                    <span id="user-name"></span>
-                    <a href="#" onclick="logout()">Logout</a>
-                </div>
-            </div>
-            <div class="hamburger" onclick="toggleMenu()">
-                <i class="fas fa-bars"></i>
-            </div>
-        </div>
-    </nav>
-
-    <header class="hero">
-        <div class="hero-content">
-            <h1>Celebrating Kenyan Quality in Every Order</h1>
-            <p>From Mombasa to Malaba, we deliver quality products across all 47 counties</p>
-            <a href="products.html" class="btn-hero">Start Shopping <i class="fas fa-arrow-right"></i></a>
-        </div>
-    </header>
-
-    <section class="features">
-        <div class="container">
-            <h2 class="section-title">Why Choose APIARO</h2>
-            <div class="feature-grid">
-                <div class="feature-card">
-                    <i class="fas fa-truck"></i>
-                    <h3>County-wide Delivery</h3>
-                    <p>We deliver to all 47 counties within 24-48 hours</p>
-                </div>
-                <div class="feature-card">
-                    <i class="fas fa-mobile-alt"></i>
-                    <h3>M-Pesa Accepted</h3>
-                    <p>Pay securely with M-Pesa or choose Cash on Delivery</p>
-                </div>
-                <div class="feature-card">
-                    <i class="fas fa-shield-alt"></i>
-                    <h3>Secure Shopping</h3>
-                    <p>Your data is protected with 256-bit encryption</p>
-                </div>
-                <div class="feature-card">
-                    <i class="fas fa-undo"></i>
-                    <h3>Easy Returns</h3>
-                    <p>7-day hassle-free return policy on all items</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="categories">
-        <div class="container">
-            <h2 class="section-title">Shop by Category</h2>
-            <div class="category-grid" id="categories">
-                <div class="category-card" onclick="window.location.href='products.html'">
-                    <h3>Electronics</h3>
-                    <p>Phones, Laptops & Gadgets</p>
-                </div>
-                <div class="category-card" onclick="window.location.href='products.html'">
-                    <h3>Fashion</h3>
-                    <p>Clothing, Shoes & Accessories</p>
-                </div>
-                <div class="category-card" onclick="window.location.href='products.html'">
-                    <h3>Home & Living</h3>
-                    <p>Furniture & Appliances</p>
-                </div>
-                <div class="category-card" onclick="window.location.href='products.html'">
-                    <h3>Agriculture</h3>
-                    <p>Farming Tools & Supplies</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h4>About Apiaro</h4>
-                    <p>Kenya's premier online marketplace connecting buyers and sellers across all 47 counties. We offer quality products, secure payments via M-Pesa, and reliable delivery to your doorstep.</p>
-                    <div class="social-links">
-                        <a href="#" title="Facebook"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#" title="Twitter"><i class="fab fa-twitter"></i></a>
-                        <a href="#" title="Instagram"><i class="fab fa-instagram"></i></a>
-                        <a href="#" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
-                    </div>
-                </div>
-                
-                <div class="footer-section">
-                    <h4>Customer Service</h4>
-                    <ul>
-                        <li><a href="#" onclick="showHelpModal('help')">Help Center</a></li>
-                        <li><a href="#" onclick="showHelpModal('howtobuy')">How to Buy</a></li>
-                        <li><a href="#" onclick="showHelpModal('delivery')">Delivery Information</a></li>
-                        <li><a href="#" onclick="showHelpModal('returns')">Return Policy</a></li>
-                        <li><a href="#" onclick="showHelpModal('track')">Track Your Order</a></li>
-                        <li><a href="#" onclick="showHelpModal('contact')">Contact Us</a></li>
-                    </ul>
-                </div>
-                
-                <div class="footer-section">
-                    <h4>Categories</h4>
-                    <ul>
-                        <li><a href="products.html">Electronics & Phones</a></li>
-                        <li><a href="products.html">Fashion & Clothing</a></li>
-                        <li><a href="products.html">Home & Living</a></li>
-                        <li><a href="products.html">Agriculture</a></li>
-                        <li><a href="#">Beauty & Health</a></li>
-                        <li><a href="#">Sports & Outdoors</a></li>
-                    </ul>
-                </div>
-                
-                <div class="footer-section">
-                    <h4>Contact Us</h4>
-                    <div class="contact-info">
-                        <p><i class="fas fa-map-marker-alt"></i> Lokichar subcounty, Turkana</p>
-                        <p><i class="fas fa-phone"></i> +254 795 725 564</p>
-                        <p><i class="fas fa-envelope"></i> support@apiaro.co.ke</p>
-                        <p><i class="fas fa-clock"></i> Mon-Fri: 8AM - 6PM</p>
-                    </div>
-                    
-                    <div class="newsletter">
-                        <p>Subscribe to our newsletter for deals</p>
-                        <form class="newsletter-form" onsubmit="event.preventDefault(); alert('Thank you for subscribing!');">
-                            <input type="email" placeholder="Your email" required>
-                            <button type="submit">Join</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="trust-badges">
-                <div class="trust-badge">
-                    <i class="fas fa-shield-alt"></i>
-                    <span>Secure Shopping</span>
-                </div>
-                <div class="trust-badge">
-                    <i class="fas fa-truck"></i>
-                    <span>County-wide Delivery</span>
-                </div>
-                <div class="trust-badge">
-                    <i class="fas fa-undo"></i>
-                    <span>7-Day Returns</span>
-                </div>
-                <div class="trust-badge">
-                    <i class="fas fa-headset"></i>
-                    <span>24/7 Support</span>
-                </div>
-            </div>
-            
-            <div class="payment-section" style="text-align: center; margin-bottom: 2rem;">
-                <h5>Payment Methods</h5>
-                <div class="payment-icons" style="justify-content: center;">
-                    <div class="payment-icon mpesa-icon">
-                        <i class="fas fa-mobile-alt"></i> M-Pesa
-                    </div>
-                    <div class="payment-icon">
-                        <i class="fas fa-money-bill-wave"></i> Cash on Delivery
-                    </div>
-                    <div class="payment-icon">
-                        <i class="fas fa-credit-card"></i> Card
-                    </div>
-                    <div class="payment-icon">
-                        <i class="fas fa-university"></i> Bank Transfer
-                    </div>
-                </div>
-            </div>
-            
-            <div class="footer-bottom">
-                <div class="footer-bottom-links">
-                    <a onclick="showFooterModal('privacy')">Privacy Policy</a>
-                    <a onclick="showFooterModal('terms')">Terms & Conditions</a>
-                    <a onclick="showFooterModal('cookie')">Cookie Policy</a>
-                    <a onclick="showFooterModal('seller')">Seller Center</a>
-                    <a onclick="showFooterModal('advertise')">Advertise</a>
-                </div>
-                <p>&copy; 2024 Apiaro. All rights reserved. Made with <i class="fas fa-heart" style="color: var(--primary);"></i> in Kenya</p>
-                <div class="country-selector">
-                    <img src="https://flagcdn.com/w40/ke.png" alt="Kenya">
-                    <span>Kenya</span>
-                    <i class="fas fa-chevron-down" style="font-size: 0.7rem;"></i>
-                </div>
-            </div>
-        </div>
-    </footer>
-
-    <!-- Customer Service Modal -->
-    <div id="help-modal" class="modal-overlay">
-        <div class="modal-content">
-            <button class="modal-close" onclick="closeHelpModal()">&times;</button>
-            <h3 class="modal-title" id="modal-title">
-                <i class="fas fa-info-circle"></i>
-                <span>Help Center</span>
-            </h3>
-            <div class="modal-body" id="modal-body">
-                <!-- Content loaded dynamically -->
-            </div>
-        </div>
+    
+    <!-- APP CONTENT -->
+    <div class="app-content" id="app-content">
     </div>
-
-    <!-- Footer Links Modal -->
-    <div id="footer-modal" class="modal-overlay">
-        <div class="modal-content">
-            <button class="modal-close" onclick="closeFooterModal()">&times;</button>
-            <h3 class="modal-title" id="footer-modal-title">
-                <i class="fas fa-info-circle"></i>
-                <span>Title</span>
-            </h3>
-            <div class="modal-body" id="footer-modal-body">
-                <!-- Content loaded dynamically -->
-            </div>
-        </div>
-    </div>
-
+    
     <script src="js/auth.js"></script>
     <script src="js/cart.js"></script>
+    <script src="pwa.js"></script>
+    
     <script>
-        function toggleMenu() {
-            document.querySelector('.nav-links').classList.toggle('active');
-        }
-
-        // Customer Service Modal Functions
-        const helpContent = {
-            help: {
-                title: 'Help Center',
-                icon: 'fa-life-ring',
-                content: `
-                    <p>Welcome to Apiaro Help Center! We're here to assist you with any questions or concerns.</p>
-                    <h4>Frequently Asked Questions:</h4>
-                    <ul>
-                        <li><strong>How do I create an account?</strong> Click on "Register" in the top menu and fill in your details.</li>
-                        <li><strong>Is my payment information secure?</strong> Yes, we use 256-bit SSL encryption for all transactions.</li>
-                        <li><strong>Can I change my order after placing it?</strong> Contact us within 1 hour of placing your order.</li>
-                        <li><strong>What if my product is damaged?</strong> We offer easy returns within 7 days for damaged items.</li>
-                    </ul>
-                    <p>Can't find what you're looking for? Contact our support team below.</p>
-                `
-            },
-            howtobuy: {
-                title: 'How to Buy',
-                icon: 'fa-shopping-cart',
-                content: `
-                    <p>Shopping on Apiaro is easy! Follow these simple steps:</p>
-                    <ol>
-                        <li><strong>Browse Products:</strong> Use the search bar or categories to find what you need.</li>
-                        <li><strong>Add to Cart:</strong> Click the "Add to Cart" button on any product you like.</li>
-                        <li><strong>Review Cart:</strong> Click the cart icon to review your items and quantities.</li>
-                        <li><strong>Checkout:</strong> Click "Proceed to Checkout" and fill in your delivery details.</li>
-                        <li><strong>Payment:</strong> Choose M-Pesa, Cash on Delivery, or Card payment.</li>
-                        <li><strong>Confirmation:</strong> You'll receive an SMS and email confirmation.</li>
-                    </ol>
-                    <p><strong>Tip:</strong> Create an account to track your orders and save your delivery information!</p>
-                `
-            },
-            delivery: {
-                title: 'Delivery Information',
-                icon: 'fa-truck',
-                content: `
-                    <p>We deliver to all 47 counties in Kenya!</p>
-                    <h4>Delivery Times:</h4>
-                    <ul>
-                        <li><strong>Nairobi & Surroundings:</strong> Same day or next day delivery</li>
-                        <li><strong>Major Cities (Mombasa, Kisumu, Nakuru, Eldoret):</strong> 1-2 business days</li>
-                        <li><strong>Other Counties:</strong> 2-4 business days</li>
-                        <li><strong>Remote Areas:</strong> 4-7 business days</li>
-                    </ul>
-                    <h4>Delivery Costs:</h4>
-                    <ul>
-                        <li>Orders above KES 5,000: <strong>FREE delivery</strong></li>
-                        <li>Orders below KES 5,000: KES 300 - 500 depending on location</li>
-                    </ul>
-                    <p>You'll receive SMS updates when your order is dispatched and when it's near delivery.</p>
-                `
-            },
-            returns: {
-                title: 'Return Policy',
-                icon: 'fa-undo',
-                content: `
-                    <p>We want you to be completely satisfied with your purchase!</p>
-                    <h4>Our 7-Day Return Policy:</h4>
-                    <ul>
-                        <li><strong>Damaged/Defective Items:</strong> Full refund or replacement - no questions asked!</li>
-                        <li><strong>Wrong Item Received:</strong> We'll exchange it for the correct item at no cost.</li>
-                        <li><strong>Changed Your Mind?</strong> Items in original condition can be returned within 7 days.</li>
-                    </ul>
-                    <h4>How to Return:</h4>
-                    <ol>
-                        <li>Contact us at <strong>support@apiaro.co.ke</strong> or call <strong>+254 795 725 564</strong></li>
-                        <li>Provide your order number and reason for return</li>
-                        <li>We'll arrange pickup from your location (FREE for defective items)</li>
-                        <li>Refund processed within 5-7 business days to your M-Pesa or bank account</li>
-                    </ol>
-                    <p><strong>Note:</strong> Perishable goods and intimate items cannot be returned for hygiene reasons.</p>
-                `
-            },
-            track: {
-                title: 'Track Your Order',
-                icon: 'fa-map-marker-alt',
-                content: `
-                    <p>Stay updated on your order status every step of the way!</p>
-                    <h4>How to Track:</h4>
-                    <ol>
-                        <li><strong>Via Website:</strong> Log into your account and go to "My Orders"</li>
-                        <li><strong>Via SMS:</strong> You'll receive automatic updates at each stage</li>
-                        <li><strong>Via WhatsApp:</strong> Send your order number to +254 795 725 564</li>
-                    </ol>
-                    <h4>Order Status Meanings:</h4>
-                    <ul>
-                        <li><strong>Pending:</strong> Order received, awaiting confirmation</li>
-                        <li><strong>Processing:</strong> Order confirmed, preparing for shipment</li>
-                        <li><strong>Shipped:</strong> Order on its way to you</li>
-                        <li><strong>Out for Delivery:</strong> Rider is on the way to your address</li>
-                        <li><strong>Delivered:</strong> Order successfully delivered</li>
-                    </ul>
-                    <p>Need help? Contact our support team with your order number.</p>
-                `
-            },
-            contact: {
-                title: 'Contact Us',
-                icon: 'fa-headset',
-                content: `
-                    <p>We're here to help! Reach out to us through any of these channels:</p>
-                    <div class="contact-box">
-                        <p><i class="fas fa-phone" style="color: #2c5aa0;"></i> <strong>+254 795 725 564</strong> (Mon-Fri, 8AM - 6PM)</p>
-                        <p><i class="fas fa-envelope" style="color: #2c5aa0;"></i> <strong>support@apiaro.co.ke</strong></p>
-                        <p><i class="fab fa-whatsapp" style="color: #25d366;"></i> <strong>+254 795 725 564</strong> (WhatsApp)</p>
-                        <p><i class="fas fa-map-marker-alt" style="color: #e74c3c;"></i> Lokichar subcounty, Turkana</p>
-                    </div>
-                    <h4>Response Times:</h4>
-                    <ul>
-                        <li>Phone/WhatsApp: Immediate during business hours</li>
-                        <li>Email: Within 24 hours</li>
-                        <li>Social Media: Within 2 hours</li>
-                    </ul>
-                    <p>For urgent issues, please call or WhatsApp us for fastest response!</p>
-                `
-            }
-        };
-
-        // Footer Links Modal Content
-        const footerContent = {
-            privacy: {
-                title: 'Privacy Policy',
-                icon: 'fa-shield-alt',
-                content: `
-                    <p><strong>Last Updated:</strong> April 2024</p>
-                    <p>At APIARO, we take your privacy seriously. This policy describes how we collect, use, and protect your personal information.</p>
-                    
-                    <h4>Information We Collect</h4>
-                    <ul>
-                        <li><strong>Personal Information:</strong> Name, email, phone number, and delivery address</li>
-                        <li><strong>Payment Information:</strong> M-Pesa transaction details (we do not store card numbers)</li>
-                        <li><strong>Usage Data:</strong> Pages visited, products viewed, and purchase history</li>
-                        <li><strong>Device Information:</strong> IP address, browser type, and operating system</li>
-                    </ul>
-                    
-                    <h4>How We Use Your Information</h4>
-                    <ul>
-                        <li>Process and deliver your orders</li>
-                        <li>Send order confirmations and updates via SMS/email</li>
-                        <li>Improve our services and user experience</li>
-                        <li>Prevent fraud and ensure security</li>
-                        <li>Comply with legal obligations</li>
-                    </ul>
-                    
-                    <h4>Data Protection</h4>
-                    <p>We implement industry-standard security measures including 256-bit SSL encryption to protect your data. Your information is stored on secure servers and is never sold to third parties.</p>
-                    
-                    <h4>Your Rights</h4>
-                    <p>You have the right to access, correct, or delete your personal information. Contact us at <strong>privacy@apiaro.co.ke</strong> for any privacy-related requests.</p>
-                `
-            },
-            terms: {
-                title: 'Terms & Conditions',
-                icon: 'fa-file-contract',
-                content: `
-                    <p><strong>Effective Date:</strong> April 2024</p>
-                    <p>Welcome to APIARO. By using our platform, you agree to these terms and conditions.</p>
-                    
-                    <h4>1. Account Registration</h4>
-                    <ul>
-                        <li>You must provide accurate and complete information when creating an account</li>
-                        <li>You are responsible for maintaining the confidentiality of your account credentials</li>
-                        <li>You must be at least 18 years old to use our services</li>
-                        <li>One person may only maintain one active account</li>
-                    </ul>
-                    
-                    <h4>2. Orders and Payments</h4>
-                    <ul>
-                        <li>All prices are in Kenyan Shillings (KES) and include VAT where applicable</li>
-                        <li>We accept M-Pesa, Cash on Delivery, and Bank Transfer</li>
-                        <li>Orders are confirmed only after payment is received</li>
-                        <li>We reserve the right to cancel orders for fraudulent activity</li>
-                    </ul>
-                    
-                    <h4>3. Delivery</h4>
-                    <ul>
-                        <li>Delivery times are estimates and may vary based on location and availability</li>
-                        <li>Risk of loss transfers to you upon delivery</li>
-                        <li>You must inspect goods upon delivery and report issues within 24 hours</li>
-                    </ul>
-                    
-                    <h4>4. Returns and Refunds</h4>
-                    <ul>
-                        <li>Items may be returned within 7 days of delivery</li>
-                        <li>Items must be in original condition with all packaging</li>
-                        <li>Refunds are processed within 5-7 business days</li>
-                        <li>Delivery fees are non-refundable unless item is defective</li>
-                    </ul>
-                    
-                    <h4>5. Prohibited Activities</h4>
-                    <p>You may not use our platform for illegal activities, fraud, harassment, or to distribute harmful content. Violation may result in account termination.</p>
-                `
-            },
-            cookie: {
-                title: 'Cookie Policy',
-                icon: 'fa-cookie-bite',
-                content: `
-                    <p><strong>Last Updated:</strong> April 2024</p>
-                    <p>APIARO uses cookies and similar technologies to enhance your browsing experience.</p>
-                    
-                    <h4>What Are Cookies?</h4>
-                    <p>Cookies are small text files stored on your device when you visit our website. They help us remember your preferences and improve your experience.</p>
-                    
-                    <h4>Types of Cookies We Use</h4>
-                    <ul>
-                        <li><strong>Essential Cookies:</strong> Required for the website to function (shopping cart, login session)</li>
-                        <li><strong>Functional Cookies:</strong> Remember your preferences (language, location)</li>
-                        <li><strong>Analytics Cookies:</strong> Help us understand how visitors interact with our site</li>
-                        <li><strong>Marketing Cookies:</strong> Used to deliver relevant advertisements (with your consent)</li>
-                    </ul>
-                    
-                    <h4>Managing Cookies</h4>
-                    <p>You can control cookies through your browser settings. However, disabling essential cookies may affect website functionality.</p>
-                    
-                    <h4>Third-Party Cookies</h4>
-                    <p>We may use third-party services (Google Analytics, payment processors) that set their own cookies. These are governed by the respective privacy policies.</p>
-                    
-                    <h4>Contact Us</h4>
-                    <p>If you have questions about our cookie policy, email us at <strong>privacy@apiaro.co.ke</strong></p>
-                `
-            },
-            seller: {
-                title: 'Seller Center',
-                icon: 'fa-store',
-                content: `
-                    <p>Join thousands of successful sellers on APIARO and grow your business across Kenya!</p>
-                    
-                    <h4>Why Sell on APIARO?</h4>
-                    <ul>
-                        <li><strong>Reach 47 Counties:</strong> Access customers from Mombasa to Malaba</li>
-                        <li><strong>Secure Payments:</strong> Receive payments directly to your M-Pesa or bank account</li>
-                        <li><strong>Easy Logistics:</strong> We handle delivery or you can use your own</li>
-                        <li><strong>Seller Protection:</strong> Fraud detection and dispute resolution</li>
-                        <li><strong>Marketing Support:</strong> Featured placements and promotional campaigns</li>
-                    </ul>
-                    
-                    <h4>How to Become a Seller</h4>
-                    <ol>
-                        <li>Register for a seller account at <strong>seller.apiaro.co.ke</strong></li>
-                        <li>Complete KYC verification (ID, business registration)</li>
-                        <li>Set up your shop profile and add products</li>
-                        <li>Configure shipping preferences and return policy</li>
-                        <li>Start selling! Orders come directly to your dashboard</li>
-                    </ol>
-                    
-                    <h4>Seller Fees</h4>
-                    <ul>
-                        <li><strong>Commission:</strong> 5-15% per sale (varies by category)</li>
-                        <li><strong>Payment Processing:</strong> 1.5% for M-Pesa withdrawals</li>
-                        <li><strong>No Monthly Fees:</strong> Pay only when you sell</li>
-                    </ul>
-                    
-                    <h4>Seller Requirements</h4>
-                    <ul>
-                        <li>Valid Kenyan ID or Passport</li>
-                        <li>Active M-Pesa or bank account</li>
-                        <li>Genuine products only (counterfeits prohibited)</li>
-                        <li>Ability to fulfill orders within 24-48 hours</li>
-                    </ul>
-                    
-                    <div class="contact-box">
-                        <p><strong>Ready to start?</strong> Contact our Seller Support:</p>
-                        <p><i class="fas fa-envelope"></i> sellers@apiaro.co.ke</p>
-                        <p><i class="fas fa-phone"></i> +254 795 725 564</p>
-                    </div>
-                `
-            },
-            advertise: {
-                title: 'Advertise with Us',
-                icon: 'fa-bullhorn',
-                content: `
-                    <p>Reach millions of Kenyan shoppers with targeted advertising on APIARO!</p>
-                    
-                    <h4>Advertising Options</h4>
-                    <ul>
-                        <li><strong>Homepage Banner:</strong> Premium placement on our homepage (500K+ daily views)</li>
-                        <li><strong>Category Sponsorship:</strong> Feature your brand in specific product categories</li>
-                        <li><strong>Sponsored Products:</strong> Boost your product listings in search results</li>
-                        <li><strong>Email Marketing:</strong> Reach 200K+ subscribers with targeted campaigns</li>
-                        <li><strong>SMS Campaigns:</strong> Direct marketing to verified phone numbers</li>
-                    </ul>
-                    
-                    <h4>Why Advertise on APIARO?</h4>
-                    <ul>
-                        <li><strong>Targeted Audience:</strong> Reach active shoppers across all 47 counties</li>
-                        <li><strong>Measurable Results:</strong> Detailed analytics and conversion tracking</li>
-                        <li><strong>Flexible Budgets:</strong> Start from as low as KES 5,000</li>
-                        <li><strong>Brand Safety:</strong> Your ads appear alongside trusted Kenyan brands</li>
-                    </ul>
-                    
-                    <h4>Our Audience</h4>
-                    <ul>
-                        <li>1.5M+ monthly active users</li>
-                        <li>65% aged 25-45 (prime purchasing demographic)</li>
-                        <li>45% from Nairobi, 55% from other counties</li>
-                        <li>70% female, 30% male shoppers</li>
-                    </ul>
-                    
-                    <h4>Get Started</h4>
-                    <p>Contact our advertising team for a customized media kit and rate card:</p>
-                    <div class="contact-box">
-                        <p><i class="fas fa-envelope"></i> ads@apiaro.co.ke</p>
-                        <p><i class="fas fa-phone"></i> +254 795 725 564</p>
-                        <p><i class="fas fa-user"></i> Account Manager: Samuel Ekitela</p>
-                    </div>
-                    
-                    <p><em>Special discounts available for Kenyan-owned SMEs and first-time advertisers!</em></p>
-                `
-            }
-        };
-
-        function showHelpModal(type) {
-            const modal = document.getElementById('help-modal');
-            const titleEl = document.getElementById('modal-title');
-            const bodyEl = document.getElementById('modal-body');
-            const content = helpContent[type];
-            
-            if (content) {
-                titleEl.innerHTML = `<i class="fas ${content.icon}"></i> <span>${content.title}</span>`;
-                bodyEl.innerHTML = content.content;
-                modal.classList.add('active');
-                document.body.style.overflow = 'hidden';
-            }
-        }
-
-        function closeHelpModal() {
-            const modal = document.getElementById('help-modal');
-            modal.classList.remove('active');
-            document.body.style.overflow = '';
-        }
-
-        // Footer Modal Functions
-        function showFooterModal(type) {
-            const modal = document.getElementById('footer-modal');
-            const titleEl = document.getElementById('footer-modal-title');
-            const bodyEl = document.getElementById('footer-modal-body');
-            const content = footerContent[type];
-            
-            if (content) {
-                titleEl.innerHTML = `<i class="fas ${content.icon}"></i> <span>${content.title}</span>`;
-                bodyEl.innerHTML = content.content;
-                modal.classList.add('active');
-                document.body.style.overflow = 'hidden';
-            }
-        }
-
-        function closeFooterModal() {
-            const modal = document.getElementById('footer-modal');
-            modal.classList.remove('active');
-            document.body.style.overflow = '';
-        }
-
-        // Close modals when clicking outside
-        document.getElementById('help-modal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeHelpModal();
-            }
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('app-content').classList.add('show');
+                document.getElementById('apiaro-splash').classList.add('hide');
+            }, 2000);
         });
-
-        document.getElementById('footer-modal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeFooterModal();
-            }
-        });
-
-        // Close modals with Escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeHelpModal();
-                closeFooterModal();
-            }
-        });
-
-        document.addEventListener('DOMContentLoaded', () => {
-            checkAuth();
-        });
-    </script>
-<script>
-    window.addEventListener("load", () => {
-    });
-  
-</script>
-<script src="pwa.js"></script>
-<script>
-    window.addEventListener('load', () => {
+        
         setTimeout(() => {
-            const loader = document.getElementById('loading-screen');
-            if (loader) loader.classList.add('hidden');
-        }, 1500);
-    });
-    setTimeout(() => {
-        const loader = document.getElementById('loading-screen');
-        if (loader) loader.classList.add('hidden');
-    }, 5000);
-</script>
+            const splash = document.getElementById('apiaro-splash');
+            const app = document.getElementById('app-content');
+            if (splash && !splash.classList.contains('hide')) {
+                app.classList.add('show');
+                splash.classList.add('hide');
+            }
+        }, 5000);
+    </script>
 </body>
 </html>
