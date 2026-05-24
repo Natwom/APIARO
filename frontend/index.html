@@ -5,85 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>APIARO - Your Online Marketplace</title>
     
-    <!-- SPLASH SCREEN CSS - INLINE FOR INSTANT RENDER -->
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        #apiaro-splash {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: #ffffff;
-            z-index: 999999;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            transition: opacity 0.8s ease, transform 0.8s ease;
-        }
-        
-        #apiaro-splash.hide {
-            opacity: 0;
-            transform: scale(1.1);
-            pointer-events: none;
-        }
-        
-        .splash-logo {
-            width: 150px; height: 150px;
-            margin-bottom: 30px;
-            animation: splashPulse 2s ease-in-out infinite;
-        }
-        
-        @keyframes splashPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.08); }
-        }
-        
-        .splash-brand {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            font-size: 2.5rem;
-            font-weight: 800;
-            color: #1a1a2e;
-            letter-spacing: -1px;
-            margin-bottom: 8px;
-        }
-        
-        .splash-brand span { color: #ff6b00; }
-        
-        .splash-tagline {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: #ff6b00;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            margin-bottom: 40px;
-        }
-        
-        .splash-loader {
-            width: 180px; height: 3px;
-            background: #f0f0f0;
-            border-radius: 3px;
-            overflow: hidden;
-            position: relative;
-        }
-        
-        .splash-loader::after {
-            content: '';
-            position: absolute;
-            top: 0; left: -50%;
-            width: 50%; height: 100%;
-            background: linear-gradient(90deg, #ff6b00, #ff8533);
-            border-radius: 3px;
-            animation: splashSlide 1.5s ease-in-out infinite;
-        }
-        
-        @keyframes splashSlide {
-            0% { left: -50%; }
-            100% { left: 100%; }
-        }
-    </style>
-    
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#ff6b00">
@@ -197,14 +118,6 @@
     </style>
 </head>
 <body>
-    <!-- SPLASH SCREEN -->
-    <div id="apiaro-splash">
-        <img src="icon-512x512.png" alt="Apiaro" class="splash-logo">
-        <div class="splash-brand">Api<span>aro</span></div>
-        <div class="splash-tagline">Shop More. Live Better.</div>
-        <div class="splash-loader"></div>
-    </div>
-
     <nav class="navbar">
         <div class="nav-container">
             <a href="index.html" class="logo">
@@ -560,9 +473,114 @@
             privacy: {
                 title: 'Privacy Policy',
                 icon: 'fa-shield-alt',
-                content: `...` // truncated for brevity, use your original content
+                content: `
+                    <p>At Apiaro, your privacy is our priority. This policy explains how we collect, use, and protect your personal information.</p>
+                    <h4>Information We Collect:</h4>
+                    <ul>
+                        <li>Account information (name, email, phone number)</li>
+                        <li>Delivery addresses</li>
+                        <li>Order history and preferences</li>
+                        <li>Payment information (processed securely via M-Pesa)</li>
+                    </ul>
+                    <h4>How We Use Your Data:</h4>
+                    <ul>
+                        <li>To process and deliver your orders</li>
+                        <li>To send order updates and promotional offers (you can opt out)</li>
+                        <li>To improve our services and user experience</li>
+                        <li>To comply with legal requirements</li>
+                    </ul>
+                    <p>We never sell your personal data to third parties.</p>
+                `
+            },
+            terms: {
+                title: 'Terms & Conditions',
+                icon: 'fa-file-contract',
+                content: `
+                    <p>By using Apiaro, you agree to the following terms:</p>
+                    <h4>General Terms:</h4>
+                    <ul>
+                        <li>You must be 18 years or older to make purchases</li>
+                        <li>All product descriptions and prices are accurate to the best of our knowledge</li>
+                        <li>We reserve the right to refuse service to anyone</li>
+                    </ul>
+                    <h4>Orders & Payments:</h4>
+                    <ul>
+                        <li>Orders are confirmed only after successful payment</li>
+                        <li>Prices are in Kenyan Shillings (KES) and include VAT where applicable</li>
+                        <li>We accept M-Pesa, Cash on Delivery, and Bank Transfers</li>
+                    </ul>
+                    <h4>Liability:</h4>
+                    <ul>
+                        <li>We are not liable for delays caused by circumstances beyond our control</li>
+                        <li>Our maximum liability is limited to the purchase price of the item</li>
+                    </ul>
+                `
+            },
+            cookie: {
+                title: 'Cookie Policy',
+                icon: 'fa-cookie',
+                content: `
+                    <p>Apiaro uses cookies to enhance your shopping experience.</p>
+                    <h4>What Are Cookies:</h4>
+                    <p>Cookies are small text files stored on your device that help us remember your preferences and improve site functionality.</p>
+                    <h4>How We Use Cookies:</h4>
+                    <ul>
+                        <li><strong>Essential Cookies:</strong> Required for the site to function (cart, login)</li>
+                        <li><strong>Analytics Cookies:</strong> Help us understand how visitors use our site</li>
+                        <li><strong>Preference Cookies:</strong> Remember your settings and choices</li>
+                    </ul>
+                    <p>You can disable cookies in your browser settings, but some features may not work properly.</p>
+                `
+            },
+            seller: {
+                title: 'Seller Center',
+                icon: 'fa-store',
+                content: `
+                    <p>Join thousands of sellers on Apiaro and grow your business!</p>
+                    <h4>Why Sell on Apiaro:</h4>
+                    <ul>
+                        <li>Reach customers across all 47 counties</li>
+                        <li>Secure payments via M-Pesa</li>
+                        <li>Easy product listing and inventory management</li>
+                        <li>Dedicated seller support</li>
+                    </ul>
+                    <h4>How to Become a Seller:</h4>
+                    <ol>
+                        <li>Contact us at <strong>sellers@apiaro.co.ke</strong></li>
+                        <li>Provide your business registration documents</li>
+                        <li>Complete our seller onboarding process</li>
+                        <li>Start listing your products!</li>
+                    </ol>
+                    <div class="contact-box">
+                        <p><i class="fas fa-envelope" style="color: #2c5aa0;"></i> <strong>sellers@apiaro.co.ke</strong></p>
+                        <p><i class="fas fa-phone" style="color: #2c5aa0;"></i> <strong>+254 795 725 564</strong></p>
+                    </div>
+                `
+            },
+            advertise: {
+                title: 'Advertise with Us',
+                icon: 'fa-bullhorn',
+                content: `
+                    <p>Promote your brand to thousands of Kenyan shoppers on Apiaro.</p>
+                    <h4>Advertising Options:</h4>
+                    <ul>
+                        <li><strong>Homepage Banners:</strong> Prime visibility on our main page</li>
+                        <li><strong>Category Sponsorships:</strong> Feature your brand in specific categories</li>
+                        <li><strong>Product Ads:</strong> Boost your product listings in search results</li>
+                        <li><strong>Email Campaigns:</strong> Reach our subscriber base with targeted offers</li>
+                    </ul>
+                    <h4>Why Advertise on Apiaro:</h4>
+                    <ul>
+                        <li>Targeted audience of active Kenyan buyers</li>
+                        <li>Detailed analytics and reporting</li>
+                        <li>Flexible budgets starting from KES 5,000</li>
+                    </ul>
+                    <div class="contact-box">
+                        <p><i class="fas fa-envelope" style="color: #2c5aa0;"></i> <strong>ads@apiaro.co.ke</strong></p>
+                        <p><i class="fas fa-phone" style="color: #2c5aa0;"></i> <strong>+254 795 725 564</strong></p>
+                    </div>
+                `
             }
-            // ... rest of footer content
         };
 
         function showHelpModal(type) {
@@ -623,23 +641,6 @@
         document.addEventListener('DOMContentLoaded', () => {
             checkAuth();
         });
-    </script>
-
-    <!-- SPLASH SCREEN HIDE SCRIPT -->
-    <script>
-        window.addEventListener('load', () => {
-            setTimeout(() => {
-                const splash = document.getElementById('apiaro-splash');
-                if (splash) splash.classList.add('hide');
-            }, 1500);
-        });
-        
-        setTimeout(() => {
-            const splash = document.getElementById('apiaro-splash');
-            if (splash && !splash.classList.contains('hide')) {
-                splash.classList.add('hide');
-            }
-        }, 4000);
     </script>
 </body>
 </html>
