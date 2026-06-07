@@ -3,1066 +3,180 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- CACHE KILL: Prevent browsers and proxies from caching this page -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     
-    <title>APIARO — Kenya's Premier Online Marketplace</title>
-    <meta name="description" content="Shop quality products from Mombasa to Malaba. Secure M-Pesa payments, county-wide delivery across all 47 counties.">
+    <title>APIARO - Your Online Marketplace</title>
+    
+    <!-- IMMEDIATE CACHE & SERVICE WORKER KILLER -->
+    <script>
+        (function() {
+            const VERSION = 'apiaro-nosplash-v1'; // Bump this if you ever need to force-clear again
+            const stored = localStorage.getItem('apiaro_app_version');
+            
+            if (stored !== VERSION) {
+                // 1. Unregister every service worker
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.getRegistrations().then(function(regs) {
+                        regs.forEach(function(r) { r.unregister(); });
+                    });
+                }
+                
+                // 2. Delete all Cache Storage entries
+                if ('caches' in window) {
+                    caches.keys().then(function(names) {
+                        names.forEach(function(n) { caches.delete(n); });
+                    });
+                }
+                
+                // 3. Clear old version markers and set new one
+                localStorage.removeItem('app_version'); // clear any old keys
+                localStorage.setItem('apiaro_app_version', VERSION);
+                
+                // 4. Hard reload from server (bypassing bfcache & SW cache)
+                // We use a small timeout so the unregister calls have time to fire
+                setTimeout(function() {
+                    window.location.reload(true);
+                }, 300);
+                
+                // Stop parsing the rest of the page until reload happens
+                throw new Error('Stale cache detected. Reloading fresh...');
+            }
+        })();
+    </script>
     
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1a1a2e">
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <meta name="theme-color" content="#ff6b00">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <style>
-        :root {
-            --primary: #ff6b00;
-            --primary-dark: #e55a00;
-            --primary-light: #fff0e6;
-            --secondary: #1a1a2e;
-            --accent: #00b894;
-            --accent-light: #e6f7f3;
-            --gold: #d4a853;
-            --text: #2d3436;
-            --text-light: #636e72;
-            --text-muted: #b2bec3;
-            --bg: #ffffff;
-            --bg-warm: #faf9f7;
-            --bg-cream: #f8f6f3;
-            --border: #e8e6e3;
-            --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
-            --shadow: 0 4px 24px rgba(0,0,0,0.06);
-            --shadow-lg: 0 12px 40px rgba(0,0,0,0.12);
-            --radius: 16px;
-            --radius-sm: 12px;
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        html { scroll-behavior: smooth; }
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            color: var(--text);
-            background: var(--bg);
-            line-height: 1.6;
-            overflow-x: hidden;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        /* ===== NAVIGATION ===== */
-        .navbar {
-            position: fixed;
-            top: 0; left: 0; right: 0;
-            z-index: 1000;
-            background: rgba(255,255,255,0.85);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(0,0,0,0.05);
-            transition: var(--transition);
-        }
-        .navbar.scrolled {
-            box-shadow: var(--shadow);
-            background: rgba(255,255,255,0.95);
-        }
-        .nav-container {
-            max-width: 1280px;
-            margin: 0 auto;
-            padding: 0 24px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            height: 72px;
-        }
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: var(--secondary);
-            text-decoration: none;
-            letter-spacing: -0.5px;
-        }
-        .logo i {
-            width: 36px; height: 36px;
-            background: linear-gradient(135deg, var(--primary), var(--gold));
-            color: white;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1rem;
-            box-shadow: 0 4px 12px rgba(255,107,0,0.3);
-        }
-        .nav-links {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .nav-links a {
-            text-decoration: none;
-            color: var(--text-light);
-            font-weight: 500;
-            font-size: 0.9rem;
-            padding: 8px 16px;
-            border-radius: 100px;
-            transition: var(--transition);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .nav-links a:hover {
-            color: var(--secondary);
-            background: var(--bg-cream);
-        }
-        .nav-links a.btn-primary {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            padding: 10px 24px;
-            font-weight: 600;
-            box-shadow: 0 4px 16px rgba(255,107,0,0.25);
-        }
-        .nav-links a.btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(255,107,0,0.35);
-        }
-        .badge {
-            background: var(--primary);
-            color: white;
-            font-size: 0.65rem;
-            font-weight: 700;
-            padding: 2px 6px;
-            border-radius: 100px;
-            min-width: 18px;
-            text-align: center;
-        }
-        .hamburger {
-            display: none;
-            font-size: 1.5rem;
-            color: var(--secondary);
-            cursor: pointer;
-            padding: 8px;
-        }
-
-        /* ===== HERO ===== */
-        .hero {
-            position: relative;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-            overflow: hidden;
-            padding-top: 72px;
-        }
-        .hero::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: url('https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=2000&q=80') center/cover;
-            opacity: 0.15;
-            mix-blend-mode: overlay;
-        }
-        .hero-pattern {
-            position: absolute;
-            inset: 0;
-            background-image: radial-gradient(circle at 20% 50%, rgba(255,107,0,0.1) 0%, transparent 50%),
-                              radial-gradient(circle at 80% 80%, rgba(212,168,83,0.08) 0%, transparent 50%);
-            pointer-events: none;
-        }
-        .hero-content {
-            position: relative;
-            z-index: 2;
-            max-width: 1280px;
-            margin: 0 auto;
-            padding: 60px 24px;
-            width: 100%;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 60px;
-            align-items: center;
-        }
-        .hero-text h1 {
-            font-family: 'Playfair Display', serif;
-            font-size: clamp(2.5rem, 5vw, 4.5rem);
-            font-weight: 700;
-            color: white;
-            line-height: 1.1;
-            margin-bottom: 24px;
-            letter-spacing: -1px;
-        }
-        .hero-text h1 span {
-            background: linear-gradient(135deg, var(--primary), var(--gold));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        .hero-text p {
-            font-size: 1.15rem;
-            color: rgba(255,255,255,0.75);
-            max-width: 500px;
-            margin-bottom: 40px;
-            line-height: 1.7;
-        }
-        .hero-stats {
-            display: flex;
-            gap: 40px;
-            margin-bottom: 40px;
-            padding: 24px 0;
-            border-top: 1px solid rgba(255,255,255,0.1);
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        .hero-stat { display: flex; flex-direction: column; }
-        .hero-stat strong {
-            font-size: 1.75rem;
-            font-weight: 800;
-            color: var(--gold);
-            line-height: 1;
-        }
-        .hero-stat span {
-            font-size: 0.85rem;
-            color: rgba(255,255,255,0.5);
-            margin-top: 4px;
-        }
-        .hero-buttons {
-            display: flex;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
-        .btn-hero {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            padding: 16px 32px;
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            text-decoration: none;
-            border-radius: 100px;
-            font-weight: 600;
-            font-size: 1rem;
-            transition: var(--transition);
-            box-shadow: 0 8px 32px rgba(255,107,0,0.3);
-            border: none;
-            cursor: pointer;
-        }
-        .btn-hero:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 40px rgba(255,107,0,0.4);
-        }
-        .btn-hero-outline {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            padding: 16px 32px;
-            background: rgba(255,255,255,0.08);
-            color: white;
-            text-decoration: none;
-            border-radius: 100px;
-            font-weight: 600;
-            font-size: 1rem;
-            transition: var(--transition);
-            border: 1px solid rgba(255,255,255,0.2);
-            backdrop-filter: blur(10px);
-        }
-        .btn-hero-outline:hover {
-            background: rgba(255,255,255,0.15);
-            border-color: rgba(255,255,255,0.3);
-        }
-        .hero-visual {
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .hero-image-card {
-            position: relative;
-            width: 100%;
-            max-width: 500px;
-            aspect-ratio: 4/5;
-            border-radius: 24px;
-            overflow: hidden;
-            box-shadow: 0 32px 64px rgba(0,0,0,0.4);
-            transform: perspective(1000px) rotateY(-5deg) rotateX(5deg);
-            transition: var(--transition);
-        }
-        .hero-image-card:hover {
-            transform: perspective(1000px) rotateY(0deg) rotateX(0deg);
-        }
-        .hero-image-card img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .floating-badge {
-            position: absolute;
-            background: white;
-            padding: 12px 20px;
-            border-radius: 16px;
-            box-shadow: var(--shadow-lg);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            animation: float 6s ease-in-out infinite;
-        }
-        .floating-badge.badge-1 { top: 20%; left: -20px; animation-delay: 0s; }
-        .floating-badge.badge-2 { bottom: 15%; right: -30px; animation-delay: 2s; }
-        .floating-badge i {
-            width: 40px; height: 40px;
-            background: var(--accent-light);
-            color: var(--accent);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.1rem;
-        }
-        .floating-badge div { display: flex; flex-direction: column; }
-        .floating-badge strong { font-size: 0.95rem; font-weight: 700; color: var(--secondary); }
-        .floating-badge span { font-size: 0.75rem; color: var(--text-light); }
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-15px); }
-        }
-
-        /* ===== TRUST BAR ===== */
-        .trust-bar {
-            background: var(--bg-warm);
-            border-bottom: 1px solid var(--border);
-            padding: 20px 0;
-        }
-        .trust-bar-inner {
-            max-width: 1280px;
-            margin: 0 auto;
-            padding: 0 24px;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 24px;
-        }
-        .trust-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--text-light);
-        }
-        .trust-item i {
-            width: 36px; height: 36px;
-            background: white;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--primary);
-            box-shadow: var(--shadow-sm);
-            font-size: 0.9rem;
-        }
-
-        /* ===== UTILITIES ===== */
-        .container { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
-        .section-header {
-            text-align: center;
-            max-width: 600px;
-            margin: 0 auto 60px;
-        }
-        .section-header h2 {
-            font-family: 'Playfair Display', serif;
-            font-size: clamp(2rem, 4vw, 2.75rem);
-            font-weight: 700;
-            color: var(--secondary);
-            margin-bottom: 16px;
-            line-height: 1.2;
-        }
-        .section-header p {
-            color: var(--text-light);
-            font-size: 1.1rem;
-        }
-        .section-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            background: var(--primary-light);
-            color: var(--primary-dark);
-            border-radius: 100px;
-            font-size: 0.8rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 16px;
-        }
-
-        /* ===== FEATURES ===== */
-        .features { padding: 100px 0; background: var(--bg); }
-        .feature-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 24px;
-        }
-        .feature-card {
-            padding: 40px 32px;
-            border-radius: var(--radius);
-            background: var(--bg-warm);
-            border: 1px solid var(--border);
-            transition: var(--transition);
-            position: relative;
-            overflow: hidden;
-        }
-        .feature-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, var(--primary), var(--gold));
-            transform: scaleX(0);
-            transition: var(--transition);
-        }
-        .feature-card:hover {
-            transform: translateY(-8px);
-            box-shadow: var(--shadow-lg);
-            border-color: transparent;
-        }
-        .feature-card:hover::before { transform: scaleX(1); }
-        .feature-card i {
-            width: 56px; height: 56px;
-            background: linear-gradient(135deg, var(--primary-light), white);
-            color: var(--primary);
-            border-radius: var(--radius-sm);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            margin-bottom: 24px;
-            transition: var(--transition);
-        }
-        .feature-card:hover i {
-            background: linear-gradient(135deg, var(--primary), var(--gold));
-            color: white;
-            transform: scale(1.1);
-        }
-        .feature-card h3 {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--secondary);
-            margin-bottom: 12px;
-        }
-        .feature-card p {
-            font-size: 0.95rem;
-            color: var(--text-light);
-            line-height: 1.7;
-        }
-
-        /* ===== CATEGORIES ===== */
-        .categories { padding: 100px 0; background: var(--bg-warm); }
-        .category-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 24px;
-        }
-        .category-card {
-            position: relative;
-            border-radius: var(--radius);
-            overflow: hidden;
-            aspect-ratio: 1;
-            cursor: pointer;
-        }
-        .category-card img {
-            width: 100%; height: 100%;
-            object-fit: cover;
-            transition: transform 0.8s ease;
-        }
-        .category-card:hover img { transform: scale(1.1); }
-        .category-overlay {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 50%, transparent 100%);
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            padding: 28px;
-            transition: var(--transition);
-        }
-        .category-card:hover .category-overlay {
-            background: linear-gradient(to top, rgba(26,26,46,0.95) 0%, rgba(26,26,46,0.4) 60%, transparent 100%);
-        }
-        .category-overlay h3 {
-            color: white;
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 6px;
-            transform: translateY(10px);
-            transition: transform 0.3s ease;
-        }
-        .category-overlay p {
-            color: rgba(255,255,255,0.8);
-            font-size: 0.9rem;
-            transform: translateY(10px);
-            transition: transform 0.3s ease 0.05s;
-        }
-        .category-card:hover .category-overlay h3,
-        .category-card:hover .category-overlay p { transform: translateY(0); }
-        .category-arrow {
-            position: absolute;
-            top: 20px; right: 20px;
-            width: 44px; height: 44px;
-            background: rgba(255,255,255,0.2);
-            backdrop-filter: blur(10px);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            opacity: 0;
-            transform: scale(0.8);
-            transition: all 0.3s ease;
-        }
-        .category-card:hover .category-arrow { opacity: 1; transform: scale(1); }
-
-        /* ===== TESTIMONIALS ===== */
-        .testimonials { padding: 100px 0; background: var(--bg); }
-        .testimonial-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-            gap: 24px;
-        }
-        .testimonial-card {
-            background: var(--bg-warm);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 40px;
-            position: relative;
-            transition: var(--transition);
-        }
-        .testimonial-card:hover {
-            box-shadow: var(--shadow);
-            border-color: transparent;
-            transform: translateY(-4px);
-        }
-        .testimonial-card::before {
-            content: '\201C';
-            font-family: 'Playfair Display', serif;
-            font-size: 6rem;
-            color: var(--primary);
-            opacity: 0.15;
-            position: absolute;
-            top: 10px; left: 20px;
-            line-height: 1;
-        }
-        .testimonial-stars {
-            color: var(--gold);
-            margin-bottom: 20px;
-            font-size: 0.9rem;
-        }
-        .testimonial-text {
-            font-size: 1.05rem;
-            color: var(--text);
-            line-height: 1.8;
-            margin-bottom: 28px;
-            position: relative;
-            z-index: 1;
-        }
-        .testimonial-author {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-        .testimonial-author img {
-            width: 48px; height: 48px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid var(--border);
-        }
-        .testimonial-author div h4 { font-size: 0.95rem; font-weight: 700; color: var(--secondary); }
-        .testimonial-author div span { font-size: 0.85rem; color: var(--text-light); }
-
-        /* ===== NEWSLETTER ===== */
-        .newsletter-section {
-            padding: 80px 24px;
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            position: relative;
-            overflow: hidden;
-        }
-        .newsletter-section::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: url('https://images.unsplash.com/photo-1556740758-90de374c12ad?auto=format&fit=crop&w=2000&q=80') center/cover;
-            opacity: 0.1;
-        }
-        .newsletter-content {
-            position: relative;
-            z-index: 1;
-            max-width: 700px;
-            margin: 0 auto;
-            text-align: center;
-        }
-        .newsletter-content h2 {
-            font-family: 'Playfair Display', serif;
-            font-size: 2.5rem;
-            color: white;
-            margin-bottom: 16px;
-        }
-        .newsletter-content p {
-            color: rgba(255,255,255,0.9);
-            font-size: 1.1rem;
-            margin-bottom: 32px;
-        }
-        .newsletter-form {
-            display: flex;
-            gap: 12px;
-            max-width: 500px;
-            margin: 0 auto;
-        }
-        .newsletter-form input {
-            flex: 1;
-            padding: 16px 24px;
-            border-radius: 100px;
-            border: none;
-            background: rgba(255,255,255,0.15);
-            backdrop-filter: blur(10px);
-            color: white;
-            font-size: 1rem;
-            outline: none;
-            transition: var(--transition);
-        }
-        .newsletter-form input::placeholder { color: rgba(255,255,255,0.7); }
-        .newsletter-form input:focus {
-            background: rgba(255,255,255,0.25);
-            box-shadow: 0 0 0 4px rgba(255,255,255,0.1);
-        }
-        .newsletter-form button {
-            padding: 16px 32px;
-            border-radius: 100px;
-            border: none;
-            background: white;
-            color: var(--primary);
-            font-weight: 700;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: var(--transition);
-            white-space: nowrap;
-        }
-        .newsletter-form button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-        }
-
-        /* ===== FOOTER ===== */
-        .footer {
-            background: var(--secondary);
-            color: rgba(255,255,255,0.7);
-            padding: 80px 0 0;
-        }
-        .footer-content {
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr 1.5fr;
-            gap: 60px;
-            margin-bottom: 60px;
-        }
-        .footer-brand h3 {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.75rem;
-            color: white;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .footer-brand h3 i {
-            width: 36px; height: 36px;
-            background: linear-gradient(135deg, var(--primary), var(--gold));
-            color: white;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1rem;
-        }
-        .footer-brand p {
-            line-height: 1.8;
-            margin-bottom: 24px;
-            font-size: 0.95rem;
-        }
-        .social-links { display: flex; gap: 12px; }
-        .social-links a {
-            width: 40px; height: 40px;
-            border-radius: 10px;
-            background: rgba(255,255,255,0.08);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            text-decoration: none;
-            transition: var(--transition);
-            font-size: 1rem;
-        }
-        .social-links a:hover {
-            background: var(--primary);
-            transform: translateY(-3px);
-        }
-        .footer-section h4 {
-            color: white;
-            font-size: 1.1rem;
-            font-weight: 700;
-            margin-bottom: 24px;
-        }
-        .footer-section ul { list-style: none; }
-        .footer-section ul li { margin-bottom: 14px; }
-        .footer-section ul li a {
-            color: rgba(255,255,255,0.6);
-            text-decoration: none;
-            font-size: 0.95rem;
-            transition: var(--transition);
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-        }
-        .footer-section ul li a:hover {
-            color: var(--gold);
-            transform: translateX(4px);
-        }
-        .footer-contact p {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 16px;
-            font-size: 0.95rem;
-        }
-        .footer-contact p i {
-            width: 36px; height: 36px;
-            background: rgba(255,255,255,0.08);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--gold);
-            font-size: 0.9rem;
-            flex-shrink: 0;
-        }
-
-        /* ===== PAYMENT METHODS ===== */
-        .payment-section {
-            text-align: center;
-            padding: 40px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.08);
-        }
-        .payment-section h5 {
-            color: rgba(255,255,255,0.5);
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 20px;
-        }
-        .payment-icons {
-            display: flex;
-            justify-content: center;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
-        .payment-icon {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px 24px;
-            background: rgba(255,255,255,0.06);
-            border-radius: 12px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: rgba(255,255,255,0.7);
-            border: 1px solid rgba(255,255,255,0.08);
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            user-select: none;
-        }
-        .payment-icon:hover {
-            background: rgba(255,255,255,0.12);
-            border-color: rgba(255,255,255,0.2);
-            transform: translateY(-3px);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-            color: white;
-        }
-        .payment-icon:active {
-            transform: translateY(-1px) scale(0.98);
-        }
-        .payment-icon.mpesa-icon {
-            background: rgba(0,184,148,0.15);
-            color: #00d2a0;
-            border-color: rgba(0,184,148,0.25);
-        }
-        .payment-icon.mpesa-icon:hover {
-            background: rgba(0,184,148,0.25);
-            border-color: rgba(0,184,148,0.4);
-            box-shadow: 0 8px 24px rgba(0,184,148,0.2);
-        }
-        .payment-icon i:first-child { font-size: 1.1rem; }
-        .payment-icon .fa-info-circle {
-            transition: transform 0.3s ease;
-            font-size: 0.75rem;
-            opacity: 0.6;
-        }
-        .payment-icon:hover .fa-info-circle {
-            transform: scale(1.2);
-            opacity: 1;
-        }
-
-        /* ===== TRUST BADGES ===== */
-        .trust-badges {
-            display: flex;
-            justify-content: center;
-            gap: 40px;
-            padding: 40px 0;
-            border-top: 1px solid rgba(255,255,255,0.08);
-            border-bottom: 1px solid rgba(255,255,255,0.08);
-            flex-wrap: wrap;
-        }
-        .trust-badge {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: rgba(255,255,255,0.6);
-        }
-        .trust-badge i { font-size: 1.25rem; color: var(--gold); }
-
-        /* ===== FOOTER BOTTOM ===== */
-        .footer-bottom {
-            padding: 30px 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 20px;
-            max-width: 1280px;
-            margin: 0 auto;
-        }
-        .footer-bottom-links { display: flex; gap: 24px; flex-wrap: wrap; }
-        .footer-bottom-links a {
-            color: rgba(255,255,255,0.5);
-            text-decoration: none;
-            font-size: 0.85rem;
-            transition: var(--transition);
-            cursor: pointer;
-        }
-        .footer-bottom-links a:hover { color: var(--gold); }
-        .footer-bottom p { font-size: 0.85rem; color: rgba(255,255,255,0.4); }
-        .country-selector {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.85rem;
-            color: rgba(255,255,255,0.6);
-        }
-        .country-selector img { width: 20px; border-radius: 3px; }
-
-        /* ===== MODALS ===== */
+        /* Modal styles for customer service messages */
         .modal-overlay {
             display: none;
             position: fixed;
-            inset: 0;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(8px);
             z-index: 10000;
             justify-content: center;
             align-items: center;
-            padding: 20px;
-            opacity: 0;
-            transition: opacity 0.3s ease;
         }
-        .modal-overlay.active { display: flex; opacity: 1; }
+        
+        .modal-overlay.active {
+            display: flex;
+        }
+        
         .modal-content {
             background: white;
-            padding: 0;
-            border-radius: var(--radius);
-            max-width: 560px;
-            width: 100%;
-            max-height: 85vh;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
             overflow-y: auto;
             position: relative;
-            box-shadow: var(--shadow-lg);
-            transform: translateY(20px) scale(0.95);
-            transition: all 0.3s ease;
+            animation: slideIn 0.3s ease;
         }
-        .modal-overlay.active .modal-content {
-            transform: translateY(0) scale(1);
-        }
-        .modal-header {
-            padding: 28px 32px 0;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .modal-title {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--secondary);
-        }
-        .modal-title i {
-            width: 40px; height: 40px;
-            background: var(--primary-light);
-            color: var(--primary);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+        
         .modal-close {
-            width: 36px; height: 36px;
-            border-radius: 50%;
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
             border: none;
-            background: var(--bg-warm);
-            color: var(--text-light);
-            font-size: 1.25rem;
+            font-size: 1.5em;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: var(--transition);
+            color: #666;
         }
+        
         .modal-close:hover {
-            background: var(--primary);
-            color: white;
-            transform: rotate(90deg);
+            color: #333;
         }
+        
+        .modal-title {
+            margin-bottom: 15px;
+            color: #2c5aa0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
         .modal-body {
-            padding: 24px 32px 32px;
-            line-height: 1.8;
-            color: var(--text-light);
+            line-height: 1.6;
+            color: #555;
         }
-        .modal-body h4 {
-            color: var(--secondary);
-            font-size: 1rem;
-            font-weight: 700;
-            margin: 24px 0 12px;
-        }
-        .modal-body ul, .modal-body ol {
-            padding-left: 20px;
-            margin: 12px 0;
-        }
-        .modal-body li { margin: 8px 0; padding-left: 4px; }
-        .modal-body strong { color: var(--secondary); }
-        .contact-box {
-            background: var(--bg-warm);
-            padding: 20px;
-            border-radius: var(--radius-sm);
-            margin-top: 20px;
-            border: 1px solid var(--border);
-        }
-        .contact-box p {
+        
+        .modal-body ul {
             margin: 10px 0;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            color: var(--text);
+            padding-left: 20px;
         }
-        .contact-box p i {
-            width: 32px; height: 32px;
-            background: white;
+        
+        .modal-body li {
+            margin: 8px 0;
+        }
+        
+        .contact-box {
+            background: #f8f9fa;
+            padding: 15px;
             border-radius: 8px;
+            margin-top: 15px;
+        }
+        
+        .contact-box p {
+            margin: 5px 0;
             display: flex;
             align-items: center;
-            justify-content: center;
-            color: var(--primary);
-            font-size: 0.9rem;
-            box-shadow: var(--shadow-sm);
+            gap: 10px;
         }
-
-        /* ===== ANIMATIONS ===== */
+        
         @keyframes slideIn {
-            from { transform: translateY(-30px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        .animate-on-scroll {
-            opacity: 0;
-            transform: translateY(40px);
-            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .animate-on-scroll.visible { opacity: 1; transform: translateY(0); }
-
-        /* ===== RESPONSIVE ===== */
-        @media (max-width: 1024px) {
-            .hero-content { grid-template-columns: 1fr; text-align: center; }
-            .hero-text p { margin-left: auto; margin-right: auto; }
-            .hero-stats { justify-content: center; }
-            .hero-buttons { justify-content: center; }
-            .hero-visual { display: none; }
-            .footer-content { grid-template-columns: 1fr 1fr; }
-        }
-        @media (max-width: 768px) {
-            .hamburger { display: block; }
-            .nav-links {
-                position: fixed;
-                top: 72px; left: 0; right: 0;
-                background: white;
-                flex-direction: column;
-                padding: 24px;
-                gap: 8px;
-                box-shadow: var(--shadow-lg);
-                transform: translateY(-100%);
+            from {
+                transform: translateY(-50px);
                 opacity: 0;
-                pointer-events: none;
-                transition: all 0.3s ease;
             }
-            .nav-links.active {
+            to {
                 transform: translateY(0);
                 opacity: 1;
-                pointer-events: all;
-            }
-            .nav-links a { width: 100%; justify-content: center; }
-            .hero-text h1 { font-size: 2.5rem; }
-            .hero-stats { gap: 24px; }
-            .feature-grid, .category-grid { grid-template-columns: 1fr; }
-            .testimonial-grid { grid-template-columns: 1fr; }
-            .newsletter-form { flex-direction: column; }
-            .footer-content { grid-template-columns: 1fr; gap: 40px; }
-            .footer-bottom { flex-direction: column; text-align: center; }
-            .trust-bar-inner {
-                justify-content: flex-start;
-                overflow-x: auto;
-                flex-wrap: nowrap;
-                padding-bottom: 12px;
             }
         }
-        @media (max-width: 480px) {
-            .countdown-item { padding: 14px 18px; min-width: 70px; }
-            .countdown-item strong { font-size: 1.5rem; }
+
+        /* Footer link styles */
+        .footer-bottom-links a {
+            cursor: pointer;
+            color: #666;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .footer-bottom-links a:hover {
+            color: #2c5aa0;
         }
     </style>
-<base target="_blank">
 </head>
 <body>
-
-    <!-- Navigation -->
-    <nav class="navbar" id="navbar">
+    <nav class="navbar">
         <div class="nav-container">
             <a href="index.html" class="logo">
                 <i class="fas fa-shopping-bag"></i> APIARO
             </a>
-            <div class="nav-links" id="navLinks">
+            <div class="nav-links">
                 <a href="products.html">Shop</a>
-                <a href="cart.html">
-                    <i class="fas fa-shopping-cart"></i> Cart 
-                    <span id="cart-count" class="badge">0</span>
-                </a>
+                <a href="cart.html"><i class="fas fa-shopping-cart"></i> Cart <span id="cart-count" class="badge">0</span></a>
                 <a href="orders.html">My Orders</a>
-                <div id="auth-links" style="display:flex; gap:8px;">
+                <div id="auth-links">
                     <a href="login.html">Login</a>
                     <a href="register.html" class="btn-primary">Register</a>
                 </div>
-                <div id="user-links" style="display:none; align-items:center; gap:12px;">
-                    <span id="user-name" style="font-weight:600; color:var(--secondary);"></span>
-                    <a href="#" onclick="logout()" style="color:var(--text-light);">Logout</a>
+                <div id="user-links" style="display:none;">
+                    <span id="user-name"></span>
+                    <a href="#" onclick="logout()">Logout</a>
                 </div>
             </div>
             <div class="hamburger" onclick="toggleMenu()">
@@ -1071,244 +185,71 @@
         </div>
     </nav>
 
-    <!-- Hero Section -->
     <header class="hero">
-        <div class="hero-pattern"></div>
         <div class="hero-content">
-            <div class="hero-text">
-                <div class="section-badge" style="background: rgba(255,255,255,0.1); color: var(--gold); margin-bottom: 24px;">
-                    <i class="fas fa-fire"></i> Kenya's #1 Marketplace
-                </div>
-                <h1>Quality Products <span>Delivered</span> to Your Doorstep</h1>
-                <p>From Mombasa to Malaba, discover thousands of verified products with secure M-Pesa payments and county-wide delivery across all 47 counties.</p>
-                
-                <div class="hero-stats">
-                    <div class="hero-stat">
-                        <strong>50K+</strong>
-                        <span>Happy Customers</span>
-                    </div>
-                    <div class="hero-stat">
-                        <strong>10K+</strong>
-                        <span>Products Listed</span>
-                    </div>
-                    <div class="hero-stat">
-                        <strong>47</strong>
-                        <span>Counties Covered</span>
-                    </div>
-                </div>
-
-                <div class="hero-buttons">
-                    <a href="products.html" class="btn-hero">
-                        Start Shopping <i class="fas fa-arrow-right"></i>
-                    </a>
-                    <a href="#categories" class="btn-hero-outline">
-                        <i class="fas fa-play-circle"></i> Explore Categories
-                    </a>
-                </div>
-            </div>
-            
-            <div class="hero-visual">
-                <div class="hero-image-card">
-                    <img src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=800&q=80" alt="Happy shopper with APIARO products">
-                </div>
-                <div class="floating-badge badge-1">
-                    <i class="fas fa-check-circle"></i>
-                    <div>
-                        <strong>M-Pesa Ready</strong>
-                        <span>Secure Payments</span>
-                    </div>
-                </div>
-                <div class="floating-badge badge-2">
-                    <i class="fas fa-truck-fast"></i>
-                    <div>
-                        <strong>24-48h Delivery</strong>
-                        <span>County-wide</span>
-                    </div>
-                </div>
-            </div>
+            <h1>Celebrating Kenyan Quality in Every Order</h1>
+            <p>From Mombasa to Malaba, we deliver quality products across all 47 counties</p>
+            <a href="products.html" class="btn-hero">Start Shopping <i class="fas fa-arrow-right"></i></a>
         </div>
     </header>
 
-    <!-- Trust Bar -->
-    <div class="trust-bar">
-        <div class="trust-bar-inner">
-            <div class="trust-item">
-                <i class="fas fa-shield-halved"></i>
-                <span>Secure Shopping</span>
-            </div>
-            <div class="trust-item">
-                <i class="fas fa-truck-fast"></i>
-                <span>County-wide Delivery</span>
-            </div>
-            <div class="trust-item">
-                <i class="fas fa-rotate-left"></i>
-                <span>7-Day Returns</span>
-            </div>
-            <div class="trust-item">
-                <i class="fas fa-headset"></i>
-                <span>24/7 Support</span>
-            </div>
-            <div class="trust-item">
-                <i class="fas fa-mobile-screen"></i>
-                <span>M-Pesa Accepted</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Features -->
     <section class="features">
         <div class="container">
-            <div class="section-header animate-on-scroll">
-                <div class="section-badge">
-                    <i class="fas fa-star"></i> Why Shop With Us
-                </div>
-                <h2>The APIARO Advantage</h2>
-                <p>We have reimagined online shopping for Kenya — combining world-class technology with local trust and convenience.</p>
-            </div>
+            <h2 class="section-title">Why Choose APIARO</h2>
             <div class="feature-grid">
-                <div class="feature-card animate-on-scroll">
-                    <i class="fas fa-truck-fast"></i>
+                <div class="feature-card">
+                    <i class="fas fa-truck"></i>
                     <h3>County-wide Delivery</h3>
-                    <p>We deliver to all 47 counties within 24-48 hours. Track your order in real-time from dispatch to doorstep.</p>
+                    <p>We deliver to all 47 counties within 24-48 hours</p>
                 </div>
-                <div class="feature-card animate-on-scroll">
-                    <i class="fas fa-mobile-screen-button"></i>
-                    <h3>M-Pesa & COD</h3>
-                    <p>Pay securely with M-Pesa, choose Cash on Delivery, or use your card. Your money is protected on every order.</p>
+                <div class="feature-card">
+                    <i class="fas fa-mobile-alt"></i>
+                    <h3>M-Pesa Accepted</h3>
+                    <p>Pay securely with M-Pesa or choose Cash on Delivery</p>
                 </div>
-                <div class="feature-card animate-on-scroll">
-                    <i class="fas fa-shield-halved"></i>
-                    <h3>Verified Sellers</h3>
-                    <p>Every seller is vetted and rated. Shop with confidence knowing you're buying from trusted Kenyan businesses.</p>
+                <div class="feature-card">
+                    <i class="fas fa-shield-alt"></i>
+                    <h3>Secure Shopping</h3>
+                    <p>Your data is protected with 256-bit encryption</p>
                 </div>
-                <div class="feature-card animate-on-scroll">
-                    <i class="fas fa-rotate-left"></i>
+                <div class="feature-card">
+                    <i class="fas fa-undo"></i>
                     <h3>Easy Returns</h3>
-                    <p>Changed your mind? Our 7-day hassle-free return policy ensures you always get exactly what you wanted.</p>
+                    <p>7-day hassle-free return policy on all items</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Categories -->
-    <section class="categories" id="categories">
+    <section class="categories">
         <div class="container">
-            <div class="section-header animate-on-scroll">
-                <div class="section-badge">
-                    <i class="fas fa-layer-group"></i> Browse
+            <h2 class="section-title">Shop by Category</h2>
+            <div class="category-grid" id="categories">
+                <div class="category-card" onclick="window.location.href='products.html'">
+                    <h3>Electronics</h3>
+                    <p>Phones, Laptops & Gadgets</p>
                 </div>
-                <h2>Shop by Category</h2>
-                <p>Explore our curated collections tailored for every Kenyan lifestyle and need.</p>
-            </div>
-            <div class="category-grid">
-                <div class="category-card animate-on-scroll" onclick="window.location.href='products.html'">
-                    <img src="https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=600&q=80" alt="Electronics Category">
-                    <div class="category-overlay">
-                        <h3>Electronics</h3>
-                        <p>Phones, Laptops & Gadgets</p>
-                    </div>
-                    <div class="category-arrow"><i class="fas fa-arrow-right"></i></div>
+                <div class="category-card" onclick="window.location.href='products.html'">
+                    <h3>Fashion</h3>
+                    <p>Clothing, Shoes & Accessories</p>
                 </div>
-                <div class="category-card animate-on-scroll" onclick="window.location.href='products.html'">
-                    <img src="https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&w=600&q=80" alt="Fashion">
-                    <div class="category-overlay">
-                        <h3>Fashion</h3>
-                        <p>Clothing, Shoes & Accessories</p>
-                    </div>
-                    <div class="category-arrow"><i class="fas fa-arrow-right"></i></div>
+                <div class="category-card" onclick="window.location.href='products.html'">
+                    <h3>Home & Living</h3>
+                    <p>Furniture & Appliances</p>
                 </div>
-                <div class="category-card animate-on-scroll" onclick="window.location.href='products.html'">
-                    <img src="https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?auto=format&fit=crop&w=600&q=80" alt="Home">
-                    <div class="category-overlay">
-                        <h3>Home & Living</h3>
-                        <p>Furniture & Appliances</p>
-                    </div>
-                    <div class="category-arrow"><i class="fas fa-arrow-right"></i></div>
-                </div>
-                <div class="category-card animate-on-scroll" onclick="window.location.href='products.html'">
-                    <img src="https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=600&q=80" alt="Agriculture">
-                    <div class="category-overlay">
-                        <h3>Agriculture</h3>
-                        <p>Farming Tools & Supplies</p>
-                    </div>
-                    <div class="category-arrow"><i class="fas fa-arrow-right"></i></div>
+                <div class="category-card" onclick="window.location.href='products.html'">
+                    <h3>Agriculture</h3>
+                    <p>Farming Tools & Supplies</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Testimonials -->
-    <section class="testimonials">
-        <div class="container">
-            <div class="section-header animate-on-scroll">
-                <div class="section-badge">
-                    <i class="fas fa-comments"></i> Testimonials
-                </div>
-                <h2>Loved by Kenyans</h2>
-                <p>Join thousands of satisfied customers shopping on APIARO every day.</p>
-            </div>
-            <div class="testimonial-grid">
-                <div class="testimonial-card animate-on-scroll">
-                    <div class="testimonial-stars">
-                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-                    </div>
-                    <p class="testimonial-text">"I ordered a phone on Monday and it arrived in Nakuru by Wednesday. The M-Pesa payment was smooth and the packaging was excellent. APIARO is now my go-to shop!"</p>
-                    <div class="testimonial-author">
-                        <img src="https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=100&q=80" alt="Grace">
-                        <div>
-                            <h4>Josphine Atabo</h4>
-                            <span>Turkana County</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="testimonial-card animate-on-scroll">
-                    <div class="testimonial-stars">
-                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-                    </div>
-                    <p class="testimonial-text">"As a seller from Turkana, APIARO has helped me reach customers in Nairobi and Mombasa I never thought I could access. The seller dashboard is incredibly easy to use."</p>
-                    <div class="testimonial-author">
-                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80" alt="John">
-                        <div>
-                            <h4>Samuel Ebei</h4>
-                            <span>Verified Seller, Turkana</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="testimonial-card animate-on-scroll">
-                    <div class="testimonial-stars">
-                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
-                    </div>
-                    <p class="testimonial-text">"The return process was surprisingly easy. I bought shoes that didn't fit and they were picked up from my home in Kisumu the next day. Full refund within 48 hours. Impressive!"</p>
-                    <div class="testimonial-author">
-                        <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=100&q=80" alt="Amina">
-                        <div>
-                            <h4>Amina Hassan</h4>
-                            <span>Kisumu County</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Newsletter -->
-    <section class="newsletter-section">
-        <div class="newsletter-content">
-            <h2>Join the APIARO Family</h2>
-            <p>Subscribe for exclusive deals, new arrivals, and county-specific offers delivered to your inbox.</p>
-            <form class="newsletter-form" onsubmit="event.preventDefault(); alert('Thank you for subscribing! Welcome to the APIARO family.');">
-                <input type="email" placeholder="Enter your email address" required>
-                <button type="submit">Subscribe Now</button>
-            </form>
-        </div>
-    </section>
-
-    <!-- Footer -->
     <footer class="footer">
         <div class="container">
             <div class="footer-content">
-                <div class="footer-brand">
-                    <h3><i class="fas fa-shopping-bag"></i> APIARO</h3>
+                <div class="footer-section">
+                    <h4>About Apiaro</h4>
                     <p>Kenya's premier online marketplace connecting buyers and sellers across all 47 counties. We offer quality products, secure payments via M-Pesa, and reliable delivery to your doorstep.</p>
                     <div class="social-links">
                         <a href="#" title="Facebook"><i class="fab fa-facebook-f"></i></a>
@@ -1321,34 +262,42 @@
                 <div class="footer-section">
                     <h4>Customer Service</h4>
                     <ul>
-                        <li><a onclick="showHelpModal('help')"><i class="fas fa-chevron-right" style="font-size:0.7rem;"></i> Help Center</a></li>
-                        <li><a onclick="showHelpModal('howtobuy')"><i class="fas fa-chevron-right" style="font-size:0.7rem;"></i> How to Buy</a></li>
-                        <li><a onclick="showHelpModal('delivery')"><i class="fas fa-chevron-right" style="font-size:0.7rem;"></i> Delivery Info</a></li>
-                        <li><a onclick="showHelpModal('returns')"><i class="fas fa-chevron-right" style="font-size:0.7rem;"></i> Return Policy</a></li>
-                        <li><a onclick="showHelpModal('track')"><i class="fas fa-chevron-right" style="font-size:0.7rem;"></i> Track Order</a></li>
-                        <li><a onclick="showHelpModal('contact')"><i class="fas fa-chevron-right" style="font-size:0.7rem;"></i> Contact Us</a></li>
+                        <li><a href="#" onclick="showHelpModal('help')">Help Center</a></li>
+                        <li><a href="#" onclick="showHelpModal('howtobuy')">How to Buy</a></li>
+                        <li><a href="#" onclick="showHelpModal('delivery')">Delivery Information</a></li>
+                        <li><a href="#" onclick="showHelpModal('returns')">Return Policy</a></li>
+                        <li><a href="#" onclick="showHelpModal('track')">Track Your Order</a></li>
+                        <li><a href="#" onclick="showHelpModal('contact')">Contact Us</a></li>
                     </ul>
                 </div>
                 
                 <div class="footer-section">
                     <h4>Categories</h4>
                     <ul>
-                        <li><a href="products.html"><i class="fas fa-chevron-right" style="font-size:0.7rem;"></i> Electronics & Phones</a></li>
-                        <li><a href="products.html"><i class="fas fa-chevron-right" style="font-size:0.7rem;"></i> Fashion & Clothing</a></li>
-                        <li><a href="products.html"><i class="fas fa-chevron-right" style="font-size:0.7rem;"></i> Home & Living</a></li>
-                        <li><a href="products.html"><i class="fas fa-chevron-right" style="font-size:0.7rem;"></i> Agriculture</a></li>
-                        <li><a href="#"><i class="fas fa-chevron-right" style="font-size:0.7rem;"></i> Beauty & Health</a></li>
-                        <li><a href="#"><i class="fas fa-chevron-right" style="font-size:0.7rem;"></i> Sports & Outdoors</a></li>
+                        <li><a href="products.html">Electronics & Phones</a></li>
+                        <li><a href="products.html">Fashion & Clothing</a></li>
+                        <li><a href="products.html">Home & Living</a></li>
+                        <li><a href="products.html">Agriculture</a></li>
+                        <li><a href="#">Beauty & Health</a></li>
+                        <li><a href="#">Sports & Outdoors</a></li>
                     </ul>
                 </div>
                 
                 <div class="footer-section">
                     <h4>Contact Us</h4>
-                    <div class="footer-contact">
+                    <div class="contact-info">
                         <p><i class="fas fa-map-marker-alt"></i> Lokichar subcounty, Turkana</p>
                         <p><i class="fas fa-phone"></i> +254 795 725 564</p>
                         <p><i class="fas fa-envelope"></i> support@apiaro.co.ke</p>
                         <p><i class="fas fa-clock"></i> Mon-Fri: 8AM - 6PM</p>
+                    </div>
+                    
+                    <div class="newsletter">
+                        <p>Subscribe to our newsletter for deals</p>
+                        <form class="newsletter-form" onsubmit="event.preventDefault(); alert('Thank you for subscribing!');">
+                            <input type="email" placeholder="Your email" required>
+                            <button type="submit">Join</button>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -1372,123 +321,86 @@
                 </div>
             </div>
             
-            <!-- CLICKABLE PAYMENT METHODS -->
-            <div class="payment-section">
-                <h5>Accepted Payment Methods</h5>
-                <div class="payment-icons">
-                    <div class="payment-icon mpesa-icon" onclick="showPaymentModal('mpesa')" title="Click to learn about M-Pesa payments">
+            <div class="payment-section" style="text-align: center; margin-bottom: 2rem;">
+                <h5>Payment Methods</h5>
+                <div class="payment-icons" style="justify-content: center;">
+                    <div class="payment-icon mpesa-icon">
                         <i class="fas fa-mobile-alt"></i> M-Pesa
-                        <i class="fas fa-info-circle"></i>
                     </div>
-                    <div class="payment-icon" onclick="showPaymentModal('cod')" title="Click to learn about Cash on Delivery">
+                    <div class="payment-icon">
                         <i class="fas fa-money-bill-wave"></i> Cash on Delivery
-                        <i class="fas fa-info-circle"></i>
                     </div>
-                    <div class="payment-icon" onclick="showPaymentModal('card')" title="Click to learn about Card payments">
+                    <div class="payment-icon">
                         <i class="fas fa-credit-card"></i> Card
-                        <i class="fas fa-info-circle"></i>
                     </div>
-                    <div class="payment-icon" onclick="showPaymentModal('bank')" title="Click to learn about Bank Transfer">
+                    <div class="payment-icon">
                         <i class="fas fa-university"></i> Bank Transfer
-                        <i class="fas fa-info-circle"></i>
                     </div>
                 </div>
-                <p style="margin-top: 12px; font-size: 0.8rem; color: rgba(255,255,255,0.4);">
-                    <i class="fas fa-shield-alt"></i> All transactions are encrypted and secure. Click any method above for details.
-                </p>
             </div>
-        </div>
-        
-        <div class="footer-bottom">
-            <div class="footer-bottom-links">
-                <a onclick="showFooterModal('privacy')">Privacy Policy</a>
-                <a onclick="showFooterModal('terms')">Terms & Conditions</a>
-                <a onclick="showFooterModal('cookie')">Cookie Policy</a>
-                <a onclick="showFooterModal('seller')">Seller Center</a>
-                <a onclick="showFooterModal('advertise')">Advertise</a>
-            </div>
-            <p>&copy; 2024 Apiaro. All rights reserved. Made with <i class="fas fa-heart" style="color: var(--primary);"></i> in Kenya</p>
-            <div class="country-selector">
-                <img src="https://flagcdn.com/w40/ke.png" alt="Kenya">
-                <span>Kenya</span>
-                <i class="fas fa-chevron-down" style="font-size: 0.7rem;"></i>
+            
+            <div class="footer-bottom">
+                <div class="footer-bottom-links">
+                    <a onclick="showFooterModal('privacy')">Privacy Policy</a>
+                    <a onclick="showFooterModal('terms')">Terms & Conditions</a>
+                    <a onclick="showFooterModal('cookie')">Cookie Policy</a>
+                    <a onclick="showFooterModal('seller')">Seller Center</a>
+                    <a onclick="showFooterModal('advertise')">Advertise</a>
+                </div>
+                <p>&copy; 2024 Apiaro. All rights reserved. Made with <i class="fas fa-heart" style="color: var(--primary);"></i> in Kenya</p>
+                <div class="country-selector">
+                    <img src="https://flagcdn.com/w40/ke.png" alt="Kenya">
+                    <span>Kenya</span>
+                    <i class="fas fa-chevron-down" style="font-size: 0.7rem;"></i>
+                </div>
             </div>
         </div>
     </footer>
 
-    <!-- Help Modal -->
+    <!-- Customer Service Modal -->
     <div id="help-modal" class="modal-overlay">
         <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title" id="help-modal-title">
-                    <i class="fas fa-info-circle"></i>
-                    <span>Help Center</span>
-                </h3>
-                <button class="modal-close" onclick="closeHelpModal()">&times;</button>
+            <button class="modal-close" onclick="closeHelpModal()">&times;</button>
+            <h3 class="modal-title" id="modal-title">
+                <i class="fas fa-info-circle"></i>
+                <span>Help Center</span>
+            </h3>
+            <div class="modal-body" id="modal-body">
+                <!-- Content loaded dynamically -->
             </div>
-            <div class="modal-body" id="help-modal-body"></div>
         </div>
     </div>
 
-    <!-- Footer Modal -->
+    <!-- Footer Links Modal -->
     <div id="footer-modal" class="modal-overlay">
         <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title" id="footer-modal-title">
-                    <i class="fas fa-info-circle"></i>
-                    <span>Title</span>
-                </h3>
-                <button class="modal-close" onclick="closeFooterModal()">&times;</button>
+            <button class="modal-close" onclick="closeFooterModal()">&times;</button>
+            <h3 class="modal-title" id="footer-modal-title">
+                <i class="fas fa-info-circle"></i>
+                <span>Title</span>
+            </h3>
+            <div class="modal-body" id="footer-modal-body">
+                <!-- Content loaded dynamically -->
             </div>
-            <div class="modal-body" id="footer-modal-body"></div>
-        </div>
-    </div>
-
-    <!-- Payment Modal -->
-    <div id="payment-modal" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title" id="payment-modal-title">
-                    <i class="fas fa-credit-card"></i>
-                    <span>Payment Method</span>
-                </h3>
-                <button class="modal-close" onclick="closePaymentModal()">&times;</button>
-            </div>
-            <div class="modal-body" id="payment-modal-body"></div>
         </div>
     </div>
 
     <script src="js/auth.js"></script>
     <script src="js/cart.js"></script>
     <script src="pwa.js"></script>
-
+    
     <script>
-        // Mobile Menu
         function toggleMenu() {
-            document.getElementById('navLinks').classList.toggle('active');
+            document.querySelector('.nav-links').classList.toggle('active');
         }
 
-        // Navbar scroll effect
-        window.addEventListener('scroll', () => {
-            const navbar = document.getElementById('navbar');
-            if (window.scrollY > 50) navbar.classList.add('scrolled');
-            else navbar.classList.remove('scrolled');
-        });
-
-        // Scroll animations
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) entry.target.classList.add('visible');
-            });
-        }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
-
-        document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
-
-        // ===== MODAL CONTENT DATA =====
+        // Customer Service Modal Functions
         const helpContent = {
             help: {
-                title: 'Help Center', icon: 'fa-life-ring',
-                content: `<p>Welcome to Apiaro Help Center! We're here to assist you with any questions or concerns.</p>
+                title: 'Help Center',
+                icon: 'fa-life-ring',
+                content: `
+                    <p>Welcome to Apiaro Help Center! We're here to assist you with any questions or concerns.</p>
                     <h4>Frequently Asked Questions:</h4>
                     <ul>
                         <li><strong>How do I create an account?</strong> Click on "Register" in the top menu and fill in your details.</li>
@@ -1496,11 +408,14 @@
                         <li><strong>Can I change my order after placing it?</strong> Contact us within 1 hour of placing your order.</li>
                         <li><strong>What if my product is damaged?</strong> We offer easy returns within 7 days for damaged items.</li>
                     </ul>
-                    <p>Can't find what you're looking for? Contact our support team below.</p>`
+                    <p>Can't find what you're looking for? Contact our support team below.</p>
+                `
             },
             howtobuy: {
-                title: 'How to Buy', icon: 'fa-shopping-cart',
-                content: `<p>Shopping on Apiaro is easy! Follow these simple steps:</p>
+                title: 'How to Buy',
+                icon: 'fa-shopping-cart',
+                content: `
+                    <p>Shopping on Apiaro is easy! Follow these simple steps:</p>
                     <ol>
                         <li><strong>Browse Products:</strong> Use the search bar or categories to find what you need.</li>
                         <li><strong>Add to Cart:</strong> Click the "Add to Cart" button on any product you like.</li>
@@ -1509,11 +424,14 @@
                         <li><strong>Payment:</strong> Choose M-Pesa, Cash on Delivery, or Card payment.</li>
                         <li><strong>Confirmation:</strong> You'll receive an SMS and email confirmation.</li>
                     </ol>
-                    <p><strong>Tip:</strong> Create an account to track your orders and save your delivery information!</p>`
+                    <p><strong>Tip:</strong> Create an account to track your orders and save your delivery information!</p>
+                `
             },
             delivery: {
-                title: 'Delivery Information', icon: 'fa-truck',
-                content: `<p>We deliver to all 47 counties in Kenya!</p>
+                title: 'Delivery Information',
+                icon: 'fa-truck',
+                content: `
+                    <p>We deliver to all 47 counties in Kenya!</p>
                     <h4>Delivery Times:</h4>
                     <ul>
                         <li><strong>Nairobi & Surroundings:</strong> Same day or next day delivery</li>
@@ -1526,11 +444,14 @@
                         <li>Orders above KES 5,000: <strong>FREE delivery</strong></li>
                         <li>Orders below KES 5,000: KES 300 - 500 depending on location</li>
                     </ul>
-                    <p>You'll receive SMS updates when your order is dispatched and when it's near delivery.</p>`
+                    <p>You'll receive SMS updates when your order is dispatched and when it's near delivery.</p>
+                `
             },
             returns: {
-                title: 'Return Policy', icon: 'fa-undo',
-                content: `<p>We want you to be completely satisfied with your purchase!</p>
+                title: 'Return Policy',
+                icon: 'fa-undo',
+                content: `
+                    <p>We want you to be completely satisfied with your purchase!</p>
                     <h4>Our 7-Day Return Policy:</h4>
                     <ul>
                         <li><strong>Damaged/Defective Items:</strong> Full refund or replacement - no questions asked!</li>
@@ -1544,11 +465,14 @@
                         <li>We'll arrange pickup from your location (FREE for defective items)</li>
                         <li>Refund processed within 5-7 business days to your M-Pesa or bank account</li>
                     </ol>
-                    <p><strong>Note:</strong> Perishable goods and intimate items cannot be returned for hygiene reasons.</p>`
+                    <p><strong>Note:</strong> Perishable goods and intimate items cannot be returned for hygiene reasons.</p>
+                `
             },
             track: {
-                title: 'Track Your Order', icon: 'fa-map-marker-alt',
-                content: `<p>Stay updated on your order status every step of the way!</p>
+                title: 'Track Your Order',
+                icon: 'fa-map-marker-alt',
+                content: `
+                    <p>Stay updated on your order status every step of the way!</p>
                     <h4>How to Track:</h4>
                     <ol>
                         <li><strong>Via Website:</strong> Log into your account and go to "My Orders"</li>
@@ -1563,11 +487,14 @@
                         <li><strong>Out for Delivery:</strong> Rider is on the way to your address</li>
                         <li><strong>Delivered:</strong> Order successfully delivered</li>
                     </ul>
-                    <p>Need help? Contact our support team with your order number.</p>`
+                    <p>Need help? Contact our support team with your order number.</p>
+                `
             },
             contact: {
-                title: 'Contact Us', icon: 'fa-headset',
-                content: `<p>We're here to help! Reach out to us through any of these channels:</p>
+                title: 'Contact Us',
+                icon: 'fa-headset',
+                content: `
+                    <p>We're here to help! Reach out to us through any of these channels:</p>
                     <div class="contact-box">
                         <p><i class="fas fa-phone" style="color: #2c5aa0;"></i> <strong>+254 795 725 564</strong> (Mon-Fri, 8AM - 6PM)</p>
                         <p><i class="fas fa-envelope" style="color: #2c5aa0;"></i> <strong>support@apiaro.co.ke</strong></p>
@@ -1580,14 +507,17 @@
                         <li>Email: Within 24 hours</li>
                         <li>Social Media: Within 2 hours</li>
                     </ul>
-                    <p>For urgent issues, please call or WhatsApp us for fastest response!</p>`
+                    <p>For urgent issues, please call or WhatsApp us for fastest response!</p>
+                `
             }
         };
 
         const footerContent = {
             privacy: {
-                title: 'Privacy Policy', icon: 'fa-shield-alt',
-                content: `<p>At Apiaro, your privacy is our priority. This policy explains how we collect, use, and protect your personal information.</p>
+                title: 'Privacy Policy',
+                icon: 'fa-shield-alt',
+                content: `
+                    <p>At Apiaro, your privacy is our priority. This policy explains how we collect, use, and protect your personal information.</p>
                     <h4>Information We Collect:</h4>
                     <ul>
                         <li>Account information (name, email, phone number)</li>
@@ -1602,11 +532,14 @@
                         <li>To improve our services and user experience</li>
                         <li>To comply with legal requirements</li>
                     </ul>
-                    <p>We never sell your personal data to third parties.</p>`
+                    <p>We never sell your personal data to third parties.</p>
+                `
             },
             terms: {
-                title: 'Terms & Conditions', icon: 'fa-file-contract',
-                content: `<p>By using Apiaro, you agree to the following terms:</p>
+                title: 'Terms & Conditions',
+                icon: 'fa-file-contract',
+                content: `
+                    <p>By using Apiaro, you agree to the following terms:</p>
                     <h4>General Terms:</h4>
                     <ul>
                         <li>You must be 18 years or older to make purchases</li>
@@ -1623,11 +556,14 @@
                     <ul>
                         <li>We are not liable for delays caused by circumstances beyond our control</li>
                         <li>Our maximum liability is limited to the purchase price of the item</li>
-                    </ul>`
+                    </ul>
+                `
             },
             cookie: {
-                title: 'Cookie Policy', icon: 'fa-cookie',
-                content: `<p>Apiaro uses cookies to enhance your shopping experience.</p>
+                title: 'Cookie Policy',
+                icon: 'fa-cookie',
+                content: `
+                    <p>Apiaro uses cookies to enhance your shopping experience.</p>
                     <h4>What Are Cookies:</h4>
                     <p>Cookies are small text files stored on your device that help us remember your preferences and improve site functionality.</p>
                     <h4>How We Use Cookies:</h4>
@@ -1636,11 +572,14 @@
                         <li><strong>Analytics Cookies:</strong> Help us understand how visitors use our site</li>
                         <li><strong>Preference Cookies:</strong> Remember your settings and choices</li>
                     </ul>
-                    <p>You can disable cookies in your browser settings, but some features may not work properly.</p>`
+                    <p>You can disable cookies in your browser settings, but some features may not work properly.</p>
+                `
             },
             seller: {
-                title: 'Seller Center', icon: 'fa-store',
-                content: `<p>Join thousands of sellers on Apiaro and grow your business!</p>
+                title: 'Seller Center',
+                icon: 'fa-store',
+                content: `
+                    <p>Join thousands of sellers on Apiaro and grow your business!</p>
                     <h4>Why Sell on Apiaro:</h4>
                     <ul>
                         <li>Reach customers across all 47 counties</li>
@@ -1658,11 +597,14 @@
                     <div class="contact-box">
                         <p><i class="fas fa-envelope" style="color: #2c5aa0;"></i> <strong>sellers@apiaro.co.ke</strong></p>
                         <p><i class="fas fa-phone" style="color: #2c5aa0;"></i> <strong>+254 795 725 564</strong></p>
-                    </div>`
+                    </div>
+                `
             },
             advertise: {
-                title: 'Advertise with Us', icon: 'fa-bullhorn',
-                content: `<p>Promote your brand to thousands of Kenyan shoppers on Apiaro.</p>
+                title: 'Advertise with Us',
+                icon: 'fa-bullhorn',
+                content: `
+                    <p>Promote your brand to thousands of Kenyan shoppers on Apiaro.</p>
                     <h4>Advertising Options:</h4>
                     <ul>
                         <li><strong>Homepage Banners:</strong> Prime visibility on our main page</li>
@@ -1679,115 +621,17 @@
                     <div class="contact-box">
                         <p><i class="fas fa-envelope" style="color: #2c5aa0;"></i> <strong>ads@apiaro.co.ke</strong></p>
                         <p><i class="fas fa-phone" style="color: #2c5aa0;"></i> <strong>+254 795 725 564</strong></p>
-                    </div>`
+                    </div>
+                `
             }
         };
 
-        const paymentContent = {
-            mpesa: {
-                title: 'M-Pesa Payment', icon: 'fa-mobile-alt',
-                content: `<div style="text-align: center; margin-bottom: 24px;">
-                        <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #00b894, #00d2a0); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: white; font-size: 1.5rem;">
-                            <i class="fas fa-mobile-alt"></i>
-                        </div>
-                        <h4 style="color: var(--secondary); font-size: 1.1rem; margin-bottom: 8px;">Pay with M-Pesa</h4>
-                        <p style="color: var(--text-light); font-size: 0.9rem;">Kenya's favorite mobile money solution</p>
-                    </div>
-                    <h4>How to Pay with M-Pesa:</h4>
-                    <ol>
-                        <li>At checkout, select <strong>"M-Pesa"</strong> as your payment method</li>
-                        <li>Enter your M-Pesa registered phone number</li>
-                        <li>Click <strong>"Request Payment"</strong> — an STK push will be sent to your phone</li>
-                        <li>Enter your M-Pesa PIN on your phone to complete the transaction</li>
-                        <li>Payment confirmation is instant — your order is processed immediately!</li>
-                    </ol>
-                    <div class="contact-box" style="background: linear-gradient(135deg, #e6f7f3, #f0fdf9); border-color: #00b89430;">
-                        <p style="margin: 0; color: var(--secondary);"><i class="fas fa-shield-alt" style="color: #00b894;"></i> <strong>100% Secure:</strong> We use Safaricom's official M-Pesa API. Your PIN is never stored or seen by us.</p>
-                        <p style="margin: 8px 0 0; color: var(--text-light); font-size: 0.9rem;"><i class="fas fa-bolt" style="color: #00b894;"></i> Instant confirmation — no waiting for manual verification</p>
-                    </div>
-                    <p style="margin-top: 16px; font-size: 0.9rem;"><strong>Supported:</strong> Safaricom M-Pesa, Airtel Money. Transaction fees may apply as per your provider.</p>`
-            },
-            cod: {
-                title: 'Cash on Delivery', icon: 'fa-money-bill-wave',
-                content: `<div style="text-align: center; margin-bottom: 24px;">
-                        <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #d4a853, #e8c87a); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: white; font-size: 1.5rem;">
-                            <i class="fas fa-money-bill-wave"></i>
-                        </div>
-                        <h4 style="color: var(--secondary); font-size: 1.1rem; margin-bottom: 8px;">Cash on Delivery (COD)</h4>
-                        <p style="color: var(--text-light); font-size: 0.9rem;">Pay when your order arrives at your doorstep</p>
-                    </div>
-                    <h4>How COD Works:</h4>
-                    <ol>
-                        <li>Select <strong>"Cash on Delivery"</strong> at checkout</li>
-                        <li>Place your order — no upfront payment required</li>
-                        <li>Our delivery partner will bring your package to your address</li>
-                        <li>Inspect your items before paying</li>
-                        <li>Pay the rider in <strong>cash</strong> or via <strong>M-Pesa</strong> upon delivery</li>
-                    </ol>
-                    <div class="contact-box" style="background: linear-gradient(135deg, #fff8e6, #fffdf5); border-color: #d4a85340;">
-                        <p style="margin: 0; color: var(--secondary);"><i class="fas fa-check-circle" style="color: #d4a853;"></i> <strong>Trust First:</strong> See and verify your product before you pay a single shilling.</p>
-                        <p style="margin: 8px 0 0; color: var(--text-light); font-size: 0.9rem;"><i class="fas fa-info-circle" style="color: #d4a853;"></i> A small COD fee of KES 50 may apply for orders under KES 2,000</p>
-                    </div>
-                    <p style="margin-top: 16px; font-size: 0.9rem;"><strong>Note:</strong> COD is available in all 47 counties. Remote areas may require a small deposit for high-value items.</p>`
-            },
-            card: {
-                title: 'Card Payment', icon: 'fa-credit-card',
-                content: `<div style="text-align: center; margin-bottom: 24px;">
-                        <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #3742fa, #2f3542); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: white; font-size: 1.5rem;">
-                            <i class="fas fa-credit-card"></i>
-                        </div>
-                        <h4 style="color: var(--secondary); font-size: 1.1rem; margin-bottom: 8px;">Debit / Credit Card</h4>
-                        <p style="color: var(--text-light); font-size: 0.9rem;">Visa, Mastercard, and American Express accepted</p>
-                    </div>
-                    <h4>How Card Payments Work:</h4>
-                    <ol>
-                        <li>Select <strong>"Card Payment"</strong> at checkout</li>
-                        <li>Enter your card details securely on our encrypted payment page</li>
-                        <li>Your bank may send an OTP (One-Time Password) to your phone/email</li>
-                        <li>Enter the OTP to authorize the transaction</li>
-                        <li>Payment is processed instantly — you'll receive confirmation via SMS and email</li>
-                    </ol>
-                    <div class="contact-box" style="background: linear-gradient(135deg, #eef0ff, #f5f6ff); border-color: #3742fa30;">
-                        <p style="margin: 0; color: var(--secondary);"><i class="fas fa-lock" style="color: #3742fa;"></i> <strong>PCI-DSS Compliant:</strong> Your card details are encrypted with 256-bit SSL and never stored on our servers.</p>
-                        <p style="margin: 8px 0 0; color: var(--text-light); font-size: 0.9rem;"><i class="fas fa-globe" style="color: #3742fa;"></i> Supports international cards for overseas customers buying for family in Kenya</p>
-                    </div>
-                    <p style="margin-top: 16px; font-size: 0.9rem;"><strong>Accepted:</strong> Visa, Mastercard, Verve, American Express. No hidden currency conversion fees.</p>`
-            },
-            bank: {
-                title: 'Bank Transfer', icon: 'fa-university',
-                content: `<div style="text-align: center; margin-bottom: 24px;">
-                        <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #1a1a2e, #2f3542); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: white; font-size: 1.5rem;">
-                            <i class="fas fa-university"></i>
-                        </div>
-                        <h4 style="color: var(--secondary); font-size: 1.1rem; margin-bottom: 8px;">Bank Transfer / EFT</h4>
-                        <p style="color: var(--text-light); font-size: 0.9rem;">Direct bank deposit or electronic funds transfer</p>
-                    </div>
-                    <h4>How to Pay via Bank Transfer:</h4>
-                    <ol>
-                        <li>Select <strong>"Bank Transfer"</strong> at checkout</li>
-                        <li>Our bank account details will be displayed on the confirmation page</li>
-                        <li>Log in to your bank app or visit your branch to complete the transfer</li>
-                        <li>Use your <strong>Order Number</strong> as the payment reference</li>
-                        <li>Email the screenshot or receipt to <strong>payments@apiaro.co.ke</strong></li>
-                        <li>Your order is processed within 2 hours of payment confirmation</li>
-                    </ol>
-                    <div class="contact-box" style="background: linear-gradient(135deg, #f0f0f5, #f8f8fa); border-color: #1a1a2e20;">
-                        <p style="margin: 0; color: var(--secondary);"><i class="fas fa-building-columns" style="color: #1a1a2e;"></i> <strong>Bank Details:</strong></p>
-                        <p style="margin: 8px 0 0; font-size: 0.9rem; color: var(--text);">Account Name: <strong>Apiaro Limited</strong></p>
-                        <p style="margin: 4px 0; font-size: 0.9rem; color: var(--text);">Bank: <strong>KCB Bank Kenya</strong></p>
-                        <p style="margin: 4px 0; font-size: 0.9rem; color: var(--text);">Account: <strong>1234567890</strong></p>
-                        <p style="margin: 4px 0; font-size: 0.9rem; color: var(--text);">Branch: <strong>Lokichar</strong></p>
-                    </div>
-                    <p style="margin-top: 16px; font-size: 0.9rem;"><strong>Tip:</strong> M-Pesa PayBill option also available using our business number for instant confirmation.</p>`
-            }
-        };
-
-        // ===== MODAL FUNCTIONS =====
         function showHelpModal(type) {
             const modal = document.getElementById('help-modal');
-            const titleEl = document.querySelector('#help-modal .modal-title');
-            const bodyEl = document.getElementById('help-modal-body');
+            const titleEl = document.getElementById('modal-title');
+            const bodyEl = document.getElementById('modal-body');
             const content = helpContent[type];
+            
             if (content) {
                 titleEl.innerHTML = `<i class="fas ${content.icon}"></i> <span>${content.title}</span>`;
                 bodyEl.innerHTML = content.content;
@@ -1795,16 +639,19 @@
                 document.body.style.overflow = 'hidden';
             }
         }
+
         function closeHelpModal() {
-            document.getElementById('help-modal').classList.remove('active');
+            const modal = document.getElementById('help-modal');
+            modal.classList.remove('active');
             document.body.style.overflow = '';
         }
 
         function showFooterModal(type) {
             const modal = document.getElementById('footer-modal');
-            const titleEl = document.querySelector('#footer-modal .modal-title');
+            const titleEl = document.getElementById('footer-modal-title');
             const bodyEl = document.getElementById('footer-modal-body');
             const content = footerContent[type];
+            
             if (content) {
                 titleEl.innerHTML = `<i class="fas ${content.icon}"></i> <span>${content.title}</span>`;
                 bodyEl.innerHTML = content.content;
@@ -1812,45 +659,30 @@
                 document.body.style.overflow = 'hidden';
             }
         }
+
         function closeFooterModal() {
-            document.getElementById('footer-modal').classList.remove('active');
+            const modal = document.getElementById('footer-modal');
+            modal.classList.remove('active');
             document.body.style.overflow = '';
         }
 
-        function showPaymentModal(type) {
-            const modal = document.getElementById('payment-modal');
-            const titleEl = document.querySelector('#payment-modal .modal-title');
-            const bodyEl = document.getElementById('payment-modal-body');
-            const content = paymentContent[type];
-            if (content) {
-                titleEl.innerHTML = `<i class="fas ${content.icon}"></i> <span>${content.title}</span>`;
-                bodyEl.innerHTML = content.content;
-                modal.classList.add('active');
-                document.body.style.overflow = 'hidden';
-            }
-        }
-        function closePaymentModal() {
-            document.getElementById('payment-modal').classList.remove('active');
-            document.body.style.overflow = '';
-        }
+        document.getElementById('help-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeHelpModal();
+        });
 
-        // Backdrop clicks
-        document.getElementById('help-modal').addEventListener('click', function(e) { if (e.target === this) closeHelpModal(); });
-        document.getElementById('footer-modal').addEventListener('click', function(e) { if (e.target === this) closeFooterModal(); });
-        document.getElementById('payment-modal').addEventListener('click', function(e) { if (e.target === this) closePaymentModal(); });
+        document.getElementById('footer-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeFooterModal();
+        });
 
-        // Escape key
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 closeHelpModal();
                 closeFooterModal();
-                closePaymentModal();
             }
         });
 
-        // Auth check
         document.addEventListener('DOMContentLoaded', () => {
-            if (typeof checkAuth === 'function') checkAuth();
+            checkAuth();
         });
     </script>
 </body>
