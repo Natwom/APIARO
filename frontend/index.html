@@ -1,43 +1,54 @@
+       
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+    
     <!-- CACHE KILL: Prevent browsers and proxies from caching this page -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-
+    
     <title>APIARO - Your Online Marketplace</title>
-
+    
     <!-- IMMEDIATE CACHE & SERVICE WORKER KILLER -->
     <script>
         (function() {
-            const VERSION = 'apiaro-nosplash-v3'; // Bumped for fresh deploy
+            const VERSION = 'apiaro-nosplash-v1'; // Bump this if you ever need to force-clear again
             const stored = localStorage.getItem('apiaro_app_version');
-
+            
             if (stored !== VERSION) {
+                // 1. Unregister every service worker
                 if ('serviceWorker' in navigator) {
                     navigator.serviceWorker.getRegistrations().then(function(regs) {
                         regs.forEach(function(r) { r.unregister(); });
                     });
                 }
+                
+                // 2. Delete all Cache Storage entries
                 if ('caches' in window) {
                     caches.keys().then(function(names) {
                         names.forEach(function(n) { caches.delete(n); });
                     });
                 }
-                localStorage.removeItem('app_version');
+                
+                // 3. Clear old version markers and set new one
+                localStorage.removeItem('app_version'); // clear any old keys
                 localStorage.setItem('apiaro_app_version', VERSION);
+                
+                // 4. Hard reload from server (bypassing bfcache & SW cache)
+                // We use a small timeout so the unregister calls have time to fire
                 setTimeout(function() {
                     window.location.reload(true);
                 }, 300);
+                
+                // Stop parsing the rest of the page until reload happens
                 throw new Error('Stale cache detected. Reloading fresh...');
             }
         })();
     </script>
-
+    
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#ff6b00">
@@ -45,18 +56,24 @@
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* ===== MODAL STYLES ===== */
+        /* Modal styles for customer service messages */
         .modal-overlay {
             display: none;
             position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background: rgba(0,0,0,0.6);
             z-index: 10000;
             justify-content: center;
             align-items: center;
         }
-        .modal-overlay.active { display: flex; }
+        
+        .modal-overlay.active {
+            display: flex;
+        }
+        
         .modal-content {
             background: white;
             padding: 30px;
@@ -68,13 +85,22 @@
             position: relative;
             animation: slideIn 0.3s ease;
         }
+        
         .modal-close {
             position: absolute;
-            top: 15px; right: 15px;
-            background: none; border: none;
-            font-size: 1.5em; cursor: pointer; color: #666;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 1.5em;
+            cursor: pointer;
+            color: #666;
         }
-        .modal-close:hover { color: #333; }
+        
+        .modal-close:hover {
+            color: #333;
+        }
+        
         .modal-title {
             margin-bottom: 15px;
             color: #2c5aa0;
@@ -82,24 +108,44 @@
             align-items: center;
             gap: 10px;
         }
-        .modal-body { line-height: 1.6; color: #555; }
-        .modal-body ul { margin: 10px 0; padding-left: 20px; }
-        .modal-body li { margin: 8px 0; }
+        
+        .modal-body {
+            line-height: 1.6;
+            color: #555;
+        }
+        
+        .modal-body ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        
+        .modal-body li {
+            margin: 8px 0;
+        }
+        
         .contact-box {
             background: #f8f9fa;
             padding: 15px;
             border-radius: 8px;
             margin-top: 15px;
         }
+        
         .contact-box p {
             margin: 5px 0;
             display: flex;
             align-items: center;
             gap: 10px;
         }
+        
         @keyframes slideIn {
-            from { transform: translateY(-50px); opacity: 0; }
-            to   { transform: translateY(0); opacity: 1; }
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
 
         /* Footer link styles */
@@ -109,142 +155,11 @@
             text-decoration: none;
             transition: color 0.3s;
         }
-        .footer-bottom-links a:hover { color: #2c5aa0; }
-
-        /* ===== CLICKABLE FEATURE CARDS ===== */
-        .feature-card {
-            cursor: pointer;
-            transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        .feature-card::after {
-            content: 'Click to learn more';
-            position: absolute;
-            bottom: -30px;
-            left: 0;
-            right: 0;
-            text-align: center;
-            font-size: 0.75rem;
-            color: #ff6b00;
-            font-weight: 600;
-            opacity: 0;
-            transition: opacity 0.3s ease, bottom 0.3s ease;
-        }
-        .feature-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 12px 30px rgba(0,0,0,0.15);
-            background: #fff8f3;
-        }
-        .feature-card:hover::after {
-            opacity: 1;
-            bottom: 12px;
-        }
-        .feature-card:active {
-            transform: translateY(-4px) scale(0.98);
-        }
-        .feature-card i {
-            transition: transform 0.3s ease, color 0.3s ease;
-        }
-        .feature-card:hover i {
-            transform: scale(1.15);
-            color: #ff6b00;
-        }
-
-        /* ===== CATEGORY CARDS WITH IMAGES ===== */
-        .category-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 25px;
-            padding: 20px 0;
-        }
-        .category-card {
-            position: relative;
-            height: 320px;
-            border-radius: 16px;
-            overflow: hidden;
-            cursor: pointer;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
-            transition: transform 0.4s ease, box-shadow 0.4s ease;
-            background-size: cover;
-            background-position: center;
-        }
-        .category-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(
-                to bottom,
-                rgba(0,0,0,0.1) 0%,
-                rgba(0,0,0,0.5) 60%,
-                rgba(0,0,0,0.75) 100%
-            );
-            transition: background 0.4s ease;
-            z-index: 1;
-        }
-        .category-card:hover {
-            transform: scale(1.03) translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-        }
-        .category-card:hover::before {
-            background: linear-gradient(
-                to bottom,
-                rgba(0,0,0,0.2) 0%,
-                rgba(0,0,0,0.4) 60%,
-                rgba(0,0,0,0.65) 100%
-            );
-        }
-        .category-card-content {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 25px;
-            z-index: 2;
-            color: white;
-        }
-        .category-card-content h3 {
-            font-size: 1.6rem;
-            margin-bottom: 8px;
-            font-weight: 700;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        }
-        .category-card-content p {
-            font-size: 0.95rem;
-            opacity: 0.9;
-            margin-bottom: 15px;
-        }
-        .category-card-content .shop-now {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: #ff6b00;
-            color: white;
-            padding: 8px 18px;
-            border-radius: 25px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            transition: background 0.3s ease, gap 0.3s ease;
-        }
-        .category-card:hover .shop-now {
-            background: #ff8533;
-            gap: 12px;
-        }
-        .category-badge {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: rgba(255,255,255,0.95);
-            color: #333;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            z-index: 2;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        
+        .footer-bottom-links a:hover {
+            color: #2c5aa0;
         }
     </style>
-<base target="_blank">
 </head>
 <body>
     <nav class="navbar">
@@ -279,27 +194,26 @@
         </div>
     </header>
 
-    <!-- ===== WHY CHOOSE APIARO - CLICKABLE (DISPLAYS MODAL) ===== -->
     <section class="features">
         <div class="container">
             <h2 class="section-title">Why Choose APIARO</h2>
             <div class="feature-grid">
-                <div class="feature-card" onclick="showFeatureModal('delivery')">
+                <div class="feature-card">
                     <i class="fas fa-truck"></i>
                     <h3>County-wide Delivery</h3>
                     <p>We deliver to all 47 counties within 24-48 hours</p>
                 </div>
-                <div class="feature-card" onclick="showFeatureModal('cod')">
-                    <i class="fas fa-money-bill-wave"></i>
-                    <h3>Cash on Delivery</h3>
-                    <p>Pay only when your order arrives at your doorstep</p>
+                <div class="feature-card">
+                    <i class="fas fa-mobile-alt"></i>
+                    <h3>M-Pesa Accepted</h3>
+                    <p>Pay securely with M-Pesa or choose Cash on Delivery</p>
                 </div>
-                <div class="feature-card" onclick="showFeatureModal('secure')">
+                <div class="feature-card">
                     <i class="fas fa-shield-alt"></i>
                     <h3>Secure Shopping</h3>
                     <p>Your data is protected with 256-bit encryption</p>
                 </div>
-                <div class="feature-card" onclick="showFeatureModal('returns')">
+                <div class="feature-card">
                     <i class="fas fa-undo"></i>
                     <h3>Easy Returns</h3>
                     <p>7-day hassle-free return policy on all items</p>
@@ -308,51 +222,26 @@
         </div>
     </section>
 
-    <!-- ===== SHOP BY CATEGORY WITH IMAGES ===== -->
     <section class="categories">
         <div class="container">
             <h2 class="section-title">Shop by Category</h2>
             <div class="category-grid" id="categories">
-
-                <div class="category-card" onclick="window.location.href='products.html'"
-                     style="background-image: url('https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&q=80');">
-                    <span class="category-badge">Hot</span>
-                    <div class="category-card-content">
-                        <h3>Electronics</h3>
-                        <p>Phones, Laptops & Gadgets</p>
-                        <span class="shop-now">Shop Now <i class="fas fa-arrow-right"></i></span>
-                    </div>
+                <div class="category-card" onclick="window.location.href='products.html'">
+                    <h3>Electronics</h3>
+                    <p>Phones, Laptops & Gadgets</p>
                 </div>
-
-                <div class="category-card" onclick="window.location.href='products.html'"
-                     style="background-image: url('https://images.unsplash.com/photo-1445205170230-053b83016050?w=600&q=80');">
-                    <span class="category-badge" style="background:#ff6b00; color:white;">New</span>
-                    <div class="category-card-content">
-                        <h3>Fashion</h3>
-                        <p>Clothing, Shoes & Accessories</p>
-                        <span class="shop-now">Shop Now <i class="fas fa-arrow-right"></i></span>
-                    </div>
+                <div class="category-card" onclick="window.location.href='products.html'">
+                    <h3>Fashion</h3>
+                    <p>Clothing, Shoes & Accessories</p>
                 </div>
-
-                <div class="category-card" onclick="window.location.href='products.html'"
-                     style="background-image: url('https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=600&q=80');">
-                    <div class="category-card-content">
-                        <h3>Home & Living</h3>
-                        <p>Furniture & Appliances</p>
-                        <span class="shop-now">Shop Now <i class="fas fa-arrow-right"></i></span>
-                    </div>
+                <div class="category-card" onclick="window.location.href='products.html'">
+                    <h3>Home & Living</h3>
+                    <p>Furniture & Appliances</p>
                 </div>
-
-                <div class="category-card" onclick="window.location.href='products.html'"
-                     style="background-image: url('https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=600&q=80');">
-                    <span class="category-badge" style="background:#28a745; color:white;">Trending</span>
-                    <div class="category-card-content">
-                        <h3>Agriculture</h3>
-                        <p>Farming Tools & Supplies</p>
-                        <span class="shop-now">Shop Now <i class="fas fa-arrow-right"></i></span>
-                    </div>
+                <div class="category-card" onclick="window.location.href='products.html'">
+                    <h3>Agriculture</h3>
+                    <p>Farming Tools & Supplies</p>
                 </div>
-
             </div>
         </div>
     </section>
@@ -362,7 +251,7 @@
             <div class="footer-content">
                 <div class="footer-section">
                     <h4>About Apiaro</h4>
-                    <p>Kenya's premier online marketplace connecting buyers and sellers across all 47 counties. We offer quality products, secure payments, and reliable delivery to your doorstep.</p>
+                    <p>Kenya's premier online marketplace connecting buyers and sellers across all 47 counties. We offer quality products, secure payments via M-Pesa, and reliable delivery to your doorstep.</p>
                     <div class="social-links">
                         <a href="#" title="Facebook"><i class="fab fa-facebook-f"></i></a>
                         <a href="#" title="Twitter"><i class="fab fa-twitter"></i></a>
@@ -370,7 +259,7 @@
                         <a href="#" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
                     </div>
                 </div>
-
+                
                 <div class="footer-section">
                     <h4>Customer Service</h4>
                     <ul>
@@ -382,7 +271,7 @@
                         <li><a href="#" onclick="showHelpModal('contact')">Contact Us</a></li>
                     </ul>
                 </div>
-
+                
                 <div class="footer-section">
                     <h4>Categories</h4>
                     <ul>
@@ -394,7 +283,7 @@
                         <li><a href="#">Sports & Outdoors</a></li>
                     </ul>
                 </div>
-
+                
                 <div class="footer-section">
                     <h4>Contact Us</h4>
                     <div class="contact-info">
@@ -403,7 +292,7 @@
                         <p><i class="fas fa-envelope"></i> support@apiaro.co.ke</p>
                         <p><i class="fas fa-clock"></i> Mon-Fri: 8AM - 6PM</p>
                     </div>
-
+                    
                     <div class="newsletter">
                         <p>Subscribe to our newsletter for deals</p>
                         <form class="newsletter-form" onsubmit="event.preventDefault(); alert('Thank you for subscribing!');">
@@ -413,7 +302,7 @@
                     </div>
                 </div>
             </div>
-
+            
             <div class="trust-badges">
                 <div class="trust-badge">
                     <i class="fas fa-shield-alt"></i>
@@ -432,10 +321,13 @@
                     <span>24/7 Support</span>
                 </div>
             </div>
-
+            
             <div class="payment-section" style="text-align: center; margin-bottom: 2rem;">
                 <h5>Payment Methods</h5>
                 <div class="payment-icons" style="justify-content: center;">
+                    <div class="payment-icon mpesa-icon">
+                        <i class="fas fa-mobile-alt"></i> M-Pesa
+                    </div>
                     <div class="payment-icon">
                         <i class="fas fa-money-bill-wave"></i> Cash on Delivery
                     </div>
@@ -447,7 +339,7 @@
                     </div>
                 </div>
             </div>
-
+            
             <div class="footer-bottom">
                 <div class="footer-bottom-links">
                     <a onclick="showFooterModal('privacy')">Privacy Policy</a>
@@ -466,18 +358,6 @@
         </div>
     </footer>
 
-    <!-- Feature Detail Modal -->
-    <div id="feature-modal" class="modal-overlay">
-        <div class="modal-content">
-            <button class="modal-close" onclick="closeFeatureModal()">&times;</button>
-            <h3 class="modal-title" id="feature-modal-title">
-                <i class="fas fa-info-circle"></i>
-                <span>Feature</span>
-            </h3>
-            <div class="modal-body" id="feature-modal-body"></div>
-        </div>
-    </div>
-
     <!-- Customer Service Modal -->
     <div id="help-modal" class="modal-overlay">
         <div class="modal-content">
@@ -486,7 +366,9 @@
                 <i class="fas fa-info-circle"></i>
                 <span>Help Center</span>
             </h3>
-            <div class="modal-body" id="modal-body"></div>
+            <div class="modal-body" id="modal-body">
+                <!-- Content loaded dynamically -->
+            </div>
         </div>
     </div>
 
@@ -498,138 +380,22 @@
                 <i class="fas fa-info-circle"></i>
                 <span>Title</span>
             </h3>
-            <div class="modal-body" id="footer-modal-body"></div>
+            <div class="modal-body" id="footer-modal-body">
+                <!-- Content loaded dynamically -->
+            </div>
         </div>
     </div>
 
     <script src="js/auth.js"></script>
     <script src="js/cart.js"></script>
     <script src="pwa.js"></script>
-
+    
     <script>
         function toggleMenu() {
             document.querySelector('.nav-links').classList.toggle('active');
         }
 
-        // ===== FEATURE CARD MODAL DATA =====
-        const featureContent = {
-            delivery: {
-                title: 'County-wide Delivery',
-                icon: 'fa-truck',
-                content: `
-                    <p>We deliver to <strong>all 47 counties</strong> in Kenya, from Mombasa to Malaba, ensuring your orders reach you wherever you are.</p>
-                    <h4>Delivery Coverage:</h4>
-                    <ul>
-                        <li><strong>Nairobi & Surroundings:</strong> Same day or next day delivery</li>
-                        <li><strong>Major Cities (Mombasa, Kisumu, Nakuru, Eldoret):</strong> 1-2 business days</li>
-                        <li><strong>Other Counties:</strong> 2-4 business days</li>
-                        <li><strong>Remote Areas:</strong> 4-7 business days</li>
-                    </ul>
-                    <h4>Delivery Costs:</h4>
-                    <ul>
-                        <li>Orders above KES 5,000: <strong style="color:#28a745;">FREE delivery</strong></li>
-                        <li>Orders below KES 5,000: KES 300 - 500 depending on location</li>
-                    </ul>
-                    <p>You'll receive <strong>SMS updates</strong> when your order is dispatched and when it's near delivery.</p>
-                    <div class="contact-box">
-                        <p><i class="fas fa-info-circle" style="color:#ff6b00;"></i> Need express delivery? Contact us for same-day options in Nairobi.</p>
-                    </div>
-                `
-            },
-            cod: {
-                title: 'Cash on Delivery',
-                icon: 'fa-money-bill-wave',
-                content: `
-                    <p>With <strong>Cash on Delivery</strong>, you only pay when your order physically arrives at your doorstep. No upfront payment needed!</p>
-                    <h4>How It Works:</h4>
-                    <ol>
-                        <li>Place your order and select <strong>"Cash on Delivery"</strong> at checkout</li>
-                        <li>We prepare and dispatch your order</li>
-                        <li>Our delivery agent brings your package to your address</li>
-                        <li>Inspect your items, then pay the exact amount in cash</li>
-                        <li>Enjoy your purchase with zero risk!</li>
-                    </ol>
-                    <h4>Benefits:</h4>
-                    <ul>
-                        <li><strong>No online payment risk</strong> — see it before you pay</li>
-                        <li><strong>No M-Pesa or card required</strong></li>
-                        <li><strong>Inspect items</strong> before handing over money</li>
-                        <li><strong>Available in all 47 counties</strong></li>
-                    </ul>
-                    <p><strong>Note:</strong> Please have the exact amount ready to ensure a smooth handover.</p>
-                `
-            },
-            secure: {
-                title: 'Secure Shopping',
-                icon: 'fa-shield-alt',
-                content: `
-                    <p>Your security is our top priority. We use <strong>bank-grade 256-bit SSL encryption</strong> to protect all your personal and payment data.</p>
-                    <h4>Security Measures:</h4>
-                    <ul>
-                        <li><strong>256-bit SSL Encryption:</strong> All data transmitted between you and our servers is fully encrypted</li>
-                        <li><strong>Secure Login:</strong> Passwords are hashed with bcrypt — even we can't read them</li>
-                        <li><strong>Session Management:</strong> Automatic logout after inactivity to protect your account</li>
-                        <li><strong>Fraud Detection:</strong> We monitor for suspicious activity 24/7</li>
-                    </ul>
-                    <h4>Your Data Privacy:</h4>
-                    <ul>
-                        <li>We <strong>never sell</strong> your personal information</li>
-                        <li>Payment details are <strong>never stored</strong> on our servers</li>
-                        <li>Regular security audits by third-party experts</li>
-                    </ul>
-                    <div class="contact-box">
-                        <p><i class="fas fa-lock" style="color:#28a745;"></i> Look for the padlock icon in your browser — that's our SSL certificate keeping you safe.</p>
-                    </div>
-                `
-            },
-            returns: {
-                title: 'Easy Returns',
-                icon: 'fa-undo',
-                content: `
-                    <p>We want you to be <strong>100% satisfied</strong> with every purchase. Our hassle-free return policy gives you peace of mind.</p>
-                    <h4>Our 7-Day Return Policy:</h4>
-                    <ul>
-                        <li><strong>Damaged/Defective Items:</strong> Full refund or replacement — no questions asked!</li>
-                        <li><strong>Wrong Item Received:</strong> We'll exchange it for the correct item at no cost</li>
-                        <li><strong>Changed Your Mind?</strong> Items in original condition can be returned within 7 days</li>
-                    </ul>
-                    <h4>How to Return:</h4>
-                    <ol>
-                        <li>Contact us at <strong>support@apiaro.co.ke</strong> or call <strong>+254 795 725 564</strong></li>
-                        <li>Provide your order number and reason for return</li>
-                        <li>We'll arrange pickup from your location (FREE for defective items)</li>
-                        <li>Refund processed within 5-7 business days to your bank account</li>
-                    </ol>
-                    <p><strong>Note:</strong> Perishable goods and intimate items cannot be returned for hygiene reasons.</p>
-                `
-            }
-        };
-
-        function showFeatureModal(type) {
-            const modal = document.getElementById('feature-modal');
-            const titleEl = document.getElementById('feature-modal-title');
-            const bodyEl = document.getElementById('feature-modal-body');
-            const content = featureContent[type];
-
-            if (content) {
-                titleEl.innerHTML = `<i class="fas ${content.icon}"></i> <span>${content.title}</span>`;
-                bodyEl.innerHTML = content.content;
-                modal.classList.add('active');
-                document.body.style.overflow = 'hidden';
-            }
-        }
-
-        function closeFeatureModal() {
-            const modal = document.getElementById('feature-modal');
-            modal.classList.remove('active');
-            document.body.style.overflow = '';
-        }
-
-        document.getElementById('feature-modal').addEventListener('click', function(e) {
-            if (e.target === this) closeFeatureModal();
-        });
-
-        // ===== HELP MODAL DATA =====
+        // Customer Service Modal Functions
         const helpContent = {
             help: {
                 title: 'Help Center',
@@ -656,7 +422,7 @@
                         <li><strong>Add to Cart:</strong> Click the "Add to Cart" button on any product you like.</li>
                         <li><strong>Review Cart:</strong> Click the cart icon to review your items and quantities.</li>
                         <li><strong>Checkout:</strong> Click "Proceed to Checkout" and fill in your delivery details.</li>
-                        <li><strong>Payment:</strong> Choose Cash on Delivery, Card, or Bank Transfer.</li>
+                        <li><strong>Payment:</strong> Choose M-Pesa, Cash on Delivery, or Card payment.</li>
                         <li><strong>Confirmation:</strong> You'll receive an SMS and email confirmation.</li>
                     </ol>
                     <p><strong>Tip:</strong> Create an account to track your orders and save your delivery information!</p>
@@ -698,7 +464,7 @@
                         <li>Contact us at <strong>support@apiaro.co.ke</strong> or call <strong>+254 795 725 564</strong></li>
                         <li>Provide your order number and reason for return</li>
                         <li>We'll arrange pickup from your location (FREE for defective items)</li>
-                        <li>Refund processed within 5-7 business days to your bank account</li>
+                        <li>Refund processed within 5-7 business days to your M-Pesa or bank account</li>
                     </ol>
                     <p><strong>Note:</strong> Perishable goods and intimate items cannot be returned for hygiene reasons.</p>
                 `
@@ -747,27 +513,6 @@
             }
         };
 
-        function showHelpModal(type) {
-            const modal = document.getElementById('help-modal');
-            const titleEl = document.getElementById('modal-title');
-            const bodyEl = document.getElementById('modal-body');
-            const content = helpContent[type];
-
-            if (content) {
-                titleEl.innerHTML = `<i class="fas ${content.icon}"></i> <span>${content.title}</span>`;
-                bodyEl.innerHTML = content.content;
-                modal.classList.add('active');
-                document.body.style.overflow = 'hidden';
-            }
-        }
-
-        function closeHelpModal() {
-            const modal = document.getElementById('help-modal');
-            modal.classList.remove('active');
-            document.body.style.overflow = '';
-        }
-
-        // ===== FOOTER MODAL DATA =====
         const footerContent = {
             privacy: {
                 title: 'Privacy Policy',
@@ -779,7 +524,7 @@
                         <li>Account information (name, email, phone number)</li>
                         <li>Delivery addresses</li>
                         <li>Order history and preferences</li>
-                        <li>Payment information (processed securely)</li>
+                        <li>Payment information (processed securely via M-Pesa)</li>
                     </ul>
                     <h4>How We Use Your Data:</h4>
                     <ul>
@@ -806,7 +551,7 @@
                     <ul>
                         <li>Orders are confirmed only after successful payment</li>
                         <li>Prices are in Kenyan Shillings (KES) and include VAT where applicable</li>
-                        <li>We accept Cash on Delivery, Card, and Bank Transfers</li>
+                        <li>We accept M-Pesa, Cash on Delivery, and Bank Transfers</li>
                     </ul>
                     <h4>Liability:</h4>
                     <ul>
@@ -839,7 +584,7 @@
                     <h4>Why Sell on Apiaro:</h4>
                     <ul>
                         <li>Reach customers across all 47 counties</li>
-                        <li>Secure payments</li>
+                        <li>Secure payments via M-Pesa</li>
                         <li>Easy product listing and inventory management</li>
                         <li>Dedicated seller support</li>
                     </ul>
@@ -882,12 +627,32 @@
             }
         };
 
+        function showHelpModal(type) {
+            const modal = document.getElementById('help-modal');
+            const titleEl = document.getElementById('modal-title');
+            const bodyEl = document.getElementById('modal-body');
+            const content = helpContent[type];
+            
+            if (content) {
+                titleEl.innerHTML = `<i class="fas ${content.icon}"></i> <span>${content.title}</span>`;
+                bodyEl.innerHTML = content.content;
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        function closeHelpModal() {
+            const modal = document.getElementById('help-modal');
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
         function showFooterModal(type) {
             const modal = document.getElementById('footer-modal');
             const titleEl = document.getElementById('footer-modal-title');
             const bodyEl = document.getElementById('footer-modal-body');
             const content = footerContent[type];
-
+            
             if (content) {
                 titleEl.innerHTML = `<i class="fas ${content.icon}"></i> <span>${content.title}</span>`;
                 bodyEl.innerHTML = content.content;
@@ -912,7 +677,6 @@
 
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
-                closeFeatureModal();
                 closeHelpModal();
                 closeFooterModal();
             }
@@ -924,3 +688,5 @@
     </script>
 </body>
 </html>
+
+
