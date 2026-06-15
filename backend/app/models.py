@@ -49,10 +49,12 @@ class Product(Base):
     name = Column(String(255), nullable=False)
     description = Column(Text)
     price = Column(DECIMAL(10, 2), nullable=False)
+    original_price = Column(DECIMAL(10, 2), nullable=True)
     stock_quantity = Column(Integer, default=0)
     category_id = Column(Integer, ForeignKey("categories.id"))
     image_url = Column(String(500))
-    gallery_images = Column(Text, nullable=True)  # JSON string: '["url1", "url2"]'
+    gallery_images = Column(Text, nullable=True)
+    rating = Column(DECIMAL(2, 1), default=0.0)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

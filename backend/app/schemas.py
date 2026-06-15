@@ -78,9 +78,11 @@ class ProductBase(BaseModel):
     name: str
     description: Optional[str] = None
     price: Decimal
+    original_price: Optional[Decimal] = None
     stock_quantity: int = 0
     image_url: Optional[str] = None
     gallery_images: Optional[List[str]] = None
+    rating: Optional[float] = 0.0
 
 class ProductResponse(ProductBase):
     id: int
@@ -94,10 +96,12 @@ class ProductCreate(BaseModel):
     name: str
     description: Optional[str] = None
     price: Decimal
+    original_price: Optional[Decimal] = None
     stock_quantity: int = 0
     image_url: Optional[str] = None
     gallery_images: Optional[List[str]] = None
     category_id: Optional[int] = None
+    rating: Optional[float] = 0.0
     
     class Config:
         from_attributes = True
@@ -106,10 +110,12 @@ class ProductUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
     price: Optional[Decimal] = None
+    original_price: Optional[Decimal] = None
     stock_quantity: Optional[int] = None
     image_url: Optional[str] = None
     gallery_images: Optional[List[str]] = None
     category_id: Optional[int] = None
+    rating: Optional[float] = None
     is_active: Optional[bool] = None
     
     class Config:
