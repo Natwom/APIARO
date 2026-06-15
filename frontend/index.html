@@ -14,7 +14,7 @@
     <!-- IMMEDIATE CACHE & SERVICE WORKER KILLER -->
     <script>
         (function() {
-            const VERSION = 'apiaro-nosplash-v2'; // Bumped for fresh deploy
+            const VERSION = 'apiaro-nosplash-v3'; // Bumped for fresh deploy
             const stored = localStorage.getItem('apiaro_app_version');
 
             if (stored !== VERSION) {
@@ -114,17 +114,41 @@
         /* ===== CLICKABLE FEATURE CARDS ===== */
         .feature-card {
             cursor: pointer;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            text-decoration: none;
-            color: inherit;
-            display: block;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .feature-card::after {
+            content: 'Click to learn more';
+            position: absolute;
+            bottom: -30px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 0.75rem;
+            color: #ff6b00;
+            font-weight: 600;
+            opacity: 0;
+            transition: opacity 0.3s ease, bottom 0.3s ease;
         }
         .feature-card:hover {
             transform: translateY(-8px);
             box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+            background: #fff8f3;
+        }
+        .feature-card:hover::after {
+            opacity: 1;
+            bottom: 12px;
         }
         .feature-card:active {
-            transform: translateY(-4px);
+            transform: translateY(-4px) scale(0.98);
+        }
+        .feature-card i {
+            transition: transform 0.3s ease, color 0.3s ease;
+        }
+        .feature-card:hover i {
+            transform: scale(1.15);
+            color: #ff6b00;
         }
 
         /* ===== CATEGORY CARDS WITH IMAGES ===== */
@@ -255,31 +279,31 @@
         </div>
     </header>
 
-    <!-- ===== WHY CHOOSE APIARO - CLICKABLE ===== -->
+    <!-- ===== WHY CHOOSE APIARO - CLICKABLE (DISPLAYS MODAL) ===== -->
     <section class="features">
         <div class="container">
             <h2 class="section-title">Why Choose APIARO</h2>
             <div class="feature-grid">
-                <a href="products.html" class="feature-card">
+                <div class="feature-card" onclick="showFeatureModal('delivery')">
                     <i class="fas fa-truck"></i>
                     <h3>County-wide Delivery</h3>
                     <p>We deliver to all 47 counties within 24-48 hours</p>
-                </a>
-                <a href="checkout.html" class="feature-card">
+                </div>
+                <div class="feature-card" onclick="showFeatureModal('cod')">
                     <i class="fas fa-money-bill-wave"></i>
                     <h3>Cash on Delivery</h3>
                     <p>Pay only when your order arrives at your doorstep</p>
-                </a>
-                <a href="register.html" class="feature-card">
+                </div>
+                <div class="feature-card" onclick="showFeatureModal('secure')">
                     <i class="fas fa-shield-alt"></i>
                     <h3>Secure Shopping</h3>
                     <p>Your data is protected with 256-bit encryption</p>
-                </a>
-                <a href="#" onclick="showHelpModal('returns'); return false;" class="feature-card">
+                </div>
+                <div class="feature-card" onclick="showFeatureModal('returns')">
                     <i class="fas fa-undo"></i>
                     <h3>Easy Returns</h3>
                     <p>7-day hassle-free return policy on all items</p>
-                </a>
+                </div>
             </div>
         </div>
     </section>
@@ -442,6 +466,18 @@
         </div>
     </footer>
 
+    <!-- Feature Detail Modal -->
+    <div id="feature-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeFeatureModal()">&times;</button>
+            <h3 class="modal-title" id="feature-modal-title">
+                <i class="fas fa-info-circle"></i>
+                <span>Feature</span>
+            </h3>
+            <div class="modal-body" id="feature-modal-body"></div>
+        </div>
+    </div>
+
     <!-- Customer Service Modal -->
     <div id="help-modal" class="modal-overlay">
         <div class="modal-content">
@@ -475,6 +511,125 @@
             document.querySelector('.nav-links').classList.toggle('active');
         }
 
+        // ===== FEATURE CARD MODAL DATA =====
+        const featureContent = {
+            delivery: {
+                title: 'County-wide Delivery',
+                icon: 'fa-truck',
+                content: `
+                    <p>We deliver to <strong>all 47 counties</strong> in Kenya, from Mombasa to Malaba, ensuring your orders reach you wherever you are.</p>
+                    <h4>Delivery Coverage:</h4>
+                    <ul>
+                        <li><strong>Nairobi & Surroundings:</strong> Same day or next day delivery</li>
+                        <li><strong>Major Cities (Mombasa, Kisumu, Nakuru, Eldoret):</strong> 1-2 business days</li>
+                        <li><strong>Other Counties:</strong> 2-4 business days</li>
+                        <li><strong>Remote Areas:</strong> 4-7 business days</li>
+                    </ul>
+                    <h4>Delivery Costs:</h4>
+                    <ul>
+                        <li>Orders above KES 5,000: <strong style="color:#28a745;">FREE delivery</strong></li>
+                        <li>Orders below KES 5,000: KES 300 - 500 depending on location</li>
+                    </ul>
+                    <p>You'll receive <strong>SMS updates</strong> when your order is dispatched and when it's near delivery.</p>
+                    <div class="contact-box">
+                        <p><i class="fas fa-info-circle" style="color:#ff6b00;"></i> Need express delivery? Contact us for same-day options in Nairobi.</p>
+                    </div>
+                `
+            },
+            cod: {
+                title: 'Cash on Delivery',
+                icon: 'fa-money-bill-wave',
+                content: `
+                    <p>With <strong>Cash on Delivery</strong>, you only pay when your order physically arrives at your doorstep. No upfront payment needed!</p>
+                    <h4>How It Works:</h4>
+                    <ol>
+                        <li>Place your order and select <strong>"Cash on Delivery"</strong> at checkout</li>
+                        <li>We prepare and dispatch your order</li>
+                        <li>Our delivery agent brings your package to your address</li>
+                        <li>Inspect your items, then pay the exact amount in cash</li>
+                        <li>Enjoy your purchase with zero risk!</li>
+                    </ol>
+                    <h4>Benefits:</h4>
+                    <ul>
+                        <li><strong>No online payment risk</strong> — see it before you pay</li>
+                        <li><strong>No M-Pesa or card required</strong></li>
+                        <li><strong>Inspect items</strong> before handing over money</li>
+                        <li><strong>Available in all 47 counties</strong></li>
+                    </ul>
+                    <p><strong>Note:</strong> Please have the exact amount ready to ensure a smooth handover.</p>
+                `
+            },
+            secure: {
+                title: 'Secure Shopping',
+                icon: 'fa-shield-alt',
+                content: `
+                    <p>Your security is our top priority. We use <strong>bank-grade 256-bit SSL encryption</strong> to protect all your personal and payment data.</p>
+                    <h4>Security Measures:</h4>
+                    <ul>
+                        <li><strong>256-bit SSL Encryption:</strong> All data transmitted between you and our servers is fully encrypted</li>
+                        <li><strong>Secure Login:</strong> Passwords are hashed with bcrypt — even we can't read them</li>
+                        <li><strong>Session Management:</strong> Automatic logout after inactivity to protect your account</li>
+                        <li><strong>Fraud Detection:</strong> We monitor for suspicious activity 24/7</li>
+                    </ul>
+                    <h4>Your Data Privacy:</h4>
+                    <ul>
+                        <li>We <strong>never sell</strong> your personal information</li>
+                        <li>Payment details are <strong>never stored</strong> on our servers</li>
+                        <li>Regular security audits by third-party experts</li>
+                    </ul>
+                    <div class="contact-box">
+                        <p><i class="fas fa-lock" style="color:#28a745;"></i> Look for the padlock icon in your browser — that's our SSL certificate keeping you safe.</p>
+                    </div>
+                `
+            },
+            returns: {
+                title: 'Easy Returns',
+                icon: 'fa-undo',
+                content: `
+                    <p>We want you to be <strong>100% satisfied</strong> with every purchase. Our hassle-free return policy gives you peace of mind.</p>
+                    <h4>Our 7-Day Return Policy:</h4>
+                    <ul>
+                        <li><strong>Damaged/Defective Items:</strong> Full refund or replacement — no questions asked!</li>
+                        <li><strong>Wrong Item Received:</strong> We'll exchange it for the correct item at no cost</li>
+                        <li><strong>Changed Your Mind?</strong> Items in original condition can be returned within 7 days</li>
+                    </ul>
+                    <h4>How to Return:</h4>
+                    <ol>
+                        <li>Contact us at <strong>support@apiaro.co.ke</strong> or call <strong>+254 795 725 564</strong></li>
+                        <li>Provide your order number and reason for return</li>
+                        <li>We'll arrange pickup from your location (FREE for defective items)</li>
+                        <li>Refund processed within 5-7 business days to your bank account</li>
+                    </ol>
+                    <p><strong>Note:</strong> Perishable goods and intimate items cannot be returned for hygiene reasons.</p>
+                `
+            }
+        };
+
+        function showFeatureModal(type) {
+            const modal = document.getElementById('feature-modal');
+            const titleEl = document.getElementById('feature-modal-title');
+            const bodyEl = document.getElementById('feature-modal-body');
+            const content = featureContent[type];
+
+            if (content) {
+                titleEl.innerHTML = `<i class="fas ${content.icon}"></i> <span>${content.title}</span>`;
+                bodyEl.innerHTML = content.content;
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        function closeFeatureModal() {
+            const modal = document.getElementById('feature-modal');
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        document.getElementById('feature-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeFeatureModal();
+        });
+
+        // ===== HELP MODAL DATA =====
         const helpContent = {
             help: {
                 title: 'Help Center',
@@ -592,6 +747,27 @@
             }
         };
 
+        function showHelpModal(type) {
+            const modal = document.getElementById('help-modal');
+            const titleEl = document.getElementById('modal-title');
+            const bodyEl = document.getElementById('modal-body');
+            const content = helpContent[type];
+
+            if (content) {
+                titleEl.innerHTML = `<i class="fas ${content.icon}"></i> <span>${content.title}</span>`;
+                bodyEl.innerHTML = content.content;
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        function closeHelpModal() {
+            const modal = document.getElementById('help-modal');
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // ===== FOOTER MODAL DATA =====
         const footerContent = {
             privacy: {
                 title: 'Privacy Policy',
@@ -706,26 +882,6 @@
             }
         };
 
-        function showHelpModal(type) {
-            const modal = document.getElementById('help-modal');
-            const titleEl = document.getElementById('modal-title');
-            const bodyEl = document.getElementById('modal-body');
-            const content = helpContent[type];
-
-            if (content) {
-                titleEl.innerHTML = `<i class="fas ${content.icon}"></i> <span>${content.title}</span>`;
-                bodyEl.innerHTML = content.content;
-                modal.classList.add('active');
-                document.body.style.overflow = 'hidden';
-            }
-        }
-
-        function closeHelpModal() {
-            const modal = document.getElementById('help-modal');
-            modal.classList.remove('active');
-            document.body.style.overflow = '';
-        }
-
         function showFooterModal(type) {
             const modal = document.getElementById('footer-modal');
             const titleEl = document.getElementById('footer-modal-title');
@@ -756,6 +912,7 @@
 
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
+                closeFeatureModal();
                 closeHelpModal();
                 closeFooterModal();
             }
