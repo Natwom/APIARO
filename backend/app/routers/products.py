@@ -81,12 +81,10 @@ def create_product(
             name=product.name,
             description=product.description,
             price=product.price,
-            original_price=product.original_price,
             stock_quantity=product.stock_quantity,
             image_url=product.image_url,
             gallery_images=gallery_json,
             category_id=product.category_id,
-            rating=product.rating if product.rating is not None else 0.0,
             is_active=True
         )
         db.add(db_product)
