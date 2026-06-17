@@ -1,35 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- FIXED AUTH GUARD: Validate token AND admin privileges before allowing access -->
+    <!-- AUTH GUARD: No token = instant redirect to login -->
     <script>
         (function() {
             const token = localStorage.getItem('admin_token');
-            const userStr = localStorage.getItem('admin_user');
-
-            // Must have BOTH token AND valid admin user data
-            if (!token || !userStr) {
-                localStorage.removeItem('admin_token');
-                localStorage.removeItem('admin_user');
+            if (!token) {
                 window.location.replace('login.html');
-                return;
-            }
-
-            try {
-                const user = JSON.parse(userStr);
-                if (user.is_admin !== true) {
-                    console.warn('Non-admin user attempted to access orders page. Redirecting to login.');
-                    localStorage.removeItem('admin_token');
-                    localStorage.removeItem('admin_user');
-                    window.location.replace('login.html');
-                    return;
-                }
-            } catch (e) {
-                console.error('Corrupt admin user data detected. Clearing and redirecting.');
-                localStorage.removeItem('admin_token');
-                localStorage.removeItem('admin_user');
-                window.location.replace('login.html');
-                return;
             }
         })();
     </script>
@@ -102,10 +79,9 @@
         .customer-cell small { color: #666; }
         .total-cell { font-weight: bold; color: #28a745; }
     </style>
-<base target="_blank">
 </head>
 <body>
-<div id="admin-loading-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(29,53,87,0.95);z-index:99999;justify-content:center;align-items:center;flex-direction:column;">
+<<div id="admin-loading-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(29,53,87,0.95);z-index:99999;justify-content:center;align-items:center;flex-direction:column;">
     <div style="width:60px;height:60px;border:4px solid rgba(230,57,70,0.2);border-top-color:#e63946;border-radius:50%;animation:adminSpin 1s linear infinite;"></div>
     <p style="color:white;margin-top:20px;font-size:1.1rem;font-weight:500;">Authenticating...</p>
 </div>
@@ -200,36 +176,12 @@
         const API_BASE_URL = 'https://apiaro-backend.onrender.com';
         let currentOrderId = null;
 
-        // FIXED: checkAdminAuth now validates is_admin flag
         function checkAdminAuth() {
             const token = localStorage.getItem('admin_token');
-            const userStr = localStorage.getItem('admin_user');
-
-            if (!token || !userStr) {
-                console.warn('❌ Missing admin credentials - redirecting to login');
-                localStorage.removeItem('admin_token');
-                localStorage.removeItem('admin_user');
+            if (!token) {
                 window.location.href = 'login.html';
-                return null;
             }
-
-            try {
-                const user = JSON.parse(userStr);
-                if (user.is_admin !== true) {
-                    console.error('❌ User is not an admin - access denied');
-                    localStorage.removeItem('admin_token');
-                    localStorage.removeItem('admin_user');
-                    window.location.href = 'login.html';
-                    return null;
-                }
-                return token;
-            } catch (e) {
-                console.error('❌ Corrupt user data - clearing and redirecting');
-                localStorage.removeItem('admin_token');
-                localStorage.removeItem('admin_user');
-                window.location.href = 'login.html';
-                return null;
-            }
+            return token;
         }
 
         function logout() {
@@ -243,11 +195,11 @@
             const headers = {
                 'Authorization': `Bearer ${token}`
             };
-
+            
             if (!(options.body instanceof FormData)) {
                 headers['Content-Type'] = 'application/json';
             }
-
+            
             return fetch(url, { ...options, headers: { ...headers, ...options.headers } });
         }
 
@@ -260,24 +212,24 @@
         async function loadAllOrders(status = '') {
             try {
                 let url = `${API_BASE_URL}/orders/admin/all`;
-
+                
                 const response = await fetchWithAuth(url);
                 const orders = await response.json();
                 console.log('Loaded orders:', orders);
-
+                
                 const tbody = document.getElementById('orders-table-body');
                 if (!tbody) return;
-
+                
                 let filteredOrders = orders;
                 if (status) {
                     filteredOrders = orders.filter(o => o.status === status);
                 }
-
+                
                 if (filteredOrders.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:40px;">No orders found</td></tr>';
                     return;
                 }
-
+                
                 tbody.innerHTML = filteredOrders.map(order => {
                     // Build product items HTML with images
                     const itemsHtml = order.items && order.items.length > 0 
@@ -293,7 +245,7 @@
                             </div>
                         `).join('')
                         : '<p>No items</p>';
-
+                    
                     return `
                     <tr>
                         <td><strong>#${order.id}</strong></td>
@@ -330,7 +282,7 @@
                     </tr>
                     `;
                 }).join('');
-
+                
             } catch (error) {
                 console.error('Error loading orders:', error);
                 document.getElementById('orders-table-body').innerHTML = 
@@ -343,7 +295,7 @@
                 const response = await fetchWithAuth(`${API_BASE_URL}/orders/admin/all`);
                 const orders = await response.json();
                 const order = orders.find(o => o.id === orderId);
-
+                
                 if (!order) {
                     alert('Order not found');
                     return;
@@ -371,7 +323,7 @@
 
                 const content = `
                     <h2 style="margin-bottom:20px;">Order #${order.id} Details</h2>
-
+                    
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:25px;">
                         <div style="background:#f8f9fa; padding:15px; border-radius:8px;">
                             <h4 style="margin-top:0; color:#007bff;"><i class="fas fa-user"></i> Customer</h4>
@@ -379,7 +331,7 @@
                             <p><strong>Email:</strong> ${order.email}</p>
                             <p><strong>Phone:</strong> ${order.phone_number}</p>
                         </div>
-
+                        
                         <div style="background:#f8f9fa; padding:15px; border-radius:8px;">
                             <h4 style="margin-top:0; color:#007bff;"><i class="fas fa-map-marker-alt"></i> Delivery Address</h4>
                             <p><strong>County:</strong> ${order.county}</p>
@@ -387,7 +339,7 @@
                             <p><strong>Location:</strong> ${order.specific_location}</p>
                         </div>
                     </div>
-
+                    
                     <div style="margin-bottom:25px;">
                         <h4 style="color:#007bff;"><i class="fas fa-box"></i> Ordered Products</h4>
                         ${itemsHtml}
@@ -398,14 +350,14 @@
                             <small style="color:#ccc;">(Includes KES 300 delivery fee)</small>
                         </div>
                     </div>
-
+                    
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:25px;">
                         <div style="background:#f8f9fa; padding:15px; border-radius:8px;">
                             <h4 style="margin-top:0; color:#007bff;"><i class="fas fa-credit-card"></i> Payment</h4>
                             <p><strong>Method:</strong> ${order.payment_method.toUpperCase()}</p>
                             <p><strong>Status:</strong> <span class="status-badge status-${order.status}">${order.status}</span></p>
                         </div>
-
+                        
                         <div style="background:#f8f9fa; padding:15px; border-radius:8px;">
                             <h4 style="margin-top:0; color:#007bff;"><i class="fas fa-info-circle"></i> Order Info</h4>
                             <p><strong>Date:</strong> ${new Date(order.created_at).toLocaleString('en-KE')}</p>
@@ -413,14 +365,14 @@
                             <p><strong>SMS Sent:</strong> ${order.sms_sent ? 'Yes' : 'No'}</p>
                         </div>
                     </div>
-
+                    
                     ${order.notes ? `
                     <div style="background:#fff3cd; padding:15px; border-radius:8px; margin-bottom:25px; border:1px solid #ffeaa7;">
                         <h4 style="margin-top:0; color:#856404;"><i class="fas fa-sticky-note"></i> Customer Notes</h4>
                         <p style="margin:0; color:#856404;">${order.notes}</p>
                     </div>
                     ` : ''}
-
+                    
                     <div style="display:flex; gap:10px; justify-content:flex-end; padding-top:15px; border-top:2px solid #eee;">
                         <button onclick="closeModal()" class="btn-secondary" style="padding:10px 20px;">Close</button>
                         <button onclick="openStatusModal(${order.id}, '${order.status}')" class="btn-primary" style="padding:10px 20px;">
@@ -428,10 +380,10 @@
                         </button>
                     </div>
                 `;
-
+                
                 document.getElementById('modal-content').innerHTML = content;
                 document.getElementById('order-modal').style.display = 'flex';
-
+                
             } catch (error) {
                 console.error('Error:', error);
                 alert('Failed to load order details');
@@ -456,9 +408,9 @@
 
         async function confirmStatusUpdate() {
             if (!currentOrderId) return;
-
+            
             const newStatus = document.getElementById('new-status').value;
-
+            
             try {
                 const response = await fetchWithAuth(
                     `${API_BASE_URL}/orders/admin/${currentOrderId}/status`,
@@ -467,7 +419,7 @@
                         body: JSON.stringify({ status: newStatus })
                     }
                 );
-
+                
                 if (response.ok) {
                     closeStatusModal();
                     closeModal();
