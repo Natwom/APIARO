@@ -1,16 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- AUTH GUARD: No token = instant redirect to login -->
+    <!-- FIXED: Validate token AND admin privileges before allowing dashboard access -->
     <script>
         (function() {
             const token = localStorage.getItem('admin_token');
-            if (!token) {
+            const userStr = localStorage.getItem('admin_user');
+
+            // Must have BOTH token AND valid admin user data
+            if (!token || !userStr) {
+                // Missing credentials - clear any partial data and redirect to login
+                localStorage.removeItem('admin_token');
+                localStorage.removeItem('admin_user');
                 window.location.replace('login.html');
+                return; // Stop parsing the rest of the page
+            }
+
+            try {
+                const user = JSON.parse(userStr);
+                // Strict check: must have is_admin === true
+                if (user.is_admin !== true) {
+                    // User has token but is NOT an admin - clear data and redirect
+                    console.warn('Non-admin user attempted to access dashboard. Redirecting to login.');
+                    localStorage.removeItem('admin_token');
+                    localStorage.removeItem('admin_user');
+                    window.location.replace('login.html');
+                    return; // Stop parsing the rest of the page
+                }
+                // Valid admin - allow page to load normally
+            } catch (e) {
+                // Corrupt user data - clear everything and redirect
+                console.error('Corrupt admin user data detected. Clearing and redirecting.');
+                localStorage.removeItem('admin_token');
+                localStorage.removeItem('admin_user');
+                window.location.replace('login.html');
+                return; // Stop parsing the rest of the page
             }
         })();
     </script>
-    
+
     <meta charset="UTF-8">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -20,13 +48,14 @@
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="stylesheet" href="css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<base target="_blank">
 </head>
 <body>
     <button class="admin-hamburger" onclick="toggleSidebar()">☰</button>
-    
+
     <!-- Overlay for mobile sidebar -->
     <div class="sidebar-overlay" onclick="toggleSidebar()" id="sidebar-overlay"></div>
-    
+
     <div class="admin-layout">
         <!-- Sidebar -->
         <aside class="sidebar" id="admin-sidebar">
@@ -110,19 +139,19 @@
     <!-- Dashboard Scripts -->
     <script>
         const ADMIN_API_URL = 'https://apiaro-backend.onrender.com';
-        
+
         function checkAdminAuth() {
             const token = localStorage.getItem('admin_token');
             const userStr = localStorage.getItem('admin_user');
-            
-            if (!token) {
+
+            if (!token || !userStr) {
                 window.location.href = 'login.html';
                 return null;
             }
-            
+
             try {
                 const user = userStr ? JSON.parse(userStr) : {};
-                if (userStr && !user.is_admin) {
+                if (userStr && user.is_admin !== true) {
                     logout();
                     return null;
                 }
@@ -148,14 +177,14 @@
 
         async function fetchWithAuth(url, options = {}) {
             const token = localStorage.getItem('admin_token');
-            
+
             const defaultOptions = {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 }
             };
-            
+
             return fetch(url, { ...defaultOptions, ...options });
         }
 
@@ -167,14 +196,14 @@
 
                 const ordersRes = await fetchWithAuth(`${ADMIN_API_URL}/orders/admin/all`);
                 const orders = await ordersRes.json();
-                
+
                 document.getElementById('total-orders').textContent = orders.length;
                 document.getElementById('pending-orders').textContent = 
                     orders.filter(o => o.status === 'pending').length;
-                
+
                 const revenue = orders.reduce((sum, o) => sum + parseFloat(o.total_amount), 0);
                 document.getElementById('total-revenue').textContent = `KES ${revenue.toFixed(2)}`;
-                
+
                 const recentOrders = orders.slice(0, 5);
                 const tbody = document.getElementById('recent-orders-body');
                 if (tbody) {
@@ -214,7 +243,7 @@
             document.body.style.overflow = sb.classList.contains('active') ? 'hidden' : '';
         }
         window.toggleSidebar = toggleSidebar;
-        
+
         document.addEventListener('DOMContentLoaded', function(){
             var sb = document.getElementById('admin-sidebar');
             if (sb) {

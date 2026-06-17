@@ -1,12 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- AUTH GUARD: No token = instant redirect to login -->
+    <!-- FIXED AUTH GUARD: Validate token AND admin privileges before allowing access -->
     <script>
         (function() {
             const token = localStorage.getItem('admin_token');
-            if (!token) {
+            const userStr = localStorage.getItem('admin_user');
+
+            // Must have BOTH token AND valid admin user data
+            if (!token || !userStr) {
+                localStorage.removeItem('admin_token');
+                localStorage.removeItem('admin_user');
                 window.location.replace('login.html');
+                return;
+            }
+
+            try {
+                const user = JSON.parse(userStr);
+                if (user.is_admin !== true) {
+                    console.warn('Non-admin user attempted to access users page. Redirecting to login.');
+                    localStorage.removeItem('admin_token');
+                    localStorage.removeItem('admin_user');
+                    window.location.replace('login.html');
+                    return;
+                }
+            } catch (e) {
+                console.error('Corrupt admin user data detected. Clearing and redirecting.');
+                localStorage.removeItem('admin_token');
+                localStorage.removeItem('admin_user');
+                window.location.replace('login.html');
+                return;
             }
         })();
     </script>
@@ -15,9 +38,10 @@
     <title>User Management - Apiaro Admin</title>
     <link rel="stylesheet" href="css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<base target="_blank">
 </head>
-<<body>
-<<div id="admin-loading-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(29,53,87,0.95);z-index:99999;justify-content:center;align-items:center;flex-direction:column;">
+<body>
+<div id="admin-loading-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(29,53,87,0.95);z-index:99999;justify-content:center;align-items:center;flex-direction:column;">
     <div style="width:60px;height:60px;border:4px solid rgba(230,57,70,0.2);border-top-color:#e63946;border-radius:50%;animation:adminSpin 1s linear infinite;"></div>
     <p style="color:white;margin-top:20px;font-size:1.1rem;font-weight:500;">Authenticating...</p>
 </div>
@@ -75,20 +99,44 @@
     </div>
 
     <script>
+        // FIXED: checkAdminAuth now validates is_admin flag
         function checkAdminAuth() {
             const token = localStorage.getItem('admin_token');
+            const userStr = localStorage.getItem('admin_user');
+
             console.log('Checking auth, token exists:', !!token);
             console.log('Token preview:', token ? token.substring(0, 50) + '...' : 'none');
-            
-            if (!token) {
+
+            if (!token || !userStr) {
+                console.warn('❌ Missing admin credentials - redirecting to login');
+                localStorage.removeItem('admin_token');
+                localStorage.removeItem('admin_user');
                 window.location.href = 'login.html';
                 return null;
             }
-            return token;
+
+            try {
+                const user = JSON.parse(userStr);
+                if (user.is_admin !== true) {
+                    console.error('❌ User is not an admin - access denied');
+                    localStorage.removeItem('admin_token');
+                    localStorage.removeItem('admin_user');
+                    window.location.href = 'login.html';
+                    return null;
+                }
+                return token;
+            } catch (e) {
+                console.error('❌ Corrupt user data - clearing and redirecting');
+                localStorage.removeItem('admin_token');
+                localStorage.removeItem('admin_user');
+                window.location.href = 'login.html';
+                return null;
+            }
         }
 
         function logout() {
             localStorage.removeItem('admin_token');
+            localStorage.removeItem('admin_user');
             window.location.href = 'login.html';
         }
 
@@ -99,10 +147,10 @@
                 'Authorization': 'Bearer ' + token,
                 ...options.headers
             };
-            
+
             console.log('Fetching:', url);
             console.log('Headers:', { ...headers, 'Authorization': 'Bearer ' + token.substring(0, 20) + '...' });
-            
+
             return fetch(url, {
                 ...options,
                 headers: headers
@@ -112,49 +160,49 @@
         async function loadUsers() {
             const debugDiv = document.getElementById('debug-info');
             debugDiv.style.display = 'block';
-            
+
             try {
                 const token = localStorage.getItem('admin_token');
                 if (!token) {
                     throw new Error('No admin token found - please login first');
                 }
-                
+
                 debugDiv.innerHTML = 'Token found: ' + token.substring(0, 30) + '...<br>';
-                
+
                 const res = await fetchWithAuth('https://apiaro-backend.onrender.com/users/admin/all');
-                
+
                 debugDiv.innerHTML += 'Response status: ' + res.status + '<br>';
-                
+
                 if (res.status === 401) {
                     throw new Error('401 Unauthorized - Token invalid or expired. Please logout and login again.');
                 }
-                
+
                 if (!res.ok) {
                     const errorText = await res.text();
                     throw new Error(`HTTP ${res.status}: ${errorText}`);
                 }
-                
+
                 const users = await res.json();
                 debugDiv.innerHTML += 'Data received: ' + (Array.isArray(users) ? 'Array with ' + users.length + ' items' : typeof users) + '<br>';
-                
+
                 // Handle case where API might return object with users key
                 let usersArray = users;
                 if (!Array.isArray(users) && users.users) {
                     usersArray = users.users;
                 }
-                
+
                 if (!Array.isArray(usersArray)) {
                     throw new Error('Expected array of users, got: ' + typeof users);
                 }
-                
+
                 document.getElementById('total-users').textContent = usersArray.length + ' Users';
-                
+
                 const tbody = document.getElementById('users-table-body');
                 if (usersArray.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;">No users found</td></tr>';
                     return;
                 }
-                
+
                 tbody.innerHTML = usersArray.map(user => `
                     <tr>
                         <td>#${user.id}</td>
@@ -164,9 +212,9 @@
                         <td>${user.created_at ? new Date(user.created_at).toLocaleDateString('en-KE') : 'N/A'}</td>
                     </tr>
                 `).join('');
-                
+
                 debugDiv.innerHTML += 'Users loaded successfully!<br>';
-                
+
             } catch (error) {
                 console.error('Error loading users:', error);
                 debugDiv.innerHTML += 'ERROR: ' + error.message + '<br>';

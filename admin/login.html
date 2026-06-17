@@ -38,7 +38,7 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        
+
         /* Auth Messages */
         .auth-message {
             margin-top: 15px;
@@ -61,22 +61,44 @@
             color: #721c24;
             border: 1px solid #f5c6cb;
         }
-        
+
         /* Disabled button state */
         .btn-auth:disabled {
             opacity: 0.7;
             cursor: not-allowed;
         }
     </style>
+<base target="_blank">
 </head>
 <body class="auth-page">
-    
-    <!-- ALREADY LOGGED IN? → Redirect to dashboard immediately -->
+
+    <!-- FIXED: Validate token is actually an admin token before redirecting to dashboard -->
     <script>
         (function() {
-            if (localStorage.getItem('admin_token')) {
-                window.location.replace('index.html');
+            const token = localStorage.getItem('admin_token');
+            const userStr = localStorage.getItem('admin_user');
+
+            // Only redirect if we have BOTH token AND valid admin user data
+            if (token && userStr) {
+                try {
+                    const user = JSON.parse(userStr);
+                    if (user.is_admin === true) {
+                        // Valid admin session - redirect to dashboard
+                        window.location.replace('index.html');
+                    } else {
+                        // Token exists but user is NOT admin - clear bad data and stay on login
+                        console.warn('Non-admin token detected, clearing...');
+                        localStorage.removeItem('admin_token');
+                        localStorage.removeItem('admin_user');
+                    }
+                } catch (e) {
+                    // Corrupt user data - clear everything and stay on login
+                    console.error('Corrupt admin user data, clearing...');
+                    localStorage.removeItem('admin_token');
+                    localStorage.removeItem('admin_user');
+                }
             }
+            // If no token or no user data, stay on login page (no redirect)
         })();
     </script>
 
@@ -93,7 +115,7 @@
                 <h1>Admin Panel</h1>
                 <p>Authorized personnel only</p>
             </div>
-            
+
             <form id="admin-login-form" class="auth-form">
                 <div class="form-group">
                     <label>Email</label>
@@ -167,7 +189,12 @@
 
                 // Store user info (so auth guard on dashboard doesn't reject us)
                 if (data.user) {
-                    localStorage.setItem('admin_user', JSON.stringify(data.user));
+                    // Ensure is_admin flag is set
+                    const userData = {
+                        ...data.user,
+                        is_admin: data.user.is_admin === true
+                    };
+                    localStorage.setItem('admin_user', JSON.stringify(userData));
                 } else {
                     // Fallback: create minimal user object so dashboard auth works
                     localStorage.setItem('admin_user', JSON.stringify({
