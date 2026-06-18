@@ -128,73 +128,6 @@
             box-shadow: 0 1px 2px rgba(0,0,0,0.04);
         }
 
-        /* ===== PAYMENT SECTION ===== */
-        .payment-section {
-            text-align: center;
-            padding: 40px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.08);
-        }
-        .payment-section h5 {
-            color: rgba(255,255,255,0.5);
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 20px;
-            font-weight: 700;
-        }
-        .payment-icons {
-            display: flex;
-            justify-content: center;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
-        .payment-icon {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px 24px;
-            background: rgba(255,255,255,0.06);
-            border-radius: 12px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: rgba(255,255,255,0.7);
-            border: 1px solid rgba(255,255,255,0.08);
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            user-select: none;
-        }
-        .payment-icon:hover {
-            background: rgba(255,255,255,0.12);
-            border-color: rgba(255,255,255,0.2);
-            transform: translateY(-3px);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-            color: white;
-        }
-        .payment-icon:active {
-            transform: translateY(-1px) scale(0.98);
-        }
-        .payment-icon.mpesa-icon {
-            background: rgba(0,184,148,0.15);
-            color: #00d2a0;
-            border-color: rgba(0,184,148,0.25);
-        }
-        .payment-icon.mpesa-icon:hover {
-            background: rgba(0,184,148,0.25);
-            border-color: rgba(0,184,148,0.4);
-            box-shadow: 0 8px 24px rgba(0,184,148,0.2);
-        }
-        .payment-icon i:first-child { font-size: 1.1rem; }
-        .payment-icon .fa-info-circle {
-            transition: transform 0.3s ease;
-            font-size: 0.75rem;
-            opacity: 0.6;
-        }
-        .payment-icon:hover .fa-info-circle {
-            transform: scale(1.2);
-            opacity: 1;
-        }
-
         /* ===== FOOTER LINKS ===== */
         .footer-bottom-links a {
             cursor: pointer;
@@ -227,8 +160,6 @@
 
         /* ===== RESPONSIVE ===== */
         @media (max-width: 768px) {
-            .payment-icons { flex-direction: column; align-items: center; }
-            .payment-icon { width: 100%; max-width: 280px; justify-content: center; }
             .trust-badges { gap: 20px; }
         }
     </style>
@@ -347,32 +278,6 @@
                 </div>
             </div>
             
-            <!-- CLICKABLE PAYMENT METHODS -->
-            <div class="payment-section">
-                <h5>Accepted Payment Methods</h5>
-                <div class="payment-icons">
-                    <div class="payment-icon mpesa-icon" onclick="showPaymentModal('mpesa')" title="Click to learn about M-Pesa payments">
-                        <i class="fas fa-mobile-alt"></i> M-Pesa
-                        <i class="fas fa-info-circle"></i>
-                    </div>
-                    <div class="payment-icon" onclick="showPaymentModal('cod')" title="Click to learn about Cash on Delivery">
-                        <i class="fas fa-money-bill-wave"></i> Cash on Delivery
-                        <i class="fas fa-info-circle"></i>
-                    </div>
-                    <div class="payment-icon" onclick="showPaymentModal('card')" title="Click to learn about Card payments">
-                        <i class="fas fa-credit-card"></i> Card
-                        <i class="fas fa-info-circle"></i>
-                    </div>
-                    <div class="payment-icon" onclick="showPaymentModal('bank')" title="Click to learn about Bank Transfer">
-                        <i class="fas fa-university"></i> Bank Transfer
-                        <i class="fas fa-info-circle"></i>
-                    </div>
-                </div>
-                <p style="margin-top: 12px; font-size: 0.8rem; color: rgba(255,255,255,0.4);">
-                    <i class="fas fa-shield-alt"></i> All transactions are encrypted and secure. Click any method above for details.
-                </p>
-            </div>
-            
             <div class="footer-bottom">
                 <div class="footer-bottom-links">
                     <a onclick="showFooterModal('privacy')">Privacy Policy</a>
@@ -381,7 +286,7 @@
                     <a onclick="showFooterModal('seller')">Seller Center</a>
                     <a onclick="showFooterModal('advertise')">Advertise</a>
                 </div>
-                <p>&copy; 2024 Apiaro. All rights reserved. Made with <i class="fas fa-heart" style="color: #ff6b00;"></i> in Kenya</p>
+                <p>&copy; 2026 Apiaro. All rights reserved.</p>
                 <div class="country-selector">
                     <img src="https://flagcdn.com/w40/ke.png" alt="Kenya">
                     <span>Kenya</span>
@@ -416,20 +321,6 @@
                 <button class="modal-close" onclick="closeFooterModal()">&times;</button>
             </div>
             <div class="modal-body" id="footer-modal-body"></div>
-        </div>
-    </div>
-
-    <!-- Payment Modal -->
-    <div id="payment-modal" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title" id="payment-modal-title">
-                    <i class="fas fa-credit-card"></i>
-                    <span>Payment Method</span>
-                </h3>
-                <button class="modal-close" onclick="closePaymentModal()">&times;</button>
-            </div>
-            <div class="modal-body" id="payment-modal-body"></div>
         </div>
     </div>
 
@@ -545,7 +436,7 @@
                         <p><i class="fas fa-phone" style="color: #2c5aa0;"></i> <strong>+254 795 725 564</strong> (Mon-Fri, 8AM - 6PM)</p>
                         <p><i class="fas fa-envelope" style="color: #2c5aa0;"></i> <strong>support@apiaro.co.ke</strong></p>
                         <p><i class="fab fa-whatsapp" style="color: #25d366;"></i> <strong>+254 795 725 564</strong> (WhatsApp)</p>
-                        <p><i class="fas fa-map-marker-alt" style="color: #e74c3c;"></i> Lokichar subcounty, Turkana County</p>
+                        <p><i class="fas fa-map-marker-alt" style="color: #e74c3c;"></i> Lokichar subcounty, Turkana</p>
                     </div>
                     <h4>Response Times:</h4>
                     <ul>
@@ -791,138 +682,6 @@
             document.body.style.overflow = '';
         }
 
-        // ===== PAYMENT MODAL DATA & FUNCTIONS =====
-        const paymentContent = {
-            mpesa: {
-                title: 'M-Pesa Payment',
-                icon: 'fa-mobile-alt',
-                content: `
-                    <div style="text-align: center; margin-bottom: 24px;">
-                        <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #00b894, #00d2a0); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: white; font-size: 1.5rem;">
-                            <i class="fas fa-mobile-alt"></i>
-                        </div>
-                        <h4 style="color: #1a1a2e; font-size: 1.1rem; margin-bottom: 8px;">Pay with M-Pesa</h4>
-                        <p style="color: #636e72; font-size: 0.9rem;">Kenya's favorite mobile money solution</p>
-                    </div>
-                    <h4>How to Pay with M-Pesa:</h4>
-                    <ol>
-                        <li>At checkout, select <strong>"M-Pesa"</strong> as your payment method</li>
-                        <li>Enter your M-Pesa registered phone number</li>
-                        <li>Click <strong>"Request Payment"</strong> — an STK push will be sent to your phone</li>
-                        <li>Enter your M-Pesa PIN on your phone to complete the transaction</li>
-                        <li>Payment confirmation is instant — your order is processed immediately!</li>
-                    </ol>
-                    <div class="contact-box" style="background: linear-gradient(135deg, #e6f7f3, #f0fdf9); border-color: #00b89430;">
-                        <p style="margin: 0; color: #2d3436;"><i class="fas fa-shield-alt" style="color: #00b894;"></i> <strong>100% Secure:</strong> We use Safaricom's official M-Pesa API. Your PIN is never stored or seen by us.</p>
-                        <p style="margin: 8px 0 0; color: #636e72; font-size: 0.9rem;"><i class="fas fa-bolt" style="color: #00b894;"></i> Instant confirmation — no waiting for manual verification</p>
-                    </div>
-                    <p style="margin-top: 16px; font-size: 0.9rem;"><strong>Supported:</strong> Safaricom M-Pesa, Airtel Money. Transaction fees may apply as per your provider.</p>
-                `
-            },
-            cod: {
-                title: 'Cash on Delivery',
-                icon: 'fa-money-bill-wave',
-                content: `
-                    <div style="text-align: center; margin-bottom: 24px;">
-                        <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #d4a853, #e8c87a); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: white; font-size: 1.5rem;">
-                            <i class="fas fa-money-bill-wave"></i>
-                        </div>
-                        <h4 style="color: #1a1a2e; font-size: 1.1rem; margin-bottom: 8px;">Cash on Delivery (COD)</h4>
-                        <p style="color: #636e72; font-size: 0.9rem;">Pay when your order arrives at your doorstep</p>
-                    </div>
-                    <h4>How COD Works:</h4>
-                    <ol>
-                        <li>Select <strong>"Cash on Delivery"</strong> at checkout</li>
-                        <li>Place your order — no upfront payment required</li>
-                        <li>Our delivery partner will bring your package to your address</li>
-                        <li>Inspect your items before paying</li>
-                        <li>Pay the rider in <strong>cash</strong> or via <strong>M-Pesa</strong> upon delivery</li>
-                    </ol>
-                    <div class="contact-box" style="background: linear-gradient(135deg, #fff8e6, #fffdf5); border-color: #d4a85340;">
-                        <p style="margin: 0; color: #2d3436;"><i class="fas fa-check-circle" style="color: #d4a853;"></i> <strong>Trust First:</strong> See and verify your product before you pay a single shilling.</p>
-                        <p style="margin: 8px 0 0; color: #636e72; font-size: 0.9rem;"><i class="fas fa-info-circle" style="color: #d4a853;"></i> A small COD fee of KES 50 may apply for orders under KES 2,000</p>
-                    </div>
-                    <p style="margin-top: 16px; font-size: 0.9rem;"><strong>Note:</strong> COD is available in all 47 counties. Remote areas may require a small deposit for high-value items.</p>
-                `
-            },
-            card: {
-                title: 'Card Payment',
-                icon: 'fa-credit-card',
-                content: `
-                    <div style="text-align: center; margin-bottom: 24px;">
-                        <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #3742fa, #2f3542); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: white; font-size: 1.5rem;">
-                            <i class="fas fa-credit-card"></i>
-                        </div>
-                        <h4 style="color: #1a1a2e; font-size: 1.1rem; margin-bottom: 8px;">Debit / Credit Card</h4>
-                        <p style="color: #636e72; font-size: 0.9rem;">Visa, Mastercard, and American Express accepted</p>
-                    </div>
-                    <h4>How Card Payments Work:</h4>
-                    <ol>
-                        <li>Select <strong>"Card Payment"</strong> at checkout</li>
-                        <li>Enter your card details securely on our encrypted payment page</li>
-                        <li>Your bank may send an OTP (One-Time Password) to your phone/email</li>
-                        <li>Enter the OTP to authorize the transaction</li>
-                        <li>Payment is processed instantly — you'll receive confirmation via SMS and email</li>
-                    </ol>
-                    <div class="contact-box" style="background: linear-gradient(135deg, #eef0ff, #f5f6ff); border-color: #3742fa30;">
-                        <p style="margin: 0; color: #2d3436;"><i class="fas fa-lock" style="color: #3742fa;"></i> <strong>PCI-DSS Compliant:</strong> Your card details are encrypted with 256-bit SSL and never stored on our servers.</p>
-                        <p style="margin: 8px 0 0; color: #636e72; font-size: 0.9rem;"><i class="fas fa-globe" style="color: #3742fa;"></i> Supports international cards for overseas customers buying for family in Kenya</p>
-                    </div>
-                    <p style="margin-top: 16px; font-size: 0.9rem;"><strong>Accepted:</strong> Visa, Mastercard, Verve, American Express. No hidden currency conversion fees.</p>
-                `
-            },
-            bank: {
-                title: 'Bank Transfer',
-                icon: 'fa-university',
-                content: `
-                    <div style="text-align: center; margin-bottom: 24px;">
-                        <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #1a1a2e, #2f3542); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: white; font-size: 1.5rem;">
-                            <i class="fas fa-university"></i>
-                        </div>
-                        <h4 style="color: #1a1a2e; font-size: 1.1rem; margin-bottom: 8px;">Bank Transfer / EFT</h4>
-                        <p style="color: #636e72; font-size: 0.9rem;">Direct bank deposit or electronic funds transfer</p>
-                    </div>
-                    <h4>How to Pay via Bank Transfer:</h4>
-                    <ol>
-                        <li>Select <strong>"Bank Transfer"</strong> at checkout</li>
-                        <li>Our bank account details will be displayed on the confirmation page</li>
-                        <li>Log in to your bank app or visit your branch to complete the transfer</li>
-                        <li>Use your <strong>Order Number</strong> as the payment reference</li>
-                        <li>Email the screenshot or receipt to <strong>payments@apiaro.co.ke</strong></li>
-                        <li>Your order is processed within 2 hours of payment confirmation</li>
-                    </ol>
-                    <div class="contact-box" style="background: linear-gradient(135deg, #f0f0f5, #f8f8fa); border-color: #1a1a2e20;">
-                        <p style="margin: 0; color: #2d3436;"><i class="fas fa-building-columns" style="color: #1a1a2e;"></i> <strong>Bank Details:</strong></p>
-                        <p style="margin: 8px 0 0; font-size: 0.9rem; color: #2d3436;">Account Name: <strong>Apiaro Limited</strong></p>
-                        <p style="margin: 4px 0; font-size: 0.9rem; color: #2d3436;">Bank: <strong>KCB Bank Kenya</strong></p>
-                        <p style="margin: 4px 0; font-size: 0.9rem; color: #2d3436;">Account: <strong>1234567890</strong></p>
-                        <p style="margin: 4px 0; font-size: 0.9rem; color: #2d3436;">Branch: <strong>Lokichar</strong></p>
-                    </div>
-                    <p style="margin-top: 16px; font-size: 0.9rem;"><strong>Tip:</strong> M-Pesa PayBill option also available using our business number for instant confirmation.</p>
-                `
-            }
-        };
-
-        function showPaymentModal(type) {
-            const modal = document.getElementById('payment-modal');
-            const titleEl = document.getElementById('payment-modal-title');
-            const bodyEl = document.getElementById('payment-modal-body');
-            const content = paymentContent[type];
-            
-            if (content) {
-                titleEl.innerHTML = `<i class="fas ${content.icon}"></i> <span>${content.title}</span>`;
-                bodyEl.innerHTML = content.content;
-                modal.classList.add('active');
-                document.body.style.overflow = 'hidden';
-            }
-        }
-
-        function closePaymentModal() {
-            const modal = document.getElementById('payment-modal');
-            modal.classList.remove('active');
-            document.body.style.overflow = '';
-        }
-
         // ===== BACKDROP & ESCAPE KEY LISTENERS =====
         document.getElementById('help-modal').addEventListener('click', function(e) {
             if (e.target === this) closeHelpModal();
@@ -930,15 +689,11 @@
         document.getElementById('footer-modal').addEventListener('click', function(e) {
             if (e.target === this) closeFooterModal();
         });
-        document.getElementById('payment-modal').addEventListener('click', function(e) {
-            if (e.target === this) closePaymentModal();
-        });
 
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 closeHelpModal();
                 closeFooterModal();
-                closePaymentModal();
             }
         });
 
