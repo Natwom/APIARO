@@ -128,6 +128,129 @@
             box-shadow: 0 1px 2px rgba(0,0,0,0.04);
         }
 
+        /* ===== PRODUCT DETAIL MODAL ===== */
+        .product-detail-modal .modal-content {
+            max-width: 600px;
+        }
+        .product-detail-image {
+            width: 100%;
+            height: 280px;
+            object-fit: cover;
+            border-radius: 16px 16px 0 0;
+        }
+        .product-detail-body {
+            padding: 24px 32px 32px;
+        }
+        .product-detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+        .product-detail-header h2 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #1a1a2e;
+            margin: 0;
+        }
+        .product-detail-price {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #ff6b00;
+        }
+        .product-detail-meta {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            padding: 12px 16px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        .product-detail-meta span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.9rem;
+            color: #636e72;
+        }
+        .product-detail-meta span i {
+            color: #ff6b00;
+        }
+        .product-detail-description {
+            color: #636e72;
+            line-height: 1.7;
+            margin-bottom: 20px;
+        }
+        .product-detail-specs {
+            background: #faf9f7;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        .product-detail-specs h4 {
+            margin: 0 0 12px 0;
+            color: #1a1a2e;
+            font-size: 0.95rem;
+        }
+        .product-detail-specs table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .product-detail-specs td {
+            padding: 8px 0;
+            border-bottom: 1px solid #e8e6e3;
+            font-size: 0.9rem;
+        }
+        .product-detail-specs td:first-child {
+            color: #636e72;
+            width: 40%;
+        }
+        .product-detail-specs td:last-child {
+            color: #1a1a2e;
+            font-weight: 600;
+        }
+        .product-detail-specs tr:last-child td {
+            border-bottom: none;
+        }
+        .product-detail-total {
+            background: linear-gradient(135deg, #fff0e6, #fff8f3);
+            border-radius: 12px;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .product-detail-total span {
+            color: #636e72;
+            font-size: 0.9rem;
+        }
+        .product-detail-total strong {
+            color: #1a1a2e;
+            font-size: 1.25rem;
+        }
+
+        /* ===== ORDER ITEM CLICKABLE ===== */
+        .order-item {
+            cursor: pointer;
+            transition: background 0.2s;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin: 0 -12px;
+        }
+        .order-item:hover {
+            background: #f8f9fa;
+        }
+        .order-item .item-name {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .order-item .item-name i {
+            color: #ff6b00;
+            font-size: 0.8rem;
+        }
+
         /* ===== FOOTER LINKS ===== */
         .footer-bottom-links a {
             cursor: pointer;
@@ -161,6 +284,8 @@
         /* ===== RESPONSIVE ===== */
         @media (max-width: 768px) {
             .trust-badges { gap: 20px; }
+            .product-detail-image { height: 200px; }
+            .product-detail-body { padding: 20px; }
         }
     </style>
 </head>
@@ -319,6 +444,61 @@
                 <button class="modal-close" onclick="closeFooterModal()">&times;</button>
             </div>
             <div class="modal-body" id="footer-modal-body"></div>
+        </div>
+    </div>
+
+    <!-- Product Detail Modal -->
+    <div id="product-detail-modal" class="modal-overlay product-detail-modal">
+        <div class="modal-content">
+            <img id="pd-image" class="product-detail-image" src="" alt="Product Image">
+            <div class="product-detail-body">
+                <div class="product-detail-header">
+                    <h2 id="pd-name">Product Name</h2>
+                    <div class="product-detail-price" id="pd-unit-price">KES 0</div>
+                </div>
+                <div class="product-detail-meta">
+                    <span><i class="fas fa-hashtag"></i> Order #<span id="pd-order-id">-</span></span>
+                    <span><i class="fas fa-shopping-bag"></i> Qty: <strong id="pd-quantity">0</strong></span>
+                    <span><i class="fas fa-calendar"></i> <span id="pd-date">-</span></span>
+                </div>
+                <div class="product-detail-description" id="pd-description">
+                    Product description goes here.
+                </div>
+                <div class="product-detail-specs">
+                    <h4><i class="fas fa-list-ul"></i> Purchase Details</h4>
+                    <table>
+                        <tr>
+                            <td>Unit Price</td>
+                            <td id="pd-unit-price-detail">KES 0</td>
+                        </tr>
+                        <tr>
+                            <td>Quantity</td>
+                            <td id="pd-qty-detail">0</td>
+                        </tr>
+                        <tr>
+                            <td>Subtotal</td>
+                            <td id="pd-subtotal">KES 0</td>
+                        </tr>
+                        <tr>
+                            <td>Order Status</td>
+                            <td id="pd-status">-</td>
+                        </tr>
+                        <tr>
+                            <td>Payment Method</td>
+                            <td id="pd-payment">-</td>
+                        </tr>
+                        <tr>
+                            <td>Delivered To</td>
+                            <td id="pd-delivery">-</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="product-detail-total">
+                    <span>Total Paid for This Item</span>
+                    <strong id="pd-total">KES 0</strong>
+                </div>
+            </div>
+            <button class="modal-close" onclick="closeProductDetailModal()" style="position:absolute;top:12px;right:12px;background:rgba(255,255,255,0.9);">&times;</button>
         </div>
     </div>
 
@@ -692,7 +872,88 @@
             if (e.key === 'Escape') {
                 closeHelpModal();
                 closeFooterModal();
+                closeProductDetailModal();
             }
+        });
+
+        // ===== PRODUCT DETAIL MODAL FUNCTIONS =====
+        function openProductDetailModal(order, item, productData) {
+            const modal = document.getElementById('product-detail-modal');
+            
+            // Product image (fallback to placeholder if no image)
+            const imageUrl = productData?.image_url || productData?.image || 'https://via.placeholder.com/600x280?text=No+Image';
+            document.getElementById('pd-image').src = imageUrl;
+            document.getElementById('pd-image').alt = item.product_name;
+            
+            // Basic info
+            document.getElementById('pd-name').textContent = item.product_name;
+            document.getElementById('pd-order-id').textContent = order.id;
+            document.getElementById('pd-quantity').textContent = item.quantity;
+            
+            // Date
+            const orderDate = new Date(order.created_at).toLocaleDateString('en-KE', {
+                year: 'numeric', month: 'short', day: 'numeric'
+            });
+            document.getElementById('pd-date').textContent = orderDate;
+            
+            // Description
+            document.getElementById('pd-description').textContent = 
+                productData?.description || 
+                `You purchased ${item.quantity} unit(s) of ${item.product_name}. This item was part of order #${order.id} placed on ${orderDate}.`;
+            
+            // Calculate unit price
+            const unitPrice = item.unit_price || (item.total_price / item.quantity);
+            document.getElementById('pd-unit-price').textContent = `KES ${unitPrice.toLocaleString()}`;
+            document.getElementById('pd-unit-price-detail').textContent = `KES ${unitPrice.toLocaleString()}`;
+            document.getElementById('pd-qty-detail').textContent = item.quantity;
+            document.getElementById('pd-subtotal').textContent = `KES ${item.total_price.toLocaleString()}`;
+            
+            // Order status with color
+            const statusColors = {
+                'pending': '⏳ Pending',
+                'paid': '💰 Paid',
+                'processing': '⚙️ Processing',
+                'shipped': '🚚 Shipped',
+                'delivered': '✅ Delivered',
+                'cancelled': '❌ Cancelled'
+            };
+            document.getElementById('pd-status').innerHTML = 
+                `<span style="color: ${getStatusColor(order.status)}">${statusColors[order.status] || order.status}</span>`;
+            
+            // Payment & delivery
+            document.getElementById('pd-payment').textContent = 
+                order.payment_method ? order.payment_method.toUpperCase() : 'N/A';
+            document.getElementById('pd-delivery').textContent = 
+                `${order.county || 'N/A'}, ${order.town || 'N/A'}`;
+            
+            // Total for this item
+            document.getElementById('pd-total').textContent = `KES ${item.total_price.toLocaleString()}`;
+            
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeProductDetailModal() {
+            const modal = document.getElementById('product-detail-modal');
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function getStatusColor(status) {
+            const colors = {
+                'pending': '#f59e0b',
+                'paid': '#10b981',
+                'processing': '#3b82f6',
+                'shipped': '#8b5cf6',
+                'delivered': '#10b981',
+                'cancelled': '#ef4444'
+            };
+            return colors[status] || '#636e72';
+        }
+
+        // Close product modal on backdrop click
+        document.getElementById('product-detail-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeProductDetailModal();
         });
 
         // ===== LOAD ORDERS =====
@@ -752,21 +1013,24 @@
                                 </span>
                             </div>
                             <div class="order-items">
-                                ${order.items.map(item => `
-                                    <div class="order-item">
-                                        <span>${item.product_name} x${item.quantity}</span>
-                                        <span>KES ${item.total_price}</span>
+                                ${order.items.map((item, idx) => `
+                                    <div class="order-item" onclick='showProductDetail(${JSON.stringify(order).replace(/'/g, "&#39;")}, ${JSON.stringify(item).replace(/'/g, "&#39;")})'>
+                                        <div class="item-name">
+                                            <i class="fas fa-eye"></i>
+                                            <span>${item.product_name} x${item.quantity}</span>
+                                        </div>
+                                        <span>KES ${item.total_price.toLocaleString()}</span>
                                     </div>
                                 `).join('')}
                             </div>
                             <div class="order-footer">
                                 <div class="order-details">
-                                    <p><strong>Payment:</strong> ${order.payment_method.toUpperCase()}</p>
-                                    <p><strong>Delivery:</strong> ${order.county}, ${order.town}</p>
+                                    <p><strong>Payment:</strong> ${order.payment_method ? order.payment_method.toUpperCase() : 'N/A'}</p>
+                                    <p><strong>Delivery:</strong> ${order.county || 'N/A'}, ${order.town || 'N/A'}</p>
                                     <p><strong>SMS Sent:</strong> ${order.sms_sent ? '<i class="fas fa-check" style="color: var(--success);"></i> Yes' : '<i class="fas fa-times" style="color: var(--gray);"></i> No'}</p>
                                 </div>
                                 <div class="order-total">
-                                    <strong>Total: KES ${order.total_amount}</strong>
+                                    <strong>Total: KES ${order.total_amount.toLocaleString()}</strong>
                                 </div>
                             </div>
                         </div>
@@ -778,6 +1042,38 @@
                 document.getElementById('orders-list').innerHTML = 
                     '<p class="error">Failed to load orders. Please try again.</p>';
             }
+        }
+
+        // Fetch product details and show modal
+        async function showProductDetail(order, item) {
+            const token = localStorage.getItem('token');
+            let productData = null;
+            
+            // Try to fetch full product details if product_id is available
+            if (item.product_id) {
+                try {
+                    const response = await fetch(`https://apiaro-backend.onrender.com/products/${item.product_id}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (response.ok) {
+                        productData = await response.json();
+                    }
+                } catch (e) {
+                    console.log('Could not fetch product details, using order item data');
+                }
+            }
+            
+            // If no product data from API, construct from order item
+            if (!productData) {
+                productData = {
+                    name: item.product_name,
+                    description: item.description,
+                    image_url: item.image_url || item.image,
+                    price: item.unit_price || (item.total_price / item.quantity)
+                };
+            }
+            
+            openProductDetailModal(order, item, productData);
         }
 
         document.addEventListener('DOMContentLoaded', () => {
