@@ -4,25 +4,25 @@
     <!-- Auth Guard -->
     <script>
         (function() {
-            const token = localStorage.getItem('admin_token');
-            const userStr = localStorage.getItem('admin_user');
+            const token = sessionStorage.getItem('admin_token');
+            const userStr = sessionStorage.getItem('admin_user');
             if (!token || !userStr) {
-                localStorage.removeItem('admin_token');
-                localStorage.removeItem('admin_user');
+                sessionStorage.removeItem('admin_token');
+                sessionStorage.removeItem('admin_user');
                 window.location.replace('login.html');
                 return;
             }
             try {
                 const user = JSON.parse(userStr);
                 if (user.is_admin !== true) {
-                    localStorage.removeItem('admin_token');
-                    localStorage.removeItem('admin_user');
+                    sessionStorage.removeItem('admin_token');
+                    sessionStorage.removeItem('admin_user');
                     window.location.replace('login.html');
                     return;
                 }
             } catch (e) {
-                localStorage.removeItem('admin_token');
-                localStorage.removeItem('admin_user');
+                sessionStorage.removeItem('admin_token');
+                sessionStorage.removeItem('admin_user');
                 window.location.replace('login.html');
                 return;
             }
@@ -1379,8 +1379,8 @@
         let allOrders = [];
 
         function checkAdminAuth() {
-            const token = localStorage.getItem('admin_token');
-            const userStr = localStorage.getItem('admin_user');
+            const token = sessionStorage.getItem('admin_token');
+            const userStr = sessionStorage.getItem('admin_user');
             if (!token || !userStr) {
                 window.location.href = 'login.html';
                 return null;
@@ -1402,13 +1402,13 @@
         }
 
         function logout() {
-            localStorage.removeItem('admin_token');
-            localStorage.removeItem('admin_user');
+            sessionStorage.removeItem('admin_token');
+            sessionStorage.removeItem('admin_user');
             window.location.href = 'login.html';
         }
 
         async function fetchWithAuth(url, options = {}) {
-            const token = localStorage.getItem('admin_token');
+            const token = sessionStorage.getItem('admin_token');
             const headers = { 'Authorization': `Bearer ${token}` };
             if (!(options.body instanceof FormData)) {
                 headers['Content-Type'] = 'application/json';

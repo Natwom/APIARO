@@ -8,11 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
             --primary: #ff6b00;
@@ -116,10 +112,7 @@
         }
 
         @keyframes cardEnter {
-            to {
-                opacity: 1;
-                transform: translateY(0) rotateX(0);
-            }
+            to { opacity: 1; transform: translateY(0) rotateX(0); }
         }
 
         /* Header */
@@ -146,10 +139,7 @@
             50% { box-shadow: 0 8px 40px rgba(255, 107, 0, 0.5); }
         }
 
-        .brand-logo i {
-            font-size: 28px;
-            color: white;
-        }
+        .brand-logo i { font-size: 28px; color: white; }
 
         .auth-header h1 {
             font-size: 1.75rem;
@@ -200,9 +190,7 @@
             gap: 20px;
         }
 
-        .form-group {
-            position: relative;
-        }
+        .form-group { position: relative; }
 
         .form-group label {
             display: block;
@@ -210,12 +198,9 @@
             font-weight: 500;
             color: var(--text-secondary);
             margin-bottom: 8px;
-            transition: color 0.2s;
         }
 
-        .input-wrapper {
-            position: relative;
-        }
+        .input-wrapper { position: relative; }
 
         .input-wrapper i.icon-left {
             position: absolute;
@@ -241,9 +226,7 @@
             outline: none;
         }
 
-        .input-wrapper input::placeholder {
-            color: var(--text-muted);
-        }
+        .input-wrapper input::placeholder { color: var(--text-muted); }
 
         .input-wrapper input:focus {
             border-color: var(--border-focus);
@@ -271,50 +254,7 @@
             transition: color 0.2s;
         }
 
-        .toggle-password:hover {
-            color: var(--text-secondary);
-        }
-
-        /* Remember & Forgot */
-        .form-extras {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-top: -4px;
-        }
-
-        .remember-me {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            user-select: none;
-        }
-
-        .remember-me input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            accent-color: var(--primary);
-            cursor: pointer;
-        }
-
-        .remember-me span {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-        }
-
-        .forgot-link {
-            font-size: 0.85rem;
-            color: var(--primary);
-            text-decoration: none;
-            font-weight: 500;
-            transition: opacity 0.2s;
-        }
-
-        .forgot-link:hover {
-            opacity: 0.8;
-            text-decoration: underline;
-        }
+        .toggle-password:hover { color: var(--text-secondary); }
 
         /* Submit Button */
         .btn-auth {
@@ -345,18 +285,14 @@
             transition: left 0.5s ease;
         }
 
-        .btn-auth:hover::before {
-            left: 100%;
-        }
+        .btn-auth:hover::before { left: 100%; }
 
         .btn-auth:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(255, 107, 0, 0.4);
         }
 
-        .btn-auth:active {
-            transform: translateY(0);
-        }
+        .btn-auth:active { transform: translateY(0); }
 
         .btn-auth:disabled {
             opacity: 0.6;
@@ -365,9 +301,7 @@
             box-shadow: none;
         }
 
-        .btn-auth:disabled::before {
-            display: none;
-        }
+        .btn-auth:disabled::before { display: none; }
 
         /* Auth Message */
         .auth-message {
@@ -384,14 +318,8 @@
         }
 
         @keyframes messageSlide {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .auth-message.success {
@@ -435,9 +363,7 @@
             transition: color 0.2s;
         }
 
-        .auth-footer a:hover {
-            color: var(--primary);
-        }
+        .auth-footer a:hover { color: var(--primary); }
 
         /* Spinner Overlay */
         .spinner-overlay {
@@ -453,9 +379,7 @@
             gap: 20px;
         }
 
-        .spinner-overlay.active {
-            display: flex;
-        }
+        .spinner-overlay.active { display: flex; }
 
         .spinner-ring {
             width: 56px;
@@ -482,9 +406,7 @@
             animation: spin 1.5s linear infinite reverse;
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
         .spinner-overlay p {
             color: var(--text-secondary);
@@ -492,6 +414,22 @@
             font-weight: 500;
             letter-spacing: 0.5px;
         }
+
+        /* Rate Limit */
+        .rate-limit-info {
+            display: none;
+            text-align: center;
+            padding: 10px;
+            background: rgba(255, 165, 2, 0.1);
+            border: 1px solid rgba(255, 165, 2, 0.2);
+            border-radius: 8px;
+            color: #ffa502;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-top: 8px;
+        }
+
+        .rate-limit-info.active { display: block; }
 
         /* Security Badge */
         .security-badge {
@@ -504,48 +442,14 @@
             font-size: 0.75rem;
         }
 
-        .security-badge i {
-            color: var(--success);
-            font-size: 0.8rem;
-        }
-
-        /* Rate Limit Warning */
-        .rate-limit-info {
-            display: none;
-            text-align: center;
-            padding: 10px;
-            background: var(--warning-bg);
-            border: 1px solid rgba(255, 165, 2, 0.2);
-            border-radius: 8px;
-            color: var(--warning);
-            font-size: 0.8rem;
-            font-weight: 500;
-            margin-top: 8px;
-        }
-
-        .rate-limit-info.active {
-            display: block;
-        }
+        .security-badge i { color: var(--success); font-size: 0.8rem; }
 
         /* Responsive */
         @media (max-width: 480px) {
-            .auth-card {
-                padding: 32px 24px;
-                border-radius: 16px;
-            }
-
-            .auth-header h1 {
-                font-size: 1.5rem;
-            }
-
-            .form-extras {
-                flex-direction: column;
-                gap: 12px;
-                align-items: flex-start;
-            }
+            .auth-card { padding: 32px 24px; border-radius: 16px; }
+            .auth-header h1 { font-size: 1.5rem; }
         }
 
-        /* Shake animation for errors */
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
             20% { transform: translateX(-8px); }
@@ -554,9 +458,7 @@
             80% { transform: translateX(4px); }
         }
 
-        .shake {
-            animation: shake 0.4s ease;
-        }
+        .shake { animation: shake 0.4s ease; }
     </style>
 <base target="_blank">
 </head>
@@ -565,31 +467,6 @@
     <!-- Background Effects -->
     <div class="bg-animation"></div>
     <div class="grid-pattern"></div>
-
-    <!-- Auth Guard -->
-    <script>
-        (function() {
-            const token = localStorage.getItem('admin_token');
-            const userStr = localStorage.getItem('admin_user');
-
-            if (token && userStr) {
-                try {
-                    const user = JSON.parse(userStr);
-                    if (user.is_admin === true) {
-                        window.location.replace('index.html');
-                    } else {
-                        console.warn('Non-admin token detected, clearing...');
-                        localStorage.removeItem('admin_token');
-                        localStorage.removeItem('admin_user');
-                    }
-                } catch (e) {
-                    console.error('Corrupt admin user data, clearing...');
-                    localStorage.removeItem('admin_token');
-                    localStorage.removeItem('admin_user');
-                }
-            }
-        })();
-    </script>
 
     <!-- Spinner Overlay -->
     <div class="spinner-overlay" id="spinner-overlay">
@@ -619,7 +496,7 @@
                             name="email"
                             placeholder="Enter your admin email"
                             required
-                            autocomplete="email"
+                            autocomplete="off"
                         >
                     </div>
                 </div>
@@ -634,21 +511,13 @@
                             name="password"
                             placeholder="Enter your password"
                             required
-                            autocomplete="current-password"
+                            autocomplete="off"
                             minlength="6"
                         >
                         <button type="button" class="toggle-password" id="toggle-password" title="Show password">
                             <i class="fas fa-eye"></i>
                         </button>
                     </div>
-                </div>
-
-                <div class="form-extras">
-                    <label class="remember-me">
-                        <input type="checkbox" id="remember-me">
-                        <span>Remember me</span>
-                    </label>
-                    <a href="#" class="forgot-link">Forgot password?</a>
                 </div>
 
                 <button type="submit" class="btn-auth" id="login-btn">
@@ -688,11 +557,15 @@
         const rateLimitInfo = document.getElementById('rate-limit-info');
         const retryTimer = document.getElementById('retry-timer');
 
+        // ── SESSION-ONLY: clear any old persistent tokens on load ──
+        localStorage.removeItem('admin_token');
+        localStorage.removeItem('admin_user');
+
         // Rate limiting
         const MAX_ATTEMPTS = 5;
         const LOCKOUT_SECONDS = 30;
-        let failedAttempts = parseInt(localStorage.getItem('login_failed_attempts') || '0');
-        let lockoutUntil = parseInt(localStorage.getItem('login_lockout_until') || '0');
+        let failedAttempts = parseInt(sessionStorage.getItem('login_failed_attempts') || '0');
+        let lockoutUntil = parseInt(sessionStorage.getItem('login_lockout_until') || '0');
 
         function isLockedOut() {
             return Date.now() < lockoutUntil;
@@ -700,17 +573,17 @@
 
         function recordFailedAttempt() {
             failedAttempts++;
-            localStorage.setItem('login_failed_attempts', failedAttempts);
+            sessionStorage.setItem('login_failed_attempts', failedAttempts);
             if (failedAttempts >= MAX_ATTEMPTS) {
                 lockoutUntil = Date.now() + (LOCKOUT_SECONDS * 1000);
-                localStorage.setItem('login_lockout_until', lockoutUntil);
+                sessionStorage.setItem('login_lockout_until', lockoutUntil);
                 startLockoutTimer();
             }
         }
 
         function recordSuccess() {
-            localStorage.removeItem('login_failed_attempts');
-            localStorage.removeItem('login_lockout_until');
+            sessionStorage.removeItem('login_failed_attempts');
+            sessionStorage.removeItem('login_lockout_until');
             failedAttempts = 0;
             lockoutUntil = 0;
         }
@@ -725,18 +598,15 @@
                     rateLimitInfo.classList.remove('active');
                     loginBtn.disabled = false;
                     failedAttempts = 0;
-                    localStorage.removeItem('login_failed_attempts');
-                    localStorage.removeItem('login_lockout_until');
+                    sessionStorage.removeItem('login_failed_attempts');
+                    sessionStorage.removeItem('login_lockout_until');
                 } else {
                     retryTimer.textContent = remaining;
                 }
             }, 1000);
         }
 
-        // Check lockout on page load
-        if (isLockedOut()) {
-            startLockoutTimer();
-        }
+        if (isLockedOut()) startLockoutTimer();
 
         // Password toggle
         const togglePassword = document.getElementById('toggle-password');
@@ -758,9 +628,7 @@
 
         function hideSpinner() {
             spinnerOverlay.classList.remove('active');
-            if (!isLockedOut()) {
-                loginBtn.disabled = false;
-            }
+            if (!isLockedOut()) loginBtn.disabled = false;
             btnText.textContent = 'Sign In to Dashboard';
         }
 
@@ -777,7 +645,6 @@
         document.getElementById('admin-login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            // Check rate limit
             if (isLockedOut()) {
                 showMessage('Too many failed attempts. Please wait before trying again.', 'error');
                 authCard.classList.add('shake');
@@ -816,21 +683,15 @@
                     return;
                 }
 
-                // Success — reset rate limit
                 recordSuccess();
 
-                // Store token
-                localStorage.setItem('admin_token', data.access_token);
-
-                // Store user info
+                // ── SESSION-ONLY: store in sessionStorage, NOT localStorage ──
+                sessionStorage.setItem('admin_token', data.access_token);
                 if (data.user) {
-                    const userData = {
-                        ...data.user,
-                        is_admin: data.user.is_admin === true
-                    };
-                    localStorage.setItem('admin_user', JSON.stringify(userData));
+                    const userData = { ...data.user, is_admin: data.user.is_admin === true };
+                    sessionStorage.setItem('admin_user', JSON.stringify(userData));
                 } else {
-                    localStorage.setItem('admin_user', JSON.stringify({
+                    sessionStorage.setItem('admin_user', JSON.stringify({
                         email: credentials.email,
                         is_admin: true,
                         full_name: 'Administrator'
