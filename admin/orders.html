@@ -4,6 +4,9 @@
     <!-- Auth Guard -->
     <script>
         (function() {
+            localStorage.removeItem('admin_token');
+            localStorage.removeItem('admin_user');
+
             const token = sessionStorage.getItem('admin_token');
             const userStr = sessionStorage.getItem('admin_user');
             if (!token || !userStr) {
@@ -1379,6 +1382,9 @@
         let allOrders = [];
 
         function checkAdminAuth() {
+            localStorage.removeItem('admin_token');
+            localStorage.removeItem('admin_user');
+
             const token = sessionStorage.getItem('admin_token');
             const userStr = sessionStorage.getItem('admin_user');
             if (!token || !userStr) {
@@ -1408,6 +1414,9 @@
         }
 
         async function fetchWithAuth(url, options = {}) {
+            localStorage.removeItem('admin_token');
+            localStorage.removeItem('admin_user');
+
             const token = sessionStorage.getItem('admin_token');
             const headers = { 'Authorization': `Bearer ${token}` };
             if (!(options.body instanceof FormData)) {
