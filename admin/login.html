@@ -3,131 +3,657 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login - Apiaro</title>
+    <title>Admin Login — Apiaro</title>
     <link rel="icon" type="image/png" href="favicon.png">
-    <link rel="stylesheet" href="css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #ff6b00;
+            --primary-hover: #e66000;
+            --primary-glow: rgba(255, 107, 0, 0.3);
+            --bg-dark: #0f0f1a;
+            --bg-card: #1a1a2e;
+            --bg-card-hover: #22223b;
+            --text-primary: #f0f0f5;
+            --text-secondary: #a0a0b8;
+            --text-muted: #6b6b8a;
+            --border: #2d2d44;
+            --border-focus: #ff6b00;
+            --error: #ff4757;
+            --error-bg: rgba(255, 71, 87, 0.1);
+            --success: #2ed573;
+            --success-bg: rgba(46, 213, 115, 0.1);
+            --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            --shadow-glow: 0 0 40px rgba(255, 107, 0, 0.15);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-dark);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%);
+            top: -200px;
+            right: -200px;
+            animation: float 8s ease-in-out infinite;
+        }
+
+        .bg-animation::after {
+            content: '';
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(100, 100, 255, 0.08) 0%, transparent 70%);
+            bottom: -100px;
+            left: -100px;
+            animation: float 10s ease-in-out infinite reverse;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(30px, -30px) scale(1.1); }
+        }
+
+        /* Grid Pattern Overlay */
+        .grid-pattern {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 50px 50px;
+            mask-image: radial-gradient(ellipse at center, black 40%, transparent 80%);
+            -webkit-mask-image: radial-gradient(ellipse at center, black 40%, transparent 80%);
+        }
+
+        /* Main Container */
+        .auth-wrapper {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 440px;
+            padding: 20px;
+            perspective: 1000px;
+        }
+
+        .auth-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 48px 40px;
+            box-shadow: var(--shadow), var(--shadow-glow);
+            animation: cardEnter 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            opacity: 0;
+            transform: translateY(30px) rotateX(5deg);
+            backdrop-filter: blur(20px);
+        }
+
+        @keyframes cardEnter {
+            to {
+                opacity: 1;
+                transform: translateY(0) rotateX(0);
+            }
+        }
+
+        /* Header */
+        .auth-header {
+            text-align: center;
+            margin-bottom: 36px;
+        }
+
+        .brand-logo {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--primary) 0%, #ff8c42 100%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 8px 32px rgba(255, 107, 0, 0.3);
+            animation: logoPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes logoPulse {
+            0%, 100% { box-shadow: 0 8px 32px rgba(255, 107, 0, 0.3); }
+            50% { box-shadow: 0 8px 40px rgba(255, 107, 0, 0.5); }
+        }
+
+        .brand-logo i {
+            font-size: 28px;
+            color: white;
+        }
+
+        .auth-header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .auth-header p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            font-weight: 400;
+        }
+
+        .auth-header .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 107, 0, 0.12);
+            color: var(--primary);
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 6px 14px;
+            border-radius: 100px;
+            margin-top: 12px;
+            border: 1px solid rgba(255, 107, 0, 0.2);
+        }
+
+        .auth-header .badge::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: var(--primary);
+            border-radius: 50%;
+            animation: blink 2s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* Form */
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .form-group {
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            transition: color 0.2s;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-wrapper i.icon-left {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            transition: color 0.2s;
+            pointer-events: none;
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            padding: 14px 16px 14px 46px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            font-family: inherit;
+            transition: all 0.25s ease;
+            outline: none;
+        }
+
+        .input-wrapper input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .input-wrapper input:focus {
+            border-color: var(--border-focus);
+            background: rgba(255, 107, 0, 0.03);
+            box-shadow: 0 0 0 4px rgba(255, 107, 0, 0.08);
+        }
+
+        .input-wrapper input:focus + i.icon-left,
+        .input-wrapper input:focus ~ i.icon-left {
+            color: var(--primary);
+        }
+
+        /* Password Toggle */
+        .toggle-password {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .toggle-password:hover {
+            color: var(--text-secondary);
+        }
+
+        /* Remember & Forgot */
+        .form-extras {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: -4px;
+        }
+
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .remember-me input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+
+        .remember-me span {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .forgot-link {
+            font-size: 0.85rem;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity 0.2s;
+        }
+
+        .forgot-link:hover {
+            opacity: 0.8;
+            text-decoration: underline;
+        }
+
+        /* Submit Button */
+        .btn-auth {
+            width: 100%;
+            padding: 14px 24px;
+            background: linear-gradient(135deg, var(--primary) 0%, #ff8c42 100%);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 0.95rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .btn-auth::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn-auth:hover::before {
+            left: 100%;
+        }
+
+        .btn-auth:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 107, 0, 0.4);
+        }
+
+        .btn-auth:active {
+            transform: translateY(0);
+        }
+
+        .btn-auth:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-auth:disabled::before {
+            display: none;
+        }
+
+        /* Auth Message */
+        .auth-message {
+            padding: 14px 16px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-align: center;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            animation: messageSlide 0.3s ease;
+        }
+
+        @keyframes messageSlide {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .auth-message.success {
+            display: flex;
+            background: var(--success-bg);
+            color: var(--success);
+            border: 1px solid rgba(46, 213, 115, 0.2);
+        }
+
+        .auth-message.error {
+            display: flex;
+            background: var(--error-bg);
+            color: var(--error);
+            border: 1px solid rgba(255, 71, 87, 0.2);
+        }
+
+        /* Footer */
+        .auth-footer {
+            text-align: center;
+            margin-top: 28px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+        }
+
+        .auth-footer p {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        .auth-footer .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 8px;
+        }
+
+        .auth-footer a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.8rem;
+            transition: color 0.2s;
+        }
+
+        .auth-footer a:hover {
+            color: var(--primary);
+        }
+
         /* Spinner Overlay */
         .spinner-overlay {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255,255,255,0.95);
+            inset: 0;
+            background: rgba(15, 15, 26, 0.85);
+            backdrop-filter: blur(8px);
             z-index: 9999;
             justify-content: center;
             align-items: center;
             flex-direction: column;
-            gap: 15px;
+            gap: 20px;
         }
+
         .spinner-overlay.active {
             display: flex;
         }
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #ff6b00;
+
+        .spinner-ring {
+            width: 56px;
+            height: 56px;
+            position: relative;
+        }
+
+        .spinner-ring::before,
+        .spinner-ring::after {
+            content: '';
+            position: absolute;
+            inset: 0;
             border-radius: 50%;
+            border: 3px solid transparent;
+        }
+
+        .spinner-ring::before {
+            border-top-color: var(--primary);
             animation: spin 1s linear infinite;
         }
+
+        .spinner-ring::after {
+            border-top-color: rgba(255, 107, 0, 0.3);
+            animation: spin 1.5s linear infinite reverse;
+        }
+
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            to { transform: rotate(360deg); }
         }
 
-        /* Auth Messages */
-        .auth-message {
-            margin-top: 15px;
-            padding: 12px 16px;
-            border-radius: 6px;
-            display: none;
+        .spinner-overlay p {
+            color: var(--text-secondary);
             font-size: 0.95rem;
-            text-align: center;
             font-weight: 500;
-        }
-        .auth-message.success {
-            display: block;
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        .auth-message.error {
-            display: block;
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+            letter-spacing: 0.5px;
         }
 
-        /* Disabled button state */
-        .btn-auth:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
+        /* Security Badge */
+        .security-badge {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 16px;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+
+        .security-badge i {
+            color: var(--success);
+            font-size: 0.8rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .auth-card {
+                padding: 32px 24px;
+                border-radius: 16px;
+            }
+
+            .auth-header h1 {
+                font-size: 1.5rem;
+            }
+
+            .form-extras {
+                flex-direction: column;
+                gap: 12px;
+                align-items: flex-start;
+            }
+        }
+
+        /* Shake animation for errors */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-8px); }
+            40% { transform: translateX(8px); }
+            60% { transform: translateX(-4px); }
+            80% { transform: translateX(4px); }
+        }
+
+        .shake {
+            animation: shake 0.4s ease;
         }
     </style>
 <base target="_blank">
 </head>
-<body class="auth-page">
+<body>
 
-    <!-- FIXED: Validate token is actually an admin token before redirecting to dashboard -->
+    <!-- Background Effects -->
+    <div class="bg-animation"></div>
+    <div class="grid-pattern"></div>
+
+    <!-- Auth Guard -->
     <script>
         (function() {
             const token = localStorage.getItem('admin_token');
             const userStr = localStorage.getItem('admin_user');
 
-            // Only redirect if we have BOTH token AND valid admin user data
             if (token && userStr) {
                 try {
                     const user = JSON.parse(userStr);
                     if (user.is_admin === true) {
-                        // Valid admin session - redirect to dashboard
                         window.location.replace('index.html');
                     } else {
-                        // Token exists but user is NOT admin - clear bad data and stay on login
                         console.warn('Non-admin token detected, clearing...');
                         localStorage.removeItem('admin_token');
                         localStorage.removeItem('admin_user');
                     }
                 } catch (e) {
-                    // Corrupt user data - clear everything and stay on login
                     console.error('Corrupt admin user data, clearing...');
                     localStorage.removeItem('admin_token');
                     localStorage.removeItem('admin_user');
                 }
             }
-            // If no token or no user data, stay on login page (no redirect)
         })();
     </script>
 
-    <!-- Spinner -->
+    <!-- Spinner Overlay -->
     <div class="spinner-overlay" id="spinner-overlay">
-        <div class="spinner"></div>
-        <p id="spinner-text">Logging in...</p>
+        <div class="spinner-ring"></div>
+        <p id="spinner-text">Authenticating...</p>
     </div>
 
-    <div class="auth-container">
-        <div class="auth-box">
+    <div class="auth-wrapper">
+        <div class="auth-card">
             <div class="auth-header">
-                <i class="fas fa-lock logo-icon"></i>
-                <h1>Admin Panel</h1>
-                <p>Authorized personnel only</p>
+                <div class="brand-logo">
+                    <i class="fas fa-shield-halved"></i>
+                </div>
+                <h1>Admin Portal</h1>
+                <p>Sign in to manage your platform</p>
+                <div class="badge">Secure Access</div>
             </div>
 
-            <form id="admin-login-form" class="auth-form">
+            <form id="admin-login-form" class="auth-form" autocomplete="off">
                 <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" id="email" required value="admin@kenyashop.co.ke">
+                    <label for="email">Email Address</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-envelope icon-left"></i>
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            placeholder="admin@kenyashop.co.ke"
+                            required
+                            autocomplete="email"
+                            value="admin@kenyashop.co.ke"
+                        >
+                    </div>
                 </div>
+
                 <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" id="password" required value="admin123">
+                    <label for="password">Password</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-lock icon-left"></i>
+                        <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            placeholder="Enter your password"
+                            required
+                            autocomplete="current-password"
+                            value="admin123"
+                        >
+                        <button type="button" class="toggle-password" id="toggle-password" title="Show password">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
                 </div>
-                <button type="submit" class="btn-auth" id="login-btn">Login to Dashboard</button>
+
+                <div class="form-extras">
+                    <label class="remember-me">
+                        <input type="checkbox" id="remember-me" checked>
+                        <span>Remember me</span>
+                    </label>
+                    <a href="#" class="forgot-link">Forgot password?</a>
+                </div>
+
+                <button type="submit" class="btn-auth" id="login-btn">
+                    <span id="btn-text">Sign In to Dashboard</span>
+                </button>
+
                 <div id="auth-message" class="auth-message"></div>
+
+                <div class="security-badge">
+                    <i class="fas fa-lock"></i>
+                    <span>End-to-end encrypted connection</span>
+                </div>
             </form>
+
+            <div class="auth-footer">
+                <p>&copy; 2026 Apiaro. All rights reserved.</p>
+                <div class="footer-links">
+                    <a href="#">Privacy</a>
+                    <a href="#">Terms</a>
+                    <a href="#">Support</a>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -137,32 +663,47 @@
         const spinnerText = document.getElementById('spinner-text');
         const msgDiv = document.getElementById('auth-message');
         const loginBtn = document.getElementById('login-btn');
+        const btnText = document.getElementById('btn-text');
+        const authCard = document.querySelector('.auth-card');
+
+        // Password toggle
+        const togglePassword = document.getElementById('toggle-password');
+        const passwordInput = document.getElementById('password');
+
+        togglePassword.addEventListener('click', () => {
+            const type = passwordInput.type === 'password' ? 'text' : 'password';
+            passwordInput.type = type;
+            togglePassword.querySelector('i').className = type === 'password' ? 'fas fa-eye' : 'fas fa-eye-slash';
+            togglePassword.title = type === 'password' ? 'Show password' : 'Hide password';
+        });
 
         function showSpinner(text) {
-            spinnerText.textContent = text || 'Logging in...';
+            spinnerText.textContent = text || 'Authenticating...';
             spinnerOverlay.classList.add('active');
             loginBtn.disabled = true;
+            btnText.textContent = 'Signing in...';
         }
 
         function hideSpinner() {
             spinnerOverlay.classList.remove('active');
             loginBtn.disabled = false;
+            btnText.textContent = 'Sign In to Dashboard';
         }
 
         function showMessage(text, type) {
-            msgDiv.textContent = text;
+            msgDiv.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> <span>${text}</span>`;
             msgDiv.className = 'auth-message ' + type;
         }
 
         function clearMessage() {
             msgDiv.className = 'auth-message';
-            msgDiv.textContent = '';
+            msgDiv.innerHTML = '';
         }
 
         document.getElementById('admin-login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             clearMessage();
-            showSpinner('Authenticating...');
+            showSpinner('Verifying credentials...');
 
             const credentials = {
                 email: document.getElementById('email').value.trim(),
@@ -180,23 +721,23 @@
 
                 if (!response.ok || !data.access_token) {
                     hideSpinner();
-                    showMessage('❌ ' + (data.detail || 'Invalid email or password. Please try again.'), 'error');
+                    showMessage(data.detail || 'Invalid email or password. Please try again.', 'error');
+                    authCard.classList.add('shake');
+                    setTimeout(() => authCard.classList.remove('shake'), 400);
                     return;
                 }
 
                 // Store token
                 localStorage.setItem('admin_token', data.access_token);
 
-                // Store user info (so auth guard on dashboard doesn't reject us)
+                // Store user info
                 if (data.user) {
-                    // Ensure is_admin flag is set
                     const userData = {
                         ...data.user,
                         is_admin: data.user.is_admin === true
                     };
                     localStorage.setItem('admin_user', JSON.stringify(userData));
                 } else {
-                    // Fallback: create minimal user object so dashboard auth works
                     localStorage.setItem('admin_user', JSON.stringify({
                         email: credentials.email,
                         is_admin: true,
@@ -204,18 +745,19 @@
                     }));
                 }
 
-                showSpinner('Success! Redirecting...');
-                showMessage('✅ Login successful! Redirecting to dashboard...', 'success');
+                showSpinner('Redirecting...');
+                showMessage('Login successful! Welcome back.', 'success');
 
-                // Let user see success message for 1 second, then redirect
                 setTimeout(() => {
                     window.location.href = 'index.html';
                 }, 1200);
 
             } catch (error) {
                 hideSpinner();
-                showMessage('❌ Network error: ' + error.message, 'error');
+                showMessage('Network error: ' + error.message, 'error');
                 console.error('Login error:', error);
+                authCard.classList.add('shake');
+                setTimeout(() => authCard.classList.remove('shake'), 400);
             }
         });
     </script>
