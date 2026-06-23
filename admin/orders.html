@@ -4,9 +4,6 @@
     <!-- Auth Guard -->
     <script>
         (function() {
-            localStorage.removeItem('admin_token');
-            localStorage.removeItem('admin_user');
-
             const token = sessionStorage.getItem('admin_token');
             const userStr = sessionStorage.getItem('admin_user');
             if (!token || !userStr) {
@@ -1185,7 +1182,6 @@
             .product-chip { width: 100%; }
         }
     </style>
-
 <base target="_blank">
 </head>
 <body>
@@ -1383,8 +1379,7 @@
         let allOrders = [];
 
         function checkAdminAuth() {
-            localStorage.removeItem('admin_token');
-            localStorage.removeItem('admin_user');
+            
 
             const token = sessionStorage.getItem('admin_token');
             const userStr = sessionStorage.getItem('admin_user');
@@ -1415,9 +1410,6 @@
         }
 
         async function fetchWithAuth(url, options = {}) {
-            localStorage.removeItem('admin_token');
-            localStorage.removeItem('admin_user');
-
             const token = sessionStorage.getItem('admin_token');
             const headers = { 'Authorization': `Bearer ${token}` };
             if (!(options.body instanceof FormData)) {
