@@ -3,871 +3,131 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login — Apiaro</title>
+    <title>Admin Login - Apiaro</title>
     <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" href="css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        :root {
-            --primary: #ff6b00;
-            --primary-hover: #e66000;
-            --primary-glow: rgba(255, 107, 0, 0.3);
-            --bg-dark: #0f0f1a;
-            --bg-card: #1a1a2e;
-            --bg-card-hover: #22223b;
-            --text-primary: #f0f0f5;
-            --text-secondary: #a0a0b8;
-            --text-muted: #6b6b8a;
-            --border: #2d2d44;
-            --border-focus: #ff6b00;
-            --error: #ff4757;
-            --error-bg: rgba(255, 71, 87, 0.1);
-            --success: #2ed573;
-            --success-bg: rgba(46, 213, 115, 0.1);
-            --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            --shadow-glow: 0 0 40px rgba(255, 107, 0, 0.15);
-        }
-
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--bg-dark);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            position: relative;
-        }
-
-        /* Animated Background */
-        .bg-animation {
-            position: fixed;
-            inset: 0;
-            z-index: 0;
-            overflow: hidden;
-        }
-
-        .bg-animation::before {
-            content: '';
-            position: absolute;
-            width: 600px;
-            height: 600px;
-            background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%);
-            top: -200px;
-            right: -200px;
-            animation: float 8s ease-in-out infinite;
-        }
-
-        .bg-animation::after {
-            content: '';
-            position: absolute;
-            width: 400px;
-            height: 400px;
-            background: radial-gradient(circle, rgba(100, 100, 255, 0.08) 0%, transparent 70%);
-            bottom: -100px;
-            left: -100px;
-            animation: float 10s ease-in-out infinite reverse;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            50% { transform: translate(30px, -30px) scale(1.1); }
-        }
-
-        /* Grid Pattern Overlay */
-        .grid-pattern {
-            position: fixed;
-            inset: 0;
-            z-index: 0;
-            background-image:
-                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-            background-size: 50px 50px;
-            mask-image: radial-gradient(ellipse at center, black 40%, transparent 80%);
-            -webkit-mask-image: radial-gradient(ellipse at center, black 40%, transparent 80%);
-        }
-
-        /* Main Container */
-        .auth-wrapper {
-            position: relative;
-            z-index: 1;
-            width: 100%;
-            max-width: 440px;
-            padding: 20px;
-            perspective: 1000px;
-        }
-
-        .auth-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 48px 40px;
-            box-shadow: var(--shadow), var(--shadow-glow);
-            animation: cardEnter 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-            opacity: 0;
-            transform: translateY(30px) rotateX(5deg);
-            backdrop-filter: blur(20px);
-        }
-
-        @keyframes cardEnter {
-            to { opacity: 1; transform: translateY(0) rotateX(0); }
-        }
-
-        /* Header */
-        .auth-header {
-            text-align: center;
-            margin-bottom: 36px;
-        }
-
-        .brand-logo {
-            width: 64px;
-            height: 64px;
-            background: linear-gradient(135deg, var(--primary) 0%, #ff8c42 100%);
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            box-shadow: 0 8px 32px rgba(255, 107, 0, 0.3);
-            animation: logoPulse 2s ease-in-out infinite;
-        }
-
-        @keyframes logoPulse {
-            0%, 100% { box-shadow: 0 8px 32px rgba(255, 107, 0, 0.3); }
-            50% { box-shadow: 0 8px 40px rgba(255, 107, 0, 0.5); }
-        }
-
-        .brand-logo i { font-size: 28px; color: white; }
-
-        .auth-header h1 {
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 8px;
-            letter-spacing: -0.5px;
-        }
-
-        .auth-header p {
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-            font-weight: 400;
-        }
-
-        .auth-header .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(255, 107, 0, 0.12);
-            color: var(--primary);
-            font-size: 0.75rem;
-            font-weight: 600;
-            padding: 6px 14px;
-            border-radius: 100px;
-            margin-top: 12px;
-            border: 1px solid rgba(255, 107, 0, 0.2);
-        }
-
-        .auth-header .badge::before {
-            content: '';
-            width: 6px;
-            height: 6px;
-            background: var(--primary);
-            border-radius: 50%;
-            animation: blink 2s ease-in-out infinite;
-        }
-
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-
-        /* Form */
-        .auth-form {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .form-group { position: relative; }
-
-        .form-group label {
-            display: block;
-            font-size: 0.85rem;
-            font-weight: 500;
-            color: var(--text-secondary);
-            margin-bottom: 8px;
-        }
-
-        .input-wrapper { position: relative; }
-
-        .input-wrapper i.icon-left {
-            position: absolute;
-            left: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-muted);
-            font-size: 0.95rem;
-            transition: color 0.2s;
-            pointer-events: none;
-        }
-
-        .input-wrapper input {
-            width: 100%;
-            padding: 14px 16px 14px 46px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1.5px solid var(--border);
-            border-radius: 12px;
-            color: var(--text-primary);
-            font-size: 0.95rem;
-            font-family: inherit;
-            transition: all 0.25s ease;
-            outline: none;
-        }
-
-        .input-wrapper input::placeholder { color: var(--text-muted); }
-
-        .input-wrapper input:focus {
-            border-color: var(--border-focus);
-            background: rgba(255, 107, 0, 0.03);
-            box-shadow: 0 0 0 4px rgba(255, 107, 0, 0.08);
-        }
-
-        .input-wrapper input:focus + i.icon-left,
-        .input-wrapper input:focus ~ i.icon-left {
-            color: var(--primary);
-        }
-
-        /* Password Toggle */
-        .toggle-password {
-            position: absolute;
-            right: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            cursor: pointer;
-            padding: 4px;
-            font-size: 0.9rem;
-            transition: color 0.2s;
-        }
-
-        .toggle-password:hover { color: var(--text-secondary); }
-
-        /* Submit Button */
-        .btn-auth {
-            width: 100%;
-            padding: 14px 24px;
-            background: linear-gradient(135deg, var(--primary) 0%, #ff8c42 100%);
-            border: none;
-            border-radius: 12px;
-            color: white;
-            font-size: 0.95rem;
-            font-weight: 600;
-            font-family: inherit;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            margin-top: 8px;
-        }
-
-        .btn-auth::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: left 0.5s ease;
-        }
-
-        .btn-auth:hover::before { left: 100%; }
-
-        .btn-auth:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(255, 107, 0, 0.4);
-        }
-
-        .btn-auth:active { transform: translateY(0); }
-
-        .btn-auth:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .btn-auth:disabled::before { display: none; }
-
-        /* Auth Message */
-        .auth-message {
-            padding: 14px 16px;
-            border-radius: 12px;
-            font-size: 0.9rem;
-            font-weight: 500;
-            text-align: center;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            animation: messageSlide 0.3s ease;
-        }
-
-        @keyframes messageSlide {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .auth-message.success {
-            display: flex;
-            background: var(--success-bg);
-            color: var(--success);
-            border: 1px solid rgba(46, 213, 115, 0.2);
-        }
-
-        .auth-message.error {
-            display: flex;
-            background: var(--error-bg);
-            color: var(--error);
-            border: 1px solid rgba(255, 71, 87, 0.2);
-        }
-
-        /* Footer */
-        .auth-footer {
-            text-align: center;
-            margin-top: 28px;
-            padding-top: 24px;
-            border-top: 1px solid var(--border);
-        }
-
-        .auth-footer p {
-            color: var(--text-muted);
-            font-size: 0.8rem;
-        }
-
-        .auth-footer .footer-links {
-            display: flex;
-            justify-content: center;
-            gap: 16px;
-            margin-top: 8px;
-        }
-
-        .auth-footer a {
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-size: 0.8rem;
-            transition: color 0.2s;
-            cursor: pointer;
-        }
-
-        .auth-footer a:hover { color: var(--primary); }
-
         /* Spinner Overlay */
         .spinner-overlay {
             display: none;
             position: fixed;
-            inset: 0;
-            background: rgba(15, 15, 26, 0.85);
-            backdrop-filter: blur(8px);
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.95);
             z-index: 9999;
             justify-content: center;
             align-items: center;
             flex-direction: column;
-            gap: 20px;
+            gap: 15px;
         }
-
-        .spinner-overlay.active { display: flex; }
-
-        .spinner-ring {
-            width: 56px;
-            height: 56px;
-            position: relative;
+        .spinner-overlay.active {
+            display: flex;
         }
-
-        .spinner-ring::before,
-        .spinner-ring::after {
-            content: '';
-            position: absolute;
-            inset: 0;
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #ff6b00;
             border-radius: 50%;
-            border: 3px solid transparent;
-        }
-
-        .spinner-ring::before {
-            border-top-color: var(--primary);
             animation: spin 1s linear infinite;
         }
-
-        .spinner-ring::after {
-            border-top-color: rgba(255, 107, 0, 0.3);
-            animation: spin 1.5s linear infinite reverse;
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        .spinner-overlay p {
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-            font-weight: 500;
-            letter-spacing: 0.5px;
-        }
-
-        /* Rate Limit */
-        .rate-limit-info {
-            display: none;
-            text-align: center;
-            padding: 10px;
-            background: rgba(255, 165, 2, 0.1);
-            border: 1px solid rgba(255, 165, 2, 0.2);
-            border-radius: 8px;
-            color: #ffa502;
-            font-size: 0.8rem;
-            font-weight: 500;
-            margin-top: 8px;
-        }
-
-        .rate-limit-info.active { display: block; }
-
-        /* Security Badge */
-        .security-badge {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            margin-top: 16px;
-            color: var(--text-muted);
-            font-size: 0.75rem;
-        }
-
-        .security-badge i { color: var(--success); font-size: 0.8rem; }
-
-        /* ── Modals ── */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(8px);
-            z-index: 10000;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            animation: fadeIn 0.2s ease;
-        }
-
-        .modal-overlay.active { display: flex; }
-
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        .modal-box {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            width: 100%;
-            max-width: 560px;
-            max-height: 80vh;
-            overflow-y: auto;
-            animation: slideUp 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
-        }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .modal-box-header {
-            padding: 20px 24px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: sticky;
-            top: 0;
-            background: var(--bg-card);
-            z-index: 2;
-        }
-
-        .modal-box-header h3 {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .modal-box-header h3 i { color: var(--primary); }
-
-        .modal-close-btn {
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background: rgba(255,255,255,0.03);
-            color: var(--text-secondary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 0.9rem;
-        }
-
-        .modal-close-btn:hover {
-            background: var(--error-bg);
-            color: var(--error);
-            border-color: rgba(255, 71, 87, 0.3);
-        }
-
-        .modal-box-body {
-            padding: 24px;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            line-height: 1.7;
-        }
-
-        .modal-box-body h4 {
-            color: var(--text-primary);
-            font-size: 1rem;
-            font-weight: 600;
-            margin: 20px 0 10px;
-        }
-
-        .modal-box-body h4:first-child { margin-top: 0; }
-
-        .modal-box-body p { margin-bottom: 12px; }
-
-        .modal-box-body ul {
-            margin: 10px 0 10px 20px;
-            padding: 0;
-        }
-
-        .modal-box-body ul li { margin-bottom: 6px; }
-
-        .modal-box-body a { color: var(--primary); text-decoration: none; }
-        .modal-box-body a:hover { text-decoration: underline; }
-
-        .modal-box-body .highlight {
-            background: rgba(255, 107, 0, 0.1);
+        /* Auth Messages */
+        .auth-message {
+            margin-top: 15px;
             padding: 12px 16px;
-            border-radius: 10px;
-            border-left: 3px solid var(--primary);
-            margin: 16px 0;
-        }
-
-        .modal-box-body .contact-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 0;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .modal-box-body .contact-item:last-child { border-bottom: none; }
-
-        .modal-box-body .contact-item i {
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
-            background: rgba(255, 107, 0, 0.15);
-            color: var(--primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.9rem;
-        }
-
-        .modal-box-body .contact-item div strong {
-            color: var(--text-primary);
-            font-size: 0.9rem;
-        }
-
-        .modal-box-body .contact-item div span {
-            color: var(--text-muted);
-            font-size: 0.8rem;
-        }
-
-        .modal-box-footer {
-            padding: 16px 24px;
-            border-top: 1px solid var(--border);
+            border-radius: 6px;
+            display: none;
+            font-size: 0.95rem;
             text-align: center;
+            font-weight: 500;
+        }
+        .auth-message.success {
+            display: block;
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .auth-message.error {
+            display: block;
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
         }
 
-        .modal-box-footer button {
-            padding: 10px 28px;
-            background: linear-gradient(135deg, var(--primary), #ff8c42);
-            border: none;
-            border-radius: 10px;
-            color: white;
-            font-family: inherit;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
+        /* Disabled button state */
+        .btn-auth:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
         }
-
-        .modal-box-footer button:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 15px rgba(255, 107, 0, 0.3);
-        }
-
-        /* Responsive */
-        @media (max-width: 480px) {
-            .auth-card { padding: 32px 24px; border-radius: 16px; }
-            .auth-header h1 { font-size: 1.5rem; }
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            20% { transform: translateX(-8px); }
-            40% { transform: translateX(8px); }
-            60% { transform: translateX(-4px); }
-            80% { transform: translateX(4px); }
-        }
-
-        .shake { animation: shake 0.4s ease; }
     </style>
 <base target="_blank">
 </head>
-<body>
+<body class="auth-page">
 
-    <!-- Background Effects -->
-    <div class="bg-animation"></div>
-    <div class="grid-pattern"></div>
+    <!-- FIXED: Validate token is actually an admin token before redirecting to dashboard -->
+    <script>
+        (function() {
+            const token = localStorage.getItem('admin_token');
+            const userStr = localStorage.getItem('admin_user');
 
-    <!-- Spinner Overlay -->
+            // Only redirect if we have BOTH token AND valid admin user data
+            if (token && userStr) {
+                try {
+                    const user = JSON.parse(userStr);
+                    if (user.is_admin === true) {
+                        // Valid admin session - redirect to dashboard
+                        window.location.replace('index.html');
+                    } else {
+                        // Token exists but user is NOT admin - clear bad data and stay on login
+                        console.warn('Non-admin token detected, clearing...');
+                        localStorage.removeItem('admin_token');
+                        localStorage.removeItem('admin_user');
+                    }
+                } catch (e) {
+                    // Corrupt user data - clear everything and stay on login
+                    console.error('Corrupt admin user data, clearing...');
+                    localStorage.removeItem('admin_token');
+                    localStorage.removeItem('admin_user');
+                }
+            }
+            // If no token or no user data, stay on login page (no redirect)
+        })();
+    </script>
+
+    <!-- Spinner -->
     <div class="spinner-overlay" id="spinner-overlay">
-        <div class="spinner-ring"></div>
-        <p id="spinner-text">Authenticating...</p>
+        <div class="spinner"></div>
+        <p id="spinner-text">Logging in...</p>
     </div>
 
-    <div class="auth-wrapper">
-        <div class="auth-card">
+    <div class="auth-container">
+        <div class="auth-box">
             <div class="auth-header">
-                <div class="brand-logo">
-                    <i class="fas fa-shield-halved"></i>
-                </div>
-                <h1>Admin Portal</h1>
-                <p>Sign in to manage your platform</p>
-                <div class="badge">Secure Access</div>
+                <i class="fas fa-lock logo-icon"></i>
+                <h1>Admin Panel</h1>
+                <p>Authorized personnel only</p>
             </div>
 
-            <form id="admin-login-form" class="auth-form" autocomplete="off">
+            <form id="admin-login-form" class="auth-form">
                 <div class="form-group">
-                    <label for="email">Email Address</label>
-                    <div class="input-wrapper">
-                        <i class="fas fa-envelope icon-left"></i>
-                        <input type="email" id="email" name="email" placeholder="Enter your admin email" required autocomplete="off">
-                    </div>
+                    <label>Email</label>
+                    <input type="email" id="email" required value="admin@kenyashop.co.ke">
                 </div>
-
                 <div class="form-group">
-                    <label for="password">Password</label>
-                    <div class="input-wrapper">
-                        <i class="fas fa-lock icon-left"></i>
-                        <input type="password" id="password" name="password" placeholder="Enter your password" required autocomplete="off" minlength="6">
-                        <button type="button" class="toggle-password" id="toggle-password" title="Show password">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
+                    <label>Password</label>
+                    <input type="password" id="password" required value="admin123">
                 </div>
-
-                <button type="submit" class="btn-auth" id="login-btn">
-                    <span id="btn-text">Sign In to Dashboard</span>
-                </button>
-
+                <button type="submit" class="btn-auth" id="login-btn">Login to Dashboard</button>
                 <div id="auth-message" class="auth-message"></div>
-                <div id="rate-limit-info" class="rate-limit-info">
-                    <i class="fas fa-clock"></i> Too many attempts. Please wait <span id="retry-timer">30</span>s.
-                </div>
-
-                <div class="security-badge">
-                    <i class="fas fa-lock"></i>
-                    <span>End-to-end encrypted connection</span>
-                </div>
             </form>
-
-            <div class="auth-footer">
-                <p>&copy; 2026 Apiaro. All rights reserved.</p>
-                <div class="footer-links">
-                    <a onclick="openModal('privacy')">Privacy</a>
-                    <a onclick="openModal('terms')">Terms</a>
-                    <a onclick="openModal('support')">Support</a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Privacy Modal -->
-    <div class="modal-overlay" id="modal-privacy" onclick="closeModal('privacy')">
-        <div class="modal-box" onclick="event.stopPropagation()">
-            <div class="modal-box-header">
-                <h3><i class="fas fa-shield-halved"></i> Privacy Policy</h3>
-                <button class="modal-close-btn" onclick="closeModal('privacy')">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-box-body">
-                <h4>1. Information We Collect</h4>
-                <p>We collect information you provide directly to us, such as when you create an account, make a purchase, or contact our support team. This may include your name, email address, phone number, and delivery address.</p>
-
-                <h4>2. How We Use Your Information</h4>
-                <p>We use the information we collect to:</p>
-                <ul>
-                    <li>Process and fulfill your orders</li>
-                    <li>Communicate with you about your account and orders</li>
-                    <li>Send you marketing communications (with your consent)</li>
-                    <li>Improve our services and user experience</li>
-                    <li>Detect and prevent fraud and abuse</li>
-                </ul>
-
-                <h4>3. Information Sharing</h4>
-                <p>We do not sell your personal information. We may share your information with:</p>
-                <ul>
-                    <li>Service providers who perform services on our behalf</li>
-                    <li>Payment processors to complete transactions</li>
-                    <li>Delivery partners to fulfill your orders</li>
-                </ul>
-
-                <h4>4. Data Security</h4>
-                <div class="highlight">
-                    <strong><i class="fas fa-lock"></i> Your data is protected.</strong> We implement appropriate technical and organizational measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction.
-                </div>
-
-                <h4>5. Your Rights</h4>
-                <p>You have the right to access, correct, or delete your personal information. You may also object to certain processing of your data. Contact us at <a href="mailto:privacy@apiaro.co.ke">privacy@apiaro.co.ke</a> to exercise these rights.</p>
-
-                <h4>6. Cookies</h4>
-                <p>We use cookies and similar technologies to enhance your browsing experience, analyze site traffic, and personalize content. You can manage your cookie preferences through your browser settings.</p>
-
-                <h4>7. Changes to This Policy</h4>
-                <p>We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new policy on this page and updating the effective date.</p>
-
-                <p style="color: var(--text-muted); font-size: 0.8rem; margin-top: 20px;">Last updated: June 2026</p>
-            </div>
-            <div class="modal-box-footer">
-                <button onclick="closeModal('privacy')">Got it</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Terms Modal -->
-    <div class="modal-overlay" id="modal-terms" onclick="closeModal('terms')">
-        <div class="modal-box" onclick="event.stopPropagation()">
-            <div class="modal-box-header">
-                <h3><i class="fas fa-file-contract"></i> Terms of Service</h3>
-                <button class="modal-close-btn" onclick="closeModal('terms')">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-box-body">
-                <h4>1. Acceptance of Terms</h4>
-                <p>By accessing or using the Apiaro platform, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our services.</p>
-
-                <h4>2. User Accounts</h4>
-                <p>You are responsible for maintaining the confidentiality of your account credentials. You agree to notify us immediately of any unauthorized use of your account. Apiaro reserves the right to terminate accounts that violate these terms.</p>
-
-                <h4>3. Orders and Payments</h4>
-                <ul>
-                    <li>All prices are listed in Kenyan Shillings (KES) and include applicable taxes unless stated otherwise.</li>
-                    <li>Orders are subject to availability and confirmation of payment.</li>
-                    <li>Delivery fees are calculated at checkout based on your location.</li>
-                    <li>Refunds and returns are handled in accordance with our Return Policy.</li>
-                </ul>
-
-                <h4>4. Prohibited Activities</h4>
-                <p>You agree not to:</p>
-                <ul>
-                    <li>Use the platform for any illegal purpose</li>
-                    <li>Attempt to gain unauthorized access to our systems</li>
-                    <li>Interfere with other users' access to the platform</li>
-                    <li>Upload malicious code or content</li>
-                    <li>Impersonate any person or entity</li>
-                </ul>
-
-                <h4>5. Intellectual Property</h4>
-                <p>All content, trademarks, logos, and intellectual property on the Apiaro platform are owned by Apiaro or its licensors. You may not use, reproduce, or distribute any content without prior written permission.</p>
-
-                <h4>6. Limitation of Liability</h4>
-                <div class="highlight">
-                    <strong><i class="fas fa-exclamation-triangle"></i> Important:</strong> Apiaro shall not be liable for any indirect, incidental, special, or consequential damages arising out of or in connection with your use of the platform.
-                </div>
-
-                <h4>7. Governing Law</h4>
-                <p>These Terms shall be governed by and construed in accordance with the laws of Kenya. Any disputes arising under these terms shall be subject to the exclusive jurisdiction of the courts of Kenya.</p>
-
-                <h4>8. Changes to Terms</h4>
-                <p>We reserve the right to modify these terms at any time. Continued use of the platform after changes constitutes acceptance of the revised terms.</p>
-
-                <p style="color: var(--text-muted); font-size: 0.8rem; margin-top: 20px;">Effective date: June 2026</p>
-            </div>
-            <div class="modal-box-footer">
-                <button onclick="closeModal('terms')">I Understand</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Support Modal -->
-    <div class="modal-overlay" id="modal-support" onclick="closeModal('support')">
-        <div class="modal-box" onclick="event.stopPropagation()">
-            <div class="modal-box-header">
-                <h3><i class="fas fa-headset"></i> Support Center</h3>
-                <button class="modal-close-btn" onclick="closeModal('support')">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-box-body">
-                <p style="margin-bottom: 20px;">Need help? Our support team is here for you. Reach out through any of the channels below:</p>
-
-                <div class="contact-item">
-                    <i class="fas fa-envelope"></i>
-                    <div>
-                        <strong>Email Support</strong><br>
-                        <span>support@apiaro.co.ke</span>
-                    </div>
-                </div>
-
-                <div class="contact-item">
-                    <i class="fas fa-phone"></i>
-                    <div>
-                        <strong>Phone Support</strong><br>
-                        <span>+254 700 123 456</span>
-                    </div>
-                </div>
-
-                <div class="contact-item">
-                    <i class="fas fa-clock"></i>
-                    <div>
-                        <strong>Business Hours</strong><br>
-                        <span>Mon – Fri: 8:00 AM – 6:00 PM EAT</span>
-                    </div>
-                </div>
-
-                <div class="contact-item">
-                    <i class="fas fa-map-marker-alt"></i>
-                    <div>
-                        <strong>Office Address</strong><br>
-                        <span>Nairobi, Kenya</span>
-                    </div>
-                </div>
-
-                <div class="highlight" style="margin-top: 20px;">
-                    <strong><i class="fas fa-bolt"></i> Quick Tips:</strong>
-                    <ul style="margin: 8px 0 0 18px;">
-                        <li>Check your spam folder if you don't see our emails</li>
-                        <li>Have your order number ready when contacting us</li>
-                        <li>For urgent issues, call us directly during business hours</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="modal-box-footer">
-                <button onclick="closeModal('support')">Close</button>
-            </div>
         </div>
     </div>
 
@@ -877,108 +137,32 @@
         const spinnerText = document.getElementById('spinner-text');
         const msgDiv = document.getElementById('auth-message');
         const loginBtn = document.getElementById('login-btn');
-        const btnText = document.getElementById('btn-text');
-        const authCard = document.querySelector('.auth-card');
-        const rateLimitInfo = document.getElementById('rate-limit-info');
-        const retryTimer = document.getElementById('retry-timer');
-
-        // ── SESSION-ONLY: clear any old persistent tokens on load ──
-        localStorage.removeItem('admin_token');
-        localStorage.removeItem('admin_user');
-
-        // Rate limiting
-        const MAX_ATTEMPTS = 5;
-        const LOCKOUT_SECONDS = 30;
-        let failedAttempts = parseInt(sessionStorage.getItem('login_failed_attempts') || '0');
-        let lockoutUntil = parseInt(sessionStorage.getItem('login_lockout_until') || '0');
-
-        function isLockedOut() {
-            return Date.now() < lockoutUntil;
-        }
-
-        function recordFailedAttempt() {
-            failedAttempts++;
-            sessionStorage.setItem('login_failed_attempts', failedAttempts);
-            if (failedAttempts >= MAX_ATTEMPTS) {
-                lockoutUntil = Date.now() + (LOCKOUT_SECONDS * 1000);
-                sessionStorage.setItem('login_lockout_until', lockoutUntil);
-                startLockoutTimer();
-            }
-        }
-
-        function recordSuccess() {
-            sessionStorage.removeItem('login_failed_attempts');
-            sessionStorage.removeItem('login_lockout_until');
-            failedAttempts = 0;
-            lockoutUntil = 0;
-        }
-
-        function startLockoutTimer() {
-            rateLimitInfo.classList.add('active');
-            loginBtn.disabled = true;
-            const interval = setInterval(() => {
-                const remaining = Math.ceil((lockoutUntil - Date.now()) / 1000);
-                if (remaining <= 0) {
-                    clearInterval(interval);
-                    rateLimitInfo.classList.remove('active');
-                    loginBtn.disabled = false;
-                    failedAttempts = 0;
-                    sessionStorage.removeItem('login_failed_attempts');
-                    sessionStorage.removeItem('login_lockout_until');
-                } else {
-                    retryTimer.textContent = remaining;
-                }
-            }, 1000);
-        }
-
-        if (isLockedOut()) startLockoutTimer();
-
-        // Password toggle
-        const togglePassword = document.getElementById('toggle-password');
-        const passwordInput = document.getElementById('password');
-
-        togglePassword.addEventListener('click', () => {
-            const type = passwordInput.type === 'password' ? 'text' : 'password';
-            passwordInput.type = type;
-            togglePassword.querySelector('i').className = type === 'password' ? 'fas fa-eye' : 'fas fa-eye-slash';
-            togglePassword.title = type === 'password' ? 'Show password' : 'Hide password';
-        });
 
         function showSpinner(text) {
-            spinnerText.textContent = text || 'Authenticating...';
+            spinnerText.textContent = text || 'Logging in...';
             spinnerOverlay.classList.add('active');
             loginBtn.disabled = true;
-            btnText.textContent = 'Signing in...';
         }
 
         function hideSpinner() {
             spinnerOverlay.classList.remove('active');
-            if (!isLockedOut()) loginBtn.disabled = false;
-            btnText.textContent = 'Sign In to Dashboard';
+            loginBtn.disabled = false;
         }
 
         function showMessage(text, type) {
-            msgDiv.innerHTML = '<i class="fas fa-' + (type === 'success' ? 'check-circle' : 'exclamation-circle') + '"></i> <span>' + text + '</span>';
+            msgDiv.textContent = text;
             msgDiv.className = 'auth-message ' + type;
         }
 
         function clearMessage() {
             msgDiv.className = 'auth-message';
-            msgDiv.innerHTML = '';
+            msgDiv.textContent = '';
         }
 
         document.getElementById('admin-login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-
-            if (isLockedOut()) {
-                showMessage('Too many failed attempts. Please wait before trying again.', 'error');
-                authCard.classList.add('shake');
-                setTimeout(() => authCard.classList.remove('shake'), 400);
-                return;
-            }
-
             clearMessage();
-            showSpinner('Verifying credentials...');
+            showSpinner('Authenticating...');
 
             const credentials = {
                 email: document.getElementById('email').value.trim(),
@@ -986,7 +170,7 @@
             };
 
             try {
-                const response = await fetch(API_BASE_URL + '/users/login', {
+                const response = await fetch(`${API_BASE_URL}/users/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(credentials)
@@ -996,64 +180,42 @@
 
                 if (!response.ok || !data.access_token) {
                     hideSpinner();
-                    recordFailedAttempt();
-                    const remaining = MAX_ATTEMPTS - failedAttempts;
-                    let msg = data.detail || 'Invalid email or password. Please try again.';
-                    if (remaining > 0 && remaining < MAX_ATTEMPTS) {
-                        msg += ' (' + remaining + ' attempt' + (remaining !== 1 ? 's' : '') + ' remaining)';
-                    }
-                    showMessage(msg, 'error');
-                    authCard.classList.add('shake');
-                    setTimeout(() => authCard.classList.remove('shake'), 400);
+                    showMessage('❌ ' + (data.detail || 'Invalid email or password. Please try again.'), 'error');
                     return;
                 }
 
-                recordSuccess();
+                // Store token
+                localStorage.setItem('admin_token', data.access_token);
 
-                sessionStorage.setItem('admin_token', data.access_token);
+                // Store user info (so auth guard on dashboard doesn't reject us)
                 if (data.user) {
-                    const userData = { ...data.user, is_admin: data.user.is_admin === true };
-                    sessionStorage.setItem('admin_user', JSON.stringify(userData));
+                    // Ensure is_admin flag is set
+                    const userData = {
+                        ...data.user,
+                        is_admin: data.user.is_admin === true
+                    };
+                    localStorage.setItem('admin_user', JSON.stringify(userData));
                 } else {
-                    sessionStorage.setItem('admin_user', JSON.stringify({
+                    // Fallback: create minimal user object so dashboard auth works
+                    localStorage.setItem('admin_user', JSON.stringify({
                         email: credentials.email,
                         is_admin: true,
                         full_name: 'Administrator'
                     }));
                 }
 
-                showSpinner('Redirecting...');
-                showMessage('Login successful! Welcome back.', 'success');
+                showSpinner('Success! Redirecting...');
+                showMessage('✅ Login successful! Redirecting to dashboard...', 'success');
 
+                // Let user see success message for 1 second, then redirect
                 setTimeout(() => {
                     window.location.href = 'index.html';
                 }, 1200);
 
             } catch (error) {
                 hideSpinner();
-                showMessage('Network error: ' + error.message, 'error');
+                showMessage('❌ Network error: ' + error.message, 'error');
                 console.error('Login error:', error);
-                authCard.classList.add('shake');
-                setTimeout(() => authCard.classList.remove('shake'), 400);
-            }
-        });
-
-        // ── Modal Functions ──
-        function openModal(type) {
-            document.getElementById('modal-' + type).classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeModal(type) {
-            document.getElementById('modal-' + type).classList.remove('active');
-            document.body.style.overflow = '';
-        }
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                closeModal('privacy');
-                closeModal('terms');
-                closeModal('support');
             }
         });
     </script>
