@@ -1,6 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Auth Guard -->
+    <script>
+        (function() {
+            localStorage.removeItem('admin_token');
+            localStorage.removeItem('admin_user');
+
+            const token = sessionStorage.getItem('admin_token');
+            const userStr = sessionStorage.getItem('admin_user');
+            if (!token || !userStr) {
+                sessionStorage.removeItem('admin_token');
+                sessionStorage.removeItem('admin_user');
+                window.location.replace('login.html');
+                return;
+            }
+            try {
+                const user = JSON.parse(userStr);
+                if (user.is_admin !== true) {
+                    sessionStorage.removeItem('admin_token');
+                    sessionStorage.removeItem('admin_user');
+                    window.location.replace('login.html');
+                    return;
+                }
+            } catch (e) {
+                sessionStorage.removeItem('admin_token');
+                sessionStorage.removeItem('admin_user');
+                window.location.replace('login.html');
+                return;
+            }
+        })();
+    </script>
+
     <meta charset="UTF-8">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -1003,7 +1034,6 @@
         }
     </style>
 <base target="_blank">
-<base target="_blank">
 </head>
 <body>
     <div class="sidebar-overlay" onclick="toggleSidebar()" id="sidebar-overlay"></div>
@@ -1224,6 +1254,32 @@
         const ADMIN_API_URL = 'https://apiaro-backend.onrender.com';
         let allProducts = [];
 
+        function checkAdminAuth() {
+            localStorage.removeItem('admin_token');
+            localStorage.removeItem('admin_user');
+
+            const token = sessionStorage.getItem('admin_token');
+            const userStr = sessionStorage.getItem('admin_user');
+            if (!token || !userStr) {
+                window.location.href = 'login.html';
+                return null;
+            }
+            try {
+                const user = userStr ? JSON.parse(userStr) : {};
+                if (userStr && user.is_admin !== true) {
+                    logout();
+                    return null;
+                }
+                const nameEl = document.getElementById('admin-name');
+                const avatarEl = document.getElementById('user-avatar');
+                if (nameEl && user.full_name) nameEl.textContent = user.full_name;
+                if (avatarEl && user.full_name) avatarEl.textContent = user.full_name.charAt(0).toUpperCase();
+                return token;
+            } catch (e) {
+                return token;
+            }
+        }
+
         function logout() {
             sessionStorage.removeItem('admin_token');
             sessionStorage.removeItem('admin_user');
@@ -1231,7 +1287,16 @@
         }
 
         async function fetchWithAuth(url, options = {}) {
-            const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+            localStorage.removeItem('admin_token');
+            localStorage.removeItem('admin_user');
+
+            const token = sessionStorage.getItem('admin_token');
+            const headers = { 'Authorization': 'Bearer ' + token, ...options.headers };
+            if (options.body instanceof FormData) {
+                delete headers['Content-Type'];
+            } else if (!headers['Content-Type']) {
+                headers['Content-Type'] = 'application/json';
+            }
             return fetch(url, { ...options, headers });
         }
 
@@ -1498,6 +1563,8 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            const token = checkAdminAuth();
+            if (!token) return;
             loadProducts();
         });
 
