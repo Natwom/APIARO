@@ -1,40 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- FIXED: Validate token AND admin privileges before allowing dashboard access -->
+    <!-- AUTH GUARD: Redirect to login if not authenticated as admin -->
     <script>
         (function() {
             const token = localStorage.getItem('admin_token');
             const userStr = localStorage.getItem('admin_user');
 
-            // Must have BOTH token AND valid admin user data
             if (!token || !userStr) {
-                // Missing credentials - clear any partial data and redirect to login
                 localStorage.removeItem('admin_token');
                 localStorage.removeItem('admin_user');
                 window.location.replace('login.html');
-                return; // Stop parsing the rest of the page
+                return;
             }
 
             try {
                 const user = JSON.parse(userStr);
-                // Strict check: must have is_admin === true
                 if (user.is_admin !== true) {
-                    // User has token but is NOT an admin - clear data and redirect
-                    console.warn('Non-admin user attempted to access dashboard. Redirecting to login.');
+                    console.warn('Non-admin user attempted to access dashboard.');
                     localStorage.removeItem('admin_token');
                     localStorage.removeItem('admin_user');
                     window.location.replace('login.html');
-                    return; // Stop parsing the rest of the page
+                    return;
                 }
-                // Valid admin - allow page to load normally
             } catch (e) {
-                // Corrupt user data - clear everything and redirect
-                console.error('Corrupt admin user data detected. Clearing and redirecting.');
+                console.error('Corrupt admin user data. Redirecting to login.');
                 localStorage.removeItem('admin_token');
                 localStorage.removeItem('admin_user');
                 window.location.replace('login.html');
-                return; // Stop parsing the rest of the page
+                return;
             }
         })();
     </script>
@@ -48,16 +42,14 @@
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="stylesheet" href="css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<base target="_blank">
+    <!-- REMOVED: <base target="_blank"> — was causing login.html to open in new tab -->
 </head>
 <body>
     <button class="admin-hamburger" onclick="toggleSidebar()">☰</button>
 
-    <!-- Overlay for mobile sidebar -->
     <div class="sidebar-overlay" onclick="toggleSidebar()" id="sidebar-overlay"></div>
 
     <div class="admin-layout">
-        <!-- Sidebar -->
         <aside class="sidebar" id="admin-sidebar">
             <div class="sidebar-header">
                 <h2><i class="fas fa-shopping-bag"></i> Apiaro</h2>
@@ -72,7 +64,6 @@
             </nav>
         </aside>
 
-        <!-- Main Content -->
         <main class="main-content">
             <header class="admin-header">
                 <h1>Dashboard</h1>
@@ -84,31 +75,19 @@
             <div class="dashboard-stats">
                 <div class="stat-card">
                     <i class="fas fa-box"></i>
-                    <div>
-                        <h3 id="total-products">0</h3>
-                        <p>Total Products</p>
-                    </div>
+                    <div><h3 id="total-products">0</h3><p>Total Products</p></div>
                 </div>
                 <div class="stat-card">
                     <i class="fas fa-shopping-cart"></i>
-                    <div>
-                        <h3 id="total-orders">0</h3>
-                        <p>Total Orders</p>
-                    </div>
+                    <div><h3 id="total-orders">0</h3><p>Total Orders</p></div>
                 </div>
                 <div class="stat-card">
                     <i class="fas fa-clock"></i>
-                    <div>
-                        <h3 id="pending-orders">0</h3>
-                        <p>Pending Orders</p>
-                    </div>
+                    <div><h3 id="pending-orders">0</h3><p>Pending Orders</p></div>
                 </div>
                 <div class="stat-card">
                     <i class="fas fa-money-bill-wave"></i>
-                    <div>
-                        <h3 id="total-revenue">KES 0</h3>
-                        <p>Revenue</p>
-                    </div>
+                    <div><h3 id="total-revenue">KES 0</h3><p>Revenue</p></div>
                 </div>
             </div>
 
@@ -127,16 +106,13 @@
                                 <th>SMS</th>
                             </tr>
                         </thead>
-                        <tbody id="recent-orders-body">
-                            <!-- Loaded dynamically -->
-                        </tbody>
+                        <tbody id="recent-orders-body"></tbody>
                     </table>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- Dashboard Scripts -->
     <script>
         const ADMIN_API_URL = 'https://apiaro-backend.onrender.com';
 
@@ -150,22 +126,21 @@
             }
 
             try {
-                const user = userStr ? JSON.parse(userStr) : {};
-                if (userStr && user.is_admin !== true) {
+                const user = JSON.parse(userStr);
+                if (user.is_admin !== true) {
                     logout();
                     return null;
                 }
-                // Display admin name if available
                 const nameEl = document.getElementById('admin-name');
                 if (nameEl && user.full_name) {
                     nameEl.textContent = user.full_name;
                 }
                 return token;
             } catch (e) {
-                // If user data is corrupt but token exists, still allow
-                // (the API calls will fail with 401 if token is truly bad)
-                console.warn('Admin user data corrupt, but token exists');
-                return token;
+                // Strict: corrupt data = logout
+                console.error('Corrupt user data in checkAdminAuth');
+                logout();
+                return null;
             }
         }
 
@@ -177,15 +152,14 @@
 
         async function fetchWithAuth(url, options = {}) {
             const token = localStorage.getItem('admin_token');
-
-            const defaultOptions = {
+            return fetch(url, {
+                ...options,
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': `Bearer ${token}`,
+                    ...options.headers
                 }
-            };
-
-            return fetch(url, { ...defaultOptions, ...options });
+            });
         }
 
         async function loadDashboardStats() {
@@ -231,13 +205,12 @@
         });
     </script>
 
-    <!-- Sidebar Toggle -->
     <script>
     (function(){
         function toggleSidebar() {
             var sb = document.getElementById('admin-sidebar');
             var ov = document.getElementById('sidebar-overlay');
-            if (!sb) { console.error('Sidebar not found'); return; }
+            if (!sb) return;
             sb.classList.toggle('active');
             if (ov) ov.classList.toggle('active');
             document.body.style.overflow = sb.classList.contains('active') ? 'hidden' : '';
