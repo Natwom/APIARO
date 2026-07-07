@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Apiaro Admin Panel - Secure access for authorized personnel">
+    <title>Admin Login — Apiaro</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Animated background particles */
+        .bg-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 107, 0, 0.3);
+            border-radius: 50%;
+            animation: float 15s infinite;
+        }
+
+        .particle:nth-child(1) { left: 10%; top: 20%; animation-delay: 0s; }
+        .particle:nth-child(2) { left: 20%; top: 80%; animation-delay: 2s; width: 6px; height: 6px; }
+        .particle:nth-child(3) { left: 70%; top: 10%; animation-delay: 4s; }
+        .particle:nth-child(4) { left: 80%; top: 60%; animation-delay: 6s; width: 3px; height: 3px; }
+        .particle:nth-child(5) { left: 40%; top: 40%; animation-delay: 8s; width: 5px; height: 5px; }
+        .particle:nth-child(6) { left: 90%; top: 30%; animation-delay: 10s; }
+        .particle:nth-child(7) { left: 15%; top: 50%; animation-delay: 12s; width: 7px; height: 7px; }
+        .particle:nth-child(8) { left: 60%; top: 85%; animation-delay: 14s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.3; }
+            50% { transform: translateY(-100px) rotate(180deg); opacity: 0.8; }
+        }
+
+        /* Glassmorphism card */
+        .login-container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 420px;
+            margin: 20px;
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 48px 40px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 
+                        0 0 0 1px rgba(255, 255, 255, 0.05),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 107, 0, 0.5), transparent);
+        }
+
+        /* Logo section */
+        .brand-section {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .brand-logo {
+            width: 72px;
+            height: 72px;
+            background: linear-gradient(135deg, #ff6b00 0%, #ff8533 100%);
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(255, 107, 0, 0.3);
+            position: relative;
+        }
+
+        .brand-logo::after {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 23px;
+            background: linear-gradient(135deg, #ff6b00, #ff8533, #ff6b00);
+            z-index: -1;
+            opacity: 0.5;
+            filter: blur(8px);
+        }
+
+        .brand-logo i {
+            font-size: 32px;
+            color: white;
+        }
+
+        .brand-name {
+            font-size: 28px;
+            font-weight: 800;
+            color: white;
+            letter-spacing: -0.5px;
+            margin-bottom: 6px;
+        }
+
+        .brand-tagline {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: 400;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin: 28px 0;
+        }
+
+        .divider-line {
+            flex: 1;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .divider-text {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 500;
+        }
+
+        /* Form styling */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 16px;
+            transition: color 0.3s;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px 16px 14px 48px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: white;
+            font-size: 15px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .form-input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .form-input:focus {
+            border-color: #ff6b00;
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.1);
+        }
+
+        .form-input:focus + i,
+        .input-wrapper:focus-within i {
+            color: #ff6b00;
+        }
+
+        /* Password toggle */
+        .password-toggle {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.4);
+            cursor: pointer;
+            font-size: 14px;
+            padding: 4px;
+            transition: color 0.3s;
+        }
+
+        .password-toggle:hover {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* Login button */
+        .btn-login {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #ff6b00 0%, #ff8533 100%);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .btn-login::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-login:hover::before {
+            left: 100%;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 107, 0, 0.4);
+        }
+
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
+        .btn-login:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-login i {
+            margin-right: 8px;
+        }
+
+        /* Security badge */
+        .security-badge {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 24px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .security-badge i {
+            color: #10b981;
+            font-size: 14px;
+        }
+
+        .security-badge span {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.4);
+            font-weight: 500;
+        }
+
+        /* Message styling */
+        .auth-message {
+            margin-top: 16px;
+            padding: 14px 16px;
+            border-radius: 12px;
+            display: none;
+            font-size: 14px;
+            text-align: center;
+            font-weight: 500;
+            animation: slideIn 0.3s ease;
+        }
+
+        .auth-message.success {
+            display: block;
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .auth-message.error {
+            display: block;
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Spinner overlay */
+        .spinner-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 15, 35, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .spinner-overlay.active {
+            display: flex;
+        }
+
+        .spinner-ring {
+            width: 56px;
+            height: 56px;
+            border: 3px solid rgba(255, 107, 0, 0.1);
+            border-top-color: #ff6b00;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .spinner-text {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        /* Footer */
+        .login-footer {
+            text-align: center;
+            margin-top: 32px;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 12px;
+        }
+
+        .login-footer a {
+            color: #ff6b00;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .login-footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .login-card {
+                padding: 36px 24px;
+                margin: 16px;
+                border-radius: 20px;
+            }
+
+            .brand-name {
+                font-size: 24px;
+            }
+
+            .particle {
+                display: none;
+            }
+        }
+
+        /* Shake animation for errors */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .shake {
+            animation: shake 0.4s ease;
+        }
+    </style>
+
+    <!-- If already logged in as admin, redirect to dashboard -->
+    <script>
+        (function() {
+            const token = localStorage.getItem('admin_token');
+            const userStr = localStorage.getItem('admin_user');
+            if (token && userStr) {
+                try {
+                    const user = JSON.parse(userStr);
+                    if (user.is_admin === true) {
+                        window.location.replace('dashboard.html');
+                    } else {
+                        localStorage.removeItem('admin_token');
+                        localStorage.removeItem('admin_user');
+                    }
+                } catch (e) {
+                    localStorage.removeItem('admin_token');
+                    localStorage.removeItem('admin_user');
+                }
+            }
+        })();
+    </script>
+</head>
+<body>
+    <!-- Background particles -->
+    <div class="bg-particles">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+
+    <!-- Spinner -->
+    <div class="spinner-overlay" id="spinner-overlay">
+        <div class="spinner-ring"></div>
+        <p class="spinner-text" id="spinner-text">Authenticating...</p>
+    </div>
+
+    <div class="login-container">
+        <div class="login-card">
+            <!-- Brand -->
+            <div class="brand-section">
+                <div class="brand-logo">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h1 class="brand-name">Apiaro</h1>
+                <p class="brand-tagline">Admin Control Center</p>
+            </div>
+
+            <div class="divider">
+                <div class="divider-line"></div>
+                <span class="divider-text">Secure Login</span>
+                <div class="divider-line"></div>
+            </div>
+
+            <!-- Form -->
+            <form id="admin-login-form">
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-envelope"></i>
+                        <input 
+                            type="email" 
+                            id="email" 
+                            class="form-input" 
+                            placeholder="Enter your email"
+                            required
+                        >
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-lock"></i>
+                        <input 
+                            type="password" 
+                            id="password" 
+                            class="form-input" 
+                            placeholder="Enter your password"
+                            required
+                        >
+                        <button type="button" class="password-toggle" onclick="togglePassword()">
+                            <i class="fas fa-eye" id="toggle-icon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-login" id="login-btn">
+                    <i class="fas fa-sign-in-alt"></i> Sign In to Dashboard
+                </button>
+
+                <div id="auth-message" class="auth-message"></div>
+            </form>
+
+            <!-- Security badge -->
+            <div class="security-badge">
+                <i class="fas fa-lock"></i>
+                <span>256-bit SSL Encrypted Connection</span>
+            </div>
+        </div>
+
+        <div class="login-footer">
+            <p>Authorized personnel only. <a href="#">Need help?</a></p>
+            <p style="margin-top: 8px;">&copy; 2024 Apiaro. All rights reserved.</p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://apiaro-backend.onrender.com';
+        const spinnerOverlay = document.getElementById('spinner-overlay');
+        const spinnerText = document.getElementById('spinner-text');
+        const msgDiv = document.getElementById('auth-message');
+        const loginBtn = document.getElementById('login-btn');
+        const passwordInput = document.getElementById('password');
+        const toggleIcon = document.getElementById('toggle-icon');
+
+        function togglePassword() {
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.className = 'fas fa-eye-slash';
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.className = 'fas fa-eye';
+            }
+        }
+
+        function showSpinner(text) {
+            spinnerText.textContent = text || 'Authenticating...';
+            spinnerOverlay.classList.add('active');
+            loginBtn.disabled = true;
+        }
+
+        function hideSpinner() {
+            spinnerOverlay.classList.remove('active');
+            loginBtn.disabled = false;
+        }
+
+        function showMessage(text, type) {
+            msgDiv.textContent = text;
+            msgDiv.className = 'auth-message ' + type;
+            if (type === 'error') {
+                document.querySelector('.login-card').classList.add('shake');
+                setTimeout(() => {
+                    document.querySelector('.login-card').classList.remove('shake');
+                }, 400);
+            }
+        }
+
+        function clearMessage() {
+            msgDiv.className = 'auth-message';
+            msgDiv.textContent = '';
+        }
+
+        document.getElementById('admin-login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            clearMessage();
+            showSpinner('Verifying credentials...');
+
+            const credentials = {
+                email: document.getElementById('email').value.trim(),
+                password: document.getElementById('password').value
+            };
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/users/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(credentials)
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || !data.access_token) {
+                    hideSpinner();
+                    showMessage(data.detail || 'Invalid credentials. Please try again.', 'error');
+                    return;
+                }
+
+                localStorage.setItem('admin_token', data.access_token);
+
+                if (data.user) {
+                    const userData = { ...data.user, is_admin: data.user.is_admin === true };
+                    localStorage.setItem('admin_user', JSON.stringify(userData));
+                } else {
+                    localStorage.setItem('admin_user', JSON.stringify({
+                        email: credentials.email,
+                        is_admin: true,
+                        full_name: 'Administrator'
+                    }));
+                }
+
+                showSpinner('Access granted. Redirecting...');
+                showMessage('Welcome back! Redirecting to dashboard...', 'success');
+
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 1500);
+
+            } catch (error) {
+                hideSpinner();
+                showMessage('Network error. Please check your connection.', 'error');
+                console.error('Login error:', error);
+            }
+        });
+    </script>
+</body>
+</html>
