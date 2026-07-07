@@ -1,235 +1,192 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- AUTH GUARD: Redirect to login if not authenticated as admin -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - Apiaro</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .spinner-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(255,255,255,0.95);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .spinner-overlay.active { display: flex; }
+        .spinner {
+            width: 50px; height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #ff6b00;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .auth-message {
+            margin-top: 15px;
+            padding: 12px 16px;
+            border-radius: 6px;
+            display: none;
+            font-size: 0.95rem;
+            text-align: center;
+            font-weight: 500;
+        }
+        .auth-message.success {
+            display: block;
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .auth-message.error {
+            display: block;
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .btn-auth:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body class="auth-page">
+
+    <!-- If already logged in as admin, redirect to dashboard -->
     <script>
         (function() {
             const token = localStorage.getItem('admin_token');
             const userStr = localStorage.getItem('admin_user');
-
-            if (!token || !userStr) {
-                localStorage.removeItem('admin_token');
-                localStorage.removeItem('admin_user');
-                window.location.replace('login.html');
-                return;
-            }
-
-            try {
-                const user = JSON.parse(userStr);
-                if (user.is_admin !== true) {
-                    console.warn('Non-admin user attempted to access dashboard.');
+            if (token && userStr) {
+                try {
+                    const user = JSON.parse(userStr);
+                    if (user.is_admin === true) {
+                        window.location.replace('dashboard.html');
+                    } else {
+                        localStorage.removeItem('admin_token');
+                        localStorage.removeItem('admin_user');
+                    }
+                } catch (e) {
                     localStorage.removeItem('admin_token');
                     localStorage.removeItem('admin_user');
-                    window.location.replace('login.html');
-                    return;
                 }
-            } catch (e) {
-                console.error('Corrupt admin user data. Redirecting to login.');
-                localStorage.removeItem('admin_token');
-                localStorage.removeItem('admin_user');
-                window.location.replace('login.html');
-                return;
             }
         })();
     </script>
 
-    <meta charset="UTF-8">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - Apiaro</title>
-    <link rel="icon" type="image/png" href="favicon.png">
-    <link rel="stylesheet" href="css/admin.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- REMOVED: <base target="_blank"> — was causing login.html to open in new tab -->
-</head>
-<body>
-    <button class="admin-hamburger" onclick="toggleSidebar()">☰</button>
+    <div class="spinner-overlay" id="spinner-overlay">
+        <div class="spinner"></div>
+        <p id="spinner-text">Logging in...</p>
+    </div>
 
-    <div class="sidebar-overlay" onclick="toggleSidebar()" id="sidebar-overlay"></div>
-
-    <div class="admin-layout">
-        <aside class="sidebar" id="admin-sidebar">
-            <div class="sidebar-header">
-                <h2><i class="fas fa-shopping-bag"></i> Apiaro</h2>
-                <p>Admin Panel</p>
-            </div>
-            <nav class="sidebar-nav">
-                <a href="index.html" class="active"><i class="fas fa-home"></i> Dashboard</a>
-                <a href="products.html"><i class="fas fa-box"></i> Products</a>
-                <a href="orders.html"><i class="fas fa-clipboard-list"></i> Orders</a>
-                <a href="users.html"><i class="fas fa-users"></i> Users</a>
-                <a href="#" onclick="logout(); return false;"><i class="fas fa-sign-out-alt"></i> Logout</a>
-            </nav>
-        </aside>
-
-        <main class="main-content">
-            <header class="admin-header">
-                <h1>Dashboard</h1>
-                <div class="admin-user">
-                    <span id="admin-name">Administrator</span>
-                </div>
-            </header>
-
-            <div class="dashboard-stats">
-                <div class="stat-card">
-                    <i class="fas fa-box"></i>
-                    <div><h3 id="total-products">0</h3><p>Total Products</p></div>
-                </div>
-                <div class="stat-card">
-                    <i class="fas fa-shopping-cart"></i>
-                    <div><h3 id="total-orders">0</h3><p>Total Orders</p></div>
-                </div>
-                <div class="stat-card">
-                    <i class="fas fa-clock"></i>
-                    <div><h3 id="pending-orders">0</h3><p>Pending Orders</p></div>
-                </div>
-                <div class="stat-card">
-                    <i class="fas fa-money-bill-wave"></i>
-                    <div><h3 id="total-revenue">KES 0</h3><p>Revenue</p></div>
-                </div>
+    <div class="auth-container">
+        <div class="auth-box">
+            <div class="auth-header">
+                <i class="fas fa-lock logo-icon"></i>
+                <h1>Admin Panel</h1>
+                <p>Authorized personnel only</p>
             </div>
 
-            <div class="recent-orders">
-                <h2>Recent Orders</h2>
-                <div class="table-responsive">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Order ID</th>
-                                <th>Customer</th>
-                                <th>Phone</th>
-                                <th>Total</th>
-                                <th>Status</th>
-                                <th>Date</th>
-                                <th>SMS</th>
-                            </tr>
-                        </thead>
-                        <tbody id="recent-orders-body"></tbody>
-                    </table>
+            <form id="admin-login-form" class="auth-form">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="email" required value="admin@kenyashop.co.ke">
                 </div>
-            </div>
-        </main>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="password" required value="admin123">
+                </div>
+                <button type="submit" class="btn-auth" id="login-btn">Login to Dashboard</button>
+                <div id="auth-message" class="auth-message"></div>
+            </form>
+        </div>
     </div>
 
     <script>
-        const ADMIN_API_URL = 'https://apiaro-backend.onrender.com';
+        const API_BASE_URL = 'https://apiaro-backend.onrender.com';
+        const spinnerOverlay = document.getElementById('spinner-overlay');
+        const spinnerText = document.getElementById('spinner-text');
+        const msgDiv = document.getElementById('auth-message');
+        const loginBtn = document.getElementById('login-btn');
 
-        function checkAdminAuth() {
-            const token = localStorage.getItem('admin_token');
-            const userStr = localStorage.getItem('admin_user');
+        function showSpinner(text) {
+            spinnerText.textContent = text || 'Logging in...';
+            spinnerOverlay.classList.add('active');
+            loginBtn.disabled = true;
+        }
+        function hideSpinner() {
+            spinnerOverlay.classList.remove('active');
+            loginBtn.disabled = false;
+        }
+        function showMessage(text, type) {
+            msgDiv.textContent = text;
+            msgDiv.className = 'auth-message ' + type;
+        }
+        function clearMessage() {
+            msgDiv.className = 'auth-message';
+            msgDiv.textContent = '';
+        }
 
-            if (!token || !userStr) {
-                window.location.href = 'login.html';
-                return null;
-            }
+        document.getElementById('admin-login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            clearMessage();
+            showSpinner('Authenticating...');
+
+            const credentials = {
+                email: document.getElementById('email').value.trim(),
+                password: document.getElementById('password').value
+            };
 
             try {
-                const user = JSON.parse(userStr);
-                if (user.is_admin !== true) {
-                    logout();
-                    return null;
-                }
-                const nameEl = document.getElementById('admin-name');
-                if (nameEl && user.full_name) {
-                    nameEl.textContent = user.full_name;
-                }
-                return token;
-            } catch (e) {
-                // Strict: corrupt data = logout
-                console.error('Corrupt user data in checkAdminAuth');
-                logout();
-                return null;
-            }
-        }
-
-        function logout() {
-            localStorage.removeItem('admin_token');
-            localStorage.removeItem('admin_user');
-            window.location.href = 'login.html';
-        }
-
-        async function fetchWithAuth(url, options = {}) {
-            const token = localStorage.getItem('admin_token');
-            return fetch(url, {
-                ...options,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                    ...options.headers
-                }
-            });
-        }
-
-        async function loadDashboardStats() {
-            try {
-                const productsRes = await fetchWithAuth(`${ADMIN_API_URL}/products/`);
-                const products = await productsRes.json();
-                document.getElementById('total-products').textContent = products.length;
-
-                const ordersRes = await fetchWithAuth(`${ADMIN_API_URL}/orders/admin/all`);
-                const orders = await ordersRes.json();
-
-                document.getElementById('total-orders').textContent = orders.length;
-                document.getElementById('pending-orders').textContent = 
-                    orders.filter(o => o.status === 'pending').length;
-
-                const revenue = orders.reduce((sum, o) => sum + parseFloat(o.total_amount), 0);
-                document.getElementById('total-revenue').textContent = `KES ${revenue.toFixed(2)}`;
-
-                const recentOrders = orders.slice(0, 5);
-                const tbody = document.getElementById('recent-orders-body');
-                if (tbody) {
-                    tbody.innerHTML = recentOrders.map(order => `
-                        <tr>
-                            <td>#${order.id}</td>
-                            <td>${order.full_name}</td>
-                            <td>${order.phone_number}</td>
-                            <td>KES ${order.total_amount}</td>
-                            <td><span class="status-badge status-${order.status}">${order.status}</span></td>
-                            <td>${new Date(order.created_at).toLocaleDateString()}</td>
-                            <td>${order.sms_sent ? '<i class="fas fa-check sms-sent"></i>' : '<i class="fas fa-times sms-pending"></i>'}</td>
-                        </tr>
-                    `).join('');
-                }
-            } catch (error) {
-                console.error('Error loading stats:', error);
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const token = checkAdminAuth();
-            if (!token) return;
-            loadDashboardStats();
-        });
-    </script>
-
-    <script>
-    (function(){
-        function toggleSidebar() {
-            var sb = document.getElementById('admin-sidebar');
-            var ov = document.getElementById('sidebar-overlay');
-            if (!sb) return;
-            sb.classList.toggle('active');
-            if (ov) ov.classList.toggle('active');
-            document.body.style.overflow = sb.classList.contains('active') ? 'hidden' : '';
-        }
-        window.toggleSidebar = toggleSidebar;
-
-        document.addEventListener('DOMContentLoaded', function(){
-            var sb = document.getElementById('admin-sidebar');
-            if (sb) {
-                sb.querySelectorAll('a').forEach(function(a){
-                    a.addEventListener('click', function(){
-                        if (window.innerWidth <= 768) toggleSidebar();
-                    });
+                const response = await fetch(`${API_BASE_URL}/users/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(credentials)
                 });
+
+                const data = await response.json();
+
+                if (!response.ok || !data.access_token) {
+                    hideSpinner();
+                    showMessage('❌ ' + (data.detail || 'Invalid email or password. Please try again.'), 'error');
+                    return;
+                }
+
+                localStorage.setItem('admin_token', data.access_token);
+
+                if (data.user) {
+                    const userData = { ...data.user, is_admin: data.user.is_admin === true };
+                    localStorage.setItem('admin_user', JSON.stringify(userData));
+                } else {
+                    localStorage.setItem('admin_user', JSON.stringify({
+                        email: credentials.email,
+                        is_admin: true,
+                        full_name: 'Administrator'
+                    }));
+                }
+
+                showSpinner('Success! Redirecting...');
+                showMessage('✅ Login successful! Redirecting to dashboard...', 'success');
+
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 1200);
+
+            } catch (error) {
+                hideSpinner();
+                showMessage('❌ Network error: ' + error.message, 'error');
+                console.error('Login error:', error);
             }
-            var ov = document.getElementById('sidebar-overlay');
-            if (ov) ov.addEventListener('click', toggleSidebar);
         });
-    })();
     </script>
 </body>
 </html>

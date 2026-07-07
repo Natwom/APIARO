@@ -1,12 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- AUTH GUARD: No token = instant redirect to login -->
     <script>
         (function() {
             const token = localStorage.getItem('admin_token');
             if (!token) {
-                window.location.replace('login.html');
+                window.location.replace('index.html');
             }
         })();
     </script>
@@ -16,15 +15,7 @@
     <link rel="stylesheet" href="css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<<body>
-<<div id="admin-loading-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(29,53,87,0.95);z-index:99999;justify-content:center;align-items:center;flex-direction:column;">
-    <div style="width:60px;height:60px;border:4px solid rgba(230,57,70,0.2);border-top-color:#e63946;border-radius:50%;animation:adminSpin 1s linear infinite;"></div>
-    <p style="color:white;margin-top:20px;font-size:1.1rem;font-weight:500;">Authenticating...</p>
-</div>
-<style>
-@keyframes adminSpin { 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
-</style>
-
+<body>
     <button class="admin-hamburger" onclick="toggleSidebar()" aria-label="Menu">☰</button>
     <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
 
@@ -35,7 +26,7 @@
                 <p>Admin Panel</p>
             </div>
             <nav class="sidebar-nav">
-                <a href="index.html"><i class="fas fa-home"></i> Dashboard</a>
+                <a href="dashboard.html"><i class="fas fa-home"></i> Dashboard</a>
                 <a href="products.html" class="active"><i class="fas fa-box"></i> Products</a>
                 <a href="orders.html"><i class="fas fa-clipboard-list"></i> Orders</a>
                 <a href="users.html"><i class="fas fa-users"></i> Users</a>
@@ -54,24 +45,15 @@
             <div class="products-stats">
                 <div class="stat-card">
                     <i class="fas fa-box"></i>
-                    <div>
-                        <h3 id="total-products">0</h3>
-                        <p>Total Products</p>
-                    </div>
+                    <div><h3 id="total-products">0</h3><p>Total Products</p></div>
                 </div>
                 <div class="stat-card">
                     <i class="fas fa-check-circle"></i>
-                    <div>
-                        <h3 id="active-products">0</h3>
-                        <p>Active</p>
-                    </div>
+                    <div><h3 id="active-products">0</h3><p>Active</p></div>
                 </div>
                 <div class="stat-card">
                     <i class="fas fa-exclamation-circle"></i>
-                    <div>
-                        <h3 id="low-stock">0</h3>
-                        <p>Low Stock</p>
-                    </div>
+                    <div><h3 id="low-stock">0</h3><p>Low Stock</p></div>
                 </div>
             </div>
 
@@ -90,21 +72,18 @@
                                 <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="products-table-body">
-                        </tbody>
+                        <tbody id="products-table-body"></tbody>
                     </table>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- Add/Edit Product Modal -->
     <div id="product-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
         <div class="modal-content" style="background:white; padding:30px; border-radius:10px; max-width:600px; width:90%; max-height:90vh; overflow-y:auto;">
             <h3 id="modal-title" style="margin-bottom:20px;">Add New Product</h3>
             <form id="product-form">
                 <input type="hidden" id="product-id">
-                
                 <div class="form-row" style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:15px;">
                     <div class="form-group">
                         <label>Product Name *</label>
@@ -121,7 +100,6 @@
                         </select>
                     </div>
                 </div>
-
                 <div class="form-row" style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:15px;">
                     <div class="form-group">
                         <label>Price (KES) *</label>
@@ -132,8 +110,6 @@
                         <input type="number" id="product-stock" required min="0" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:5px;">
                     </div>
                 </div>
-
-                <!-- IMAGE UPLOAD SECTION - NEW -->
                 <div class="form-group" style="margin-bottom:15px;">
                     <label>Product Image</label>
                     <div style="border:2px dashed #ddd; padding:20px; border-radius:5px; text-align:center;">
@@ -150,22 +126,18 @@
                         </button>
                         <p id="selected-filename" style="margin-top:10px; font-size:0.9em; color:#666;"></p>
                     </div>
-                    <!-- Hidden field to store the image URL after upload -->
                     <input type="hidden" id="product-image-url">
                 </div>
-
                 <div class="form-group" style="margin-bottom:15px;">
                     <label>Description</label>
                     <textarea id="product-description" rows="3" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:5px;"></textarea>
                 </div>
-
                 <div class="form-group checkbox-group" style="margin-bottom:20px;">
                     <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
                         <input type="checkbox" id="product-active" checked style="width:auto;">
                         <span>Active</span>
                     </label>
                 </div>
-
                 <div class="modal-actions" style="display:flex; justify-content:flex-end; gap:10px;">
                     <button type="button" onclick="closeModal()" class="btn-secondary" style="padding:10px 20px;">Cancel</button>
                     <button type="submit" class="btn-primary" style="padding:10px 20px;">
@@ -179,41 +151,31 @@
     <script>
         function checkAdminAuth() {
             const token = localStorage.getItem('admin_token');
-            if (!token) window.location.href = 'login.html';
+            if (!token) window.location.href = 'index.html';
             return token;
         }
 
         function logout() {
             localStorage.removeItem('admin_token');
-            window.location.href = 'login.html';
+            localStorage.removeItem('admin_user');
+            window.location.href = 'index.html';
         }
 
-        // Updated fetchWithAuth to handle FormData
         async function fetchWithAuth(url, options = {}) {
             const token = localStorage.getItem('admin_token');
-            const headers = {
-                'Authorization': 'Bearer ' + token,
-                ...options.headers
-            };
-            
-            // Don't set Content-Type if it's FormData (browser sets it automatically with boundary)
+            const headers = { 'Authorization': 'Bearer ' + token, ...options.headers };
             if (options.body instanceof FormData) {
                 delete headers['Content-Type'];
             } else if (!headers['Content-Type']) {
                 headers['Content-Type'] = 'application/json';
             }
-            
-            return fetch(url, {
-                ...options,
-                headers: headers
-            });
+            return fetch(url, { ...options, headers: headers });
         }
 
         function getCategoryName(id) {
             return {1:'Electronics',2:'Fashion',3:'Home & Living',4:'Agriculture'}[id]||'Other';
         }
 
-        // Image preview function
         function previewImage(input) {
             const file = input.files[0];
             if (file) {
@@ -237,12 +199,10 @@
                 document.getElementById('low-stock').textContent = products.filter(p=>p.stock_quantity<5).length;
                 
                 document.getElementById('products-table-body').innerHTML = products.map(p=>{
-                    // Construct full image URL if it's a relative path
                     let imgUrl = p.image_url || 'https://via.placeholder.com/50';
                     if (imgUrl && !imgUrl.startsWith('http') && !imgUrl.startsWith('data:')) {
                         imgUrl = 'https://apiaro-backend.onrender.com' + imgUrl;
                     }
-                    
                     return `
                     <tr>
                         <td>#${p.id}</td>
@@ -255,11 +215,9 @@
                         <td>
                             <button onclick="editProduct(${p.id})" class="btn-primary btn-small"><i class="fas fa-edit"></i></button>
                         </td>
-                    </tr>
-                `}).join('');
-            } catch(e) { 
-                console.error('Error loading products:', e); 
-            }
+                    </tr>`;
+                }).join('');
+            } catch(e) { console.error('Error loading products:', e); }
         }
 
         function openAddModal() {
@@ -286,7 +244,6 @@
             document.getElementById('product-description').value=p.description||'';
             document.getElementById('product-active').checked=p.is_active;
             
-            // Show existing image if available
             if (p.image_url) {
                 let imgUrl = p.image_url;
                 if (!imgUrl.startsWith('http') && !imgUrl.startsWith('data:')) {
@@ -299,7 +256,6 @@
                 document.getElementById('image-preview').style.display = 'none';
                 document.getElementById('image-placeholder').style.display = 'block';
             }
-            
             document.getElementById('product-modal').style.display='flex';
         }
 
@@ -307,37 +263,28 @@
             document.getElementById('product-modal').style.display='none'; 
         }
 
-        // Handle form submission with image upload
         document.getElementById('product-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
             const id = document.getElementById('product-id').value;
             const imageFile = document.getElementById('product-image-file').files[0];
             let imageUrl = document.getElementById('product-image-url').value;
             
             try {
-                // Step 1: Upload image if a new file is selected
                 if (imageFile) {
-                    console.log('Uploading image...');
                     const formData = new FormData();
                     formData.append('file', imageFile);
-                    
                     const uploadRes = await fetchWithAuth('https://apiaro-backend.onrender.com/products/admin/upload-image', {
                         method: 'POST',
                         body: formData
                     });
-                    
                     if (!uploadRes.ok) {
                         const error = await uploadRes.json();
                         throw new Error('Image upload failed: ' + (error.detail || 'Unknown error'));
                     }
-                    
                     const uploadData = await uploadRes.json();
                     imageUrl = uploadData.image_url;
-                    console.log('Image uploaded:', imageUrl);
                 }
                 
-                // Step 2: Create or update product
                 const data = {
                     name: document.getElementById('product-name').value,
                     category_id: parseInt(document.getElementById('product-category').value) || null,
@@ -347,8 +294,6 @@
                     description: document.getElementById('product-description').value || null,
                     is_active: document.getElementById('product-active').checked
                 };
-                
-                console.log('Saving product:', data);
                 
                 const url = id ? `https://apiaro-backend.onrender.com/products/admin/${id}` : 'https://apiaro-backend.onrender.com/products/admin/';
                 const method = id ? 'PUT' : 'POST';
@@ -373,7 +318,6 @@
             }
         });
 
-        // Close modal when clicking outside
         document.getElementById('product-modal').addEventListener('click', (e) => {
             if (e.target.id === 'product-modal') closeModal();
         });
@@ -393,7 +337,6 @@
         if (overlay) overlay.classList.toggle('active');
         document.body.style.overflow = sidebar.classList.contains('active') ? 'hidden' : '';
     }
-    // Close sidebar when clicking nav links on mobile
     document.addEventListener('DOMContentLoaded', function() {
         var sidebar = document.querySelector('.sidebar');
         if (sidebar) {
@@ -405,21 +348,5 @@
         }
     });
     </script>
-
-
-<script>
-function showAdminLoading(text) {
-    var ov = document.getElementById('admin-loading-overlay');
-    if (ov) {
-        ov.querySelector('p').textContent = text || 'Authenticating...';
-        ov.style.display = 'flex';
-    }
-}
-function hideAdminLoading() {
-    var ov = document.getElementById('admin-loading-overlay');
-    if (ov) ov.style.display = 'none';
-}
-</script>
-
 </body>
 </html>
