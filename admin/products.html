@@ -4,23 +4,222 @@
     <script>
         (function() {
             const token = localStorage.getItem('admin_token');
-            if (!token) {
-                window.location.replace('index.html');
-            }
+            if (!token) { window.location.replace('index.html'); }
         })();
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product Management - Apiaro Admin</title>
-    <link rel="stylesheet" href="css/admin.css">
+    <title>Product Management — Apiaro Admin</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #ff6b00; --primary-light: #ff8533; --primary-glow: rgba(255,107,0,0.15);
+            --bg-dark: #0f0f23; --bg-card: rgba(255,255,255,0.03); --bg-hover: rgba(255,255,255,0.06);
+            --border: rgba(255,255,255,0.08); --text-primary: #ffffff; --text-secondary: rgba(255,255,255,0.6);
+            --text-muted: rgba(255,255,255,0.4); --success: #10b981; --warning: #f59e0b; --danger: #ef4444;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            color: var(--text-primary); min-height: 100vh; overflow-x: hidden;
+        }
+        .admin-layout { display: flex; min-height: 100vh; }
+        .sidebar {
+            width: 280px; background: rgba(15,15,35,0.95); backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border); position: fixed; height: 100vh; left: 0; top: 0; z-index: 100;
+            transition: transform 0.3s ease; display: flex; flex-direction: column;
+        }
+        .sidebar-header { padding: 32px 24px; border-bottom: 1px solid var(--border); }
+        .sidebar-header h2 { font-size: 24px; font-weight: 800; display: flex; align-items: center; gap: 12px; color: white; }
+        .sidebar-header h2 i { color: var(--primary); font-size: 28px; }
+        .sidebar-header p { font-size: 13px; color: var(--text-muted); margin-top: 4px; margin-left: 40px; text-transform: uppercase; letter-spacing: 1px; }
+        .sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 4px; }
+        .sidebar-nav a {
+            display: flex; align-items: center; gap: 14px; padding: 14px 18px; color: var(--text-secondary);
+            text-decoration: none; border-radius: 12px; font-size: 15px; font-weight: 500; transition: all 0.3s ease; position: relative;
+        }
+        .sidebar-nav a i { font-size: 18px; width: 24px; text-align: center; }
+        .sidebar-nav a:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .sidebar-nav a.active {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: white;
+            box-shadow: 0 4px 15px rgba(255,107,0,0.3);
+        }
+        .sidebar-nav a.active::before {
+            content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+            width: 3px; height: 60%; background: white; border-radius: 0 4px 4px 0;
+        }
+        .sidebar-footer { padding: 16px 12px; border-top: 1px solid var(--border); }
+        .sidebar-footer a {
+            display: flex; align-items: center; gap: 14px; padding: 14px 18px; color: var(--danger);
+            text-decoration: none; border-radius: 12px; font-size: 15px; font-weight: 500; transition: all 0.3s ease;
+        }
+        .sidebar-footer a:hover { background: rgba(239,68,68,0.1); }
+        .main-content { flex: 1; margin-left: 280px; padding: 32px; min-height: 100vh; }
+        .admin-header {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;
+            padding-bottom: 24px; border-bottom: 1px solid var(--border);
+        }
+        .admin-header h1 {
+            font-size: 32px; font-weight: 800;
+            background: linear-gradient(135deg, white 0%, rgba(255,255,255,0.7) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .btn-add {
+            padding: 14px 24px; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            border: none; border-radius: 12px; color: white; font-size: 14px; font-weight: 600;
+            font-family: 'Inter', sans-serif; cursor: pointer; display: flex; align-items: center; gap: 8px;
+            transition: all 0.3s ease;
+        }
+        .btn-add:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(255,107,0,0.3); }
+        .products-stats {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 24px; margin-bottom: 32px;
+        }
+        .stat-card {
+            background: var(--bg-card); backdrop-filter: blur(10px); border: 1px solid var(--border);
+            border-radius: 20px; padding: 24px; display: flex; align-items: center; gap: 16px; transition: all 0.3s ease;
+            position: relative; overflow: hidden;
+        }
+        .stat-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--primary-light)); opacity: 0; transition: opacity 0.3s;
+        }
+        .stat-card:hover { transform: translateY(-4px); border-color: rgba(255,107,0,0.2); box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+        .stat-card:hover::before { opacity: 1; }
+        .stat-card i { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+        .stat-card:nth-child(1) i { background: rgba(59,130,246,0.15); color: #3b82f6; }
+        .stat-card:nth-child(2) i { background: rgba(16,185,129,0.15); color: #10b981; }
+        .stat-card:nth-child(3) i { background: rgba(239,68,68,0.15); color: #ef4444; }
+        .stat-card h3 { font-size: 28px; font-weight: 800; color: white; margin-bottom: 4px; }
+        .stat-card p { font-size: 13px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .products-section {
+            background: var(--bg-card); backdrop-filter: blur(10px); border: 1px solid var(--border);
+            border-radius: 20px; padding: 28px; position: relative; overflow: hidden;
+        }
+        .products-section::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--primary-light));
+        }
+        .table-responsive { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        thead th {
+            text-align: left; padding: 14px 16px; font-size: 12px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); border-bottom: 1px solid var(--border);
+        }
+        tbody td { padding: 16px; font-size: 14px; color: var(--text-secondary); border-bottom: 1px solid rgba(255,255,255,0.03); vertical-align: middle; }
+        tbody tr { transition: background 0.2s; }
+        tbody tr:hover { background: var(--bg-hover); }
+        tbody tr:last-child td { border-bottom: none; }
+        .product-img { width: 48px; height: 48px; object-fit: cover; border-radius: 10px; border: 1px solid var(--border); }
+        .product-name strong { color: var(--text-primary); font-weight: 600; }
+        .product-name small { color: var(--text-muted); font-size: 12px; display: block; margin-top: 4px; }
+        .status-badge {
+            display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 50px;
+            font-size: 12px; font-weight: 600;
+        }
+        .status-active { background: rgba(16,185,129,0.1); color: #10b981; }
+        .status-active::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #10b981; }
+        .status-inactive { background: rgba(239,68,68,0.1); color: #ef4444; }
+        .status-inactive::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #ef4444; }
+        .low-stock { color: var(--danger); font-weight: 700; }
+        .btn-edit {
+            width: 36px; height: 36px; background: var(--bg-hover); border: 1px solid var(--border);
+            border-radius: 10px; color: var(--text-secondary); cursor: pointer; transition: all 0.3s;
+            display: inline-flex; align-items: center; justify-content: center;
+        }
+        .btn-edit:hover { background: var(--primary); color: white; border-color: var(--primary); }
+        .modal-overlay {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000;
+            justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(10px);
+        }
+        .modal-card {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border: 1px solid var(--border);
+            border-radius: 24px; padding: 40px; max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto;
+            position: relative; box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+        }
+        .modal-close {
+            position: absolute; top: 20px; right: 20px; background: var(--bg-hover); border: 1px solid var(--border);
+            color: var(--text-secondary); width: 40px; height: 40px; border-radius: 12px; font-size: 20px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s;
+        }
+        .modal-close:hover { background: var(--danger); color: white; border-color: var(--danger); }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .form-input {
+            width: 100%; padding: 14px 16px; background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 12px; color: var(--text-primary); font-size: 15px; font-family: 'Inter', sans-serif;
+            outline: none; transition: all 0.3s;
+        }
+        .form-input:focus { border-color: var(--primary); background: var(--bg-hover); }
+        .form-input::placeholder { color: var(--text-muted); }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .image-upload {
+            border: 2px dashed var(--border); border-radius: 16px; padding: 32px; text-align: center; transition: all 0.3s; cursor: pointer;
+        }
+        .image-upload:hover { border-color: var(--primary); background: rgba(255,107,0,0.05); }
+        .image-upload img { max-width: 200px; max-height: 200px; border-radius: 12px; display: none; }
+        .image-upload .placeholder { color: var(--text-muted); }
+        .image-upload .placeholder i { font-size: 48px; margin-bottom: 12px; display: block; }
+        .btn-upload {
+            padding: 10px 20px; background: var(--bg-hover); border: 1px solid var(--border); border-radius: 10px;
+            color: var(--text-secondary); font-size: 14px; font-weight: 500; cursor: pointer; margin-top: 16px; transition: all 0.3s;
+        }
+        .btn-upload:hover { background: var(--primary); color: white; border-color: var(--primary); }
+        .checkbox-group label { display: flex; align-items: center; gap: 10px; cursor: pointer; color: var(--text-secondary); font-weight: 400; text-transform: none; }
+        .checkbox-group input { width: 20px; height: 20px; accent-color: var(--primary); }
+        .modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border); }
+        .btn-secondary {
+            padding: 12px 24px; background: var(--bg-hover); border: 1px solid var(--border); border-radius: 12px;
+            color: var(--text-secondary); font-size: 14px; font-weight: 600; font-family: 'Inter', sans-serif; cursor: pointer; transition: all 0.3s;
+        }
+        .btn-secondary:hover { background: var(--bg-card); color: var(--text-primary); }
+        .btn-save {
+            padding: 12px 24px; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            border: none; border-radius: 12px; color: white; font-size: 14px; font-weight: 600;
+            font-family: 'Inter', sans-serif; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 8px;
+        }
+        .btn-save:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(255,107,0,0.3); }
+        .admin-hamburger {
+            display: none; position: fixed; top: 20px; left: 20px; z-index: 200;
+            background: var(--bg-card); border: 1px solid var(--border); color: white;
+            width: 48px; height: 48px; border-radius: 12px; font-size: 20px; cursor: pointer; backdrop-filter: blur(10px);
+        }
+        .sidebar-overlay {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99; backdrop-filter: blur(4px);
+        }
+        .sidebar-overlay.active { display: block; }
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+        .empty-state i { font-size: 48px; margin-bottom: 16px; opacity: 0.3; }
+        .loading-spinner {
+            display: inline-block; width: 24px; height: 24px; border: 2px solid var(--border);
+            border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite;
+            margin-right: 12px; vertical-align: middle;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.active { transform: translateX(0); }
+            .main-content { margin-left: 0; padding: 80px 20px 20px; }
+            .admin-hamburger { display: flex; align-items: center; justify-content: center; }
+            .admin-header { flex-direction: column; gap: 16px; align-items: flex-start; }
+            .admin-header h1 { font-size: 24px; }
+            .form-row { grid-template-columns: 1fr; }
+            .products-stats { grid-template-columns: 1fr; }
+            .modal-card { padding: 24px; }
+        }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
+    </style>
 </head>
 <body>
-    <button class="admin-hamburger" onclick="toggleSidebar()" aria-label="Menu">☰</button>
-    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+    <button class="admin-hamburger" onclick="toggleSidebar()">☰</button>
+    <div class="sidebar-overlay" onclick="toggleSidebar()" id="sidebar-overlay"></div>
 
     <div class="admin-layout">
-        <aside class="sidebar">
+        <aside class="sidebar" id="admin-sidebar">
             <div class="sidebar-header">
                 <h2><i class="fas fa-shopping-bag"></i> Apiaro</h2>
                 <p>Admin Panel</p>
@@ -30,16 +229,16 @@
                 <a href="products.html" class="active"><i class="fas fa-box"></i> Products</a>
                 <a href="orders.html"><i class="fas fa-clipboard-list"></i> Orders</a>
                 <a href="users.html"><i class="fas fa-users"></i> Users</a>
-                <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </nav>
+            <div class="sidebar-footer">
+                <a href="#" onclick="logout(); return false;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
         </aside>
 
         <main class="main-content">
             <header class="admin-header">
                 <h1>Product Management</h1>
-                <button onclick="openAddModal()" class="btn-primary">
-                    <i class="fas fa-plus"></i> Add New Product
-                </button>
+                <button onclick="openAddModal()" class="btn-add"><i class="fas fa-plus"></i> Add New Product</button>
             </header>
 
             <div class="products-stats">
@@ -52,46 +251,52 @@
                     <div><h3 id="active-products">0</h3><p>Active</p></div>
                 </div>
                 <div class="stat-card">
-                    <i class="fas fa-exclamation-circle"></i>
+                    <i class="fas fa-exclamation-triangle"></i>
                     <div><h3 id="low-stock">0</h3><p>Low Stock</p></div>
                 </div>
             </div>
 
-            <div class="products-table-container">
+            <div class="products-section">
+                <h2 style="font-size:20px;font-weight:700;margin-bottom:24px;display:flex;align-items:center;gap:12px;">
+                    <i class="fas fa-list"></i> Product List
+                </h2>
                 <div class="table-responsive">
-                    <table class="products-table">
+                    <table>
                         <thead>
                             <tr>
                                 <th>ID</th>
                                 <th>Image</th>
-                                <th>Product Name</th>
+                                <th>Product</th>
                                 <th>Category</th>
-                                <th>Price (KES)</th>
+                                <th>Price</th>
                                 <th>Stock</th>
                                 <th>Status</th>
-                                <th>Actions</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
-                        <tbody id="products-table-body"></tbody>
+                        <tbody id="products-table-body">
+                            <tr><td colspan="8" style="text-align:center;padding:40px;"><span class="loading-spinner"></span> Loading products...</td></tr>
+                        </tbody>
                     </table>
                 </div>
             </div>
         </main>
     </div>
 
-    <div id="product-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
-        <div class="modal-content" style="background:white; padding:30px; border-radius:10px; max-width:600px; width:90%; max-height:90vh; overflow-y:auto;">
-            <h3 id="modal-title" style="margin-bottom:20px;">Add New Product</h3>
+    <div class="modal-overlay" id="product-modal">
+        <div class="modal-card">
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+            <h3 id="modal-title" style="margin-bottom:24px;font-size:20px;">Add New Product</h3>
             <form id="product-form">
                 <input type="hidden" id="product-id">
-                <div class="form-row" style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:15px;">
+                <div class="form-row">
                     <div class="form-group">
                         <label>Product Name *</label>
-                        <input type="text" id="product-name" required style="width:100%; padding:10px; border:1px solid #ddd; border-radius:5px;">
+                        <input type="text" id="product-name" class="form-input" placeholder="Enter product name" required>
                     </div>
                     <div class="form-group">
                         <label>Category *</label>
-                        <select id="product-category" required style="width:100%; padding:10px; border:1px solid #ddd; border-radius:5px;">
+                        <select id="product-category" class="form-input" required>
                             <option value="">Select Category</option>
                             <option value="1">Electronics</option>
                             <option value="2">Fashion</option>
@@ -100,58 +305,50 @@
                         </select>
                     </div>
                 </div>
-                <div class="form-row" style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:15px;">
+                <div class="form-row">
                     <div class="form-group">
                         <label>Price (KES) *</label>
-                        <input type="number" id="product-price" required min="0" step="0.01" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:5px;">
+                        <input type="number" id="product-price" class="form-input" placeholder="0.00" required min="0" step="0.01">
                     </div>
                     <div class="form-group">
                         <label>Stock Quantity *</label>
-                        <input type="number" id="product-stock" required min="0" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:5px;">
+                        <input type="number" id="product-stock" class="form-input" placeholder="0" required min="0">
                     </div>
                 </div>
-                <div class="form-group" style="margin-bottom:15px;">
+                <div class="form-group">
                     <label>Product Image</label>
-                    <div style="border:2px dashed #ddd; padding:20px; border-radius:5px; text-align:center;">
+                    <div class="image-upload" onclick="document.getElementById('product-image-file').click()">
                         <input type="file" id="product-image-file" accept="image/*" style="display:none;" onchange="previewImage(this)">
-                        <div id="image-preview-container" style="margin-bottom:10px;">
-                            <img id="image-preview" src="" style="max-width:200px; max-height:200px; display:none; border-radius:5px;">
-                            <p id="image-placeholder" style="color:#999; margin:0;">
-                                <i class="fas fa-cloud-upload-alt" style="font-size:2em;"></i><br>
-                                Click to upload image from your computer
-                            </p>
+                        <img id="image-preview" src="" alt="Preview">
+                        <div class="placeholder" id="image-placeholder">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>Click to upload product image</p>
                         </div>
-                        <button type="button" onclick="document.getElementById('product-image-file').click()" class="btn-secondary" style="padding:8px 15px;">
-                            <i class="fas fa-upload"></i> Choose File
-                        </button>
-                        <p id="selected-filename" style="margin-top:10px; font-size:0.9em; color:#666;"></p>
+                        <p id="selected-filename" style="margin-top:12px;color:var(--text-muted);font-size:13px;"></p>
                     </div>
                     <input type="hidden" id="product-image-url">
                 </div>
-                <div class="form-group" style="margin-bottom:15px;">
+                <div class="form-group">
                     <label>Description</label>
-                    <textarea id="product-description" rows="3" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:5px;"></textarea>
+                    <textarea id="product-description" class="form-input" rows="3" placeholder="Enter product description"></textarea>
                 </div>
-                <div class="form-group checkbox-group" style="margin-bottom:20px;">
-                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-                        <input type="checkbox" id="product-active" checked style="width:auto;">
-                        <span>Active</span>
-                    </label>
+                <div class="form-group checkbox-group">
+                    <label><input type="checkbox" id="product-active" checked> <span>Active Product</span></label>
                 </div>
-                <div class="modal-actions" style="display:flex; justify-content:flex-end; gap:10px;">
-                    <button type="button" onclick="closeModal()" class="btn-secondary" style="padding:10px 20px;">Cancel</button>
-                    <button type="submit" class="btn-primary" style="padding:10px 20px;">
-                        <i class="fas fa-save"></i> Save Product
-                    </button>
+                <div class="modal-actions">
+                    <button type="button" onclick="closeModal()" class="btn-secondary">Cancel</button>
+                    <button type="submit" class="btn-save"><i class="fas fa-save"></i> Save Product</button>
                 </div>
             </form>
         </div>
     </div>
 
     <script>
+        const API_BASE_URL = 'https://apiaro-backend.onrender.com';
+
         function checkAdminAuth() {
             const token = localStorage.getItem('admin_token');
-            if (!token) window.location.href = 'index.html';
+            if (!token) { window.location.href = 'index.html'; return null; }
             return token;
         }
 
@@ -164,17 +361,12 @@
         async function fetchWithAuth(url, options = {}) {
             const token = localStorage.getItem('admin_token');
             const headers = { 'Authorization': 'Bearer ' + token, ...options.headers };
-            if (options.body instanceof FormData) {
-                delete headers['Content-Type'];
-            } else if (!headers['Content-Type']) {
-                headers['Content-Type'] = 'application/json';
-            }
+            if (options.body instanceof FormData) { delete headers['Content-Type']; }
+            else if (!headers['Content-Type']) { headers['Content-Type'] = 'application/json'; }
             return fetch(url, { ...options, headers: headers });
         }
 
-        function getCategoryName(id) {
-            return {1:'Electronics',2:'Fashion',3:'Home & Living',4:'Agriculture'}[id]||'Other';
-        }
+        function getCategoryName(id) { return {1:'Electronics',2:'Fashion',3:'Home & Living',4:'Agriculture'}[id]||'Other'; }
 
         function previewImage(input) {
             const file = input.files[0];
@@ -184,7 +376,7 @@
                     document.getElementById('image-preview').src = e.target.result;
                     document.getElementById('image-preview').style.display = 'block';
                     document.getElementById('image-placeholder').style.display = 'none';
-                    document.getElementById('selected-filename').textContent = 'Selected: ' + file.name;
+                    document.getElementById('selected-filename').textContent = file.name;
                 };
                 reader.readAsDataURL(file);
             }
@@ -192,63 +384,63 @@
 
         async function loadProducts() {
             try {
-                const res = await fetchWithAuth('https://apiaro-backend.onrender.com/products/');
+                const res = await fetchWithAuth(`${API_BASE_URL}/products/`);
                 const products = await res.json();
                 document.getElementById('total-products').textContent = products.length;
                 document.getElementById('active-products').textContent = products.filter(p=>p.is_active).length;
                 document.getElementById('low-stock').textContent = products.filter(p=>p.stock_quantity<5).length;
                 
-                document.getElementById('products-table-body').innerHTML = products.map(p=>{
-                    let imgUrl = p.image_url || 'https://via.placeholder.com/50';
-                    if (imgUrl && !imgUrl.startsWith('http') && !imgUrl.startsWith('data:')) {
-                        imgUrl = 'https://apiaro-backend.onrender.com' + imgUrl;
-                    }
+                const tbody = document.getElementById('products-table-body');
+                if (products.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="8" class="empty-state"><i class="fas fa-box-open"></i><p>No products yet</p></td></tr>`;
+                    return;
+                }
+                
+                tbody.innerHTML = products.map(p=>{
+                    let imgUrl = p.image_url || 'https://via.placeholder.com/48?text=No+Image';
+                    if (imgUrl && !imgUrl.startsWith('http') && !imgUrl.startsWith('data:')) imgUrl = API_BASE_URL + imgUrl;
                     return `
                     <tr>
-                        <td>#${p.id}</td>
-                        <td><img src="${imgUrl}" style="width:50px;height:50px;object-fit:cover;border-radius:5px;" onerror="this.src='https://via.placeholder.com/50'"></td>
-                        <td><strong>${p.name}</strong><br><small>${p.description?p.description.substring(0,50)+'...':''}</small></td>
+                        <td><strong style="color:var(--text-primary);">#${p.id}</strong></td>
+                        <td><img src="${imgUrl}" class="product-img" onerror="this.src='https://via.placeholder.com/48?text=No+Image'" alt="${p.name}"></td>
+                        <td class="product-name"><strong>${p.name}</strong><small>${p.description?p.description.substring(0,50)+'...':''}</small></td>
                         <td>${getCategoryName(p.category_id)}</td>
-                        <td>KES ${parseFloat(p.price).toFixed(2)}</td>
-                        <td style="${p.stock_quantity<5?'color:red;font-weight:bold':''}">${p.stock_quantity}</td>
-                        <td><span class="status-badge ${p.is_active?'status-delivered':'status-cancelled'}">${p.is_active?'Active':'Inactive'}</span></td>
-                        <td>
-                            <button onclick="editProduct(${p.id})" class="btn-primary btn-small"><i class="fas fa-edit"></i></button>
-                        </td>
+                        <td style="font-weight:700;color:var(--success);">KES ${parseFloat(p.price).toLocaleString('en-KE', {minimumFractionDigits:2, maximumFractionDigits:2})}</td>
+                        <td style="${p.stock_quantity<5?'color:var(--danger);font-weight:700;':''}">${p.stock_quantity}</td>
+                        <td><span class="status-badge ${p.is_active?'status-active':'status-inactive'}">${p.is_active?'Active':'Inactive'}</span></td>
+                        <td><button onclick="editProduct(${p.id})" class="btn-edit"><i class="fas fa-edit"></i></button></td>
                     </tr>`;
                 }).join('');
             } catch(e) { console.error('Error loading products:', e); }
         }
 
         function openAddModal() {
-            document.getElementById('modal-title').textContent='Add New Product';
+            document.getElementById('modal-title').textContent = 'Add New Product';
             document.getElementById('product-form').reset();
-            document.getElementById('product-id').value='';
-            document.getElementById('product-image-url').value='';
-            document.getElementById('image-preview').style.display='none';
-            document.getElementById('image-placeholder').style.display='block';
-            document.getElementById('selected-filename').textContent='';
-            document.getElementById('product-modal').style.display='flex';
+            document.getElementById('product-id').value = '';
+            document.getElementById('product-image-url').value = '';
+            document.getElementById('image-preview').style.display = 'none';
+            document.getElementById('image-placeholder').style.display = 'block';
+            document.getElementById('selected-filename').textContent = '';
+            document.getElementById('product-modal').style.display = 'flex';
         }
 
         async function editProduct(id) {
-            const res=await fetchWithAuth('https://apiaro-backend.onrender.com/products/'+id);
-            const p=await res.json();
-            document.getElementById('modal-title').textContent='Edit Product';
-            document.getElementById('product-id').value=p.id;
-            document.getElementById('product-name').value=p.name;
-            document.getElementById('product-category').value=p.category_id||'';
-            document.getElementById('product-price').value=p.price;
-            document.getElementById('product-stock').value=p.stock_quantity;
-            document.getElementById('product-image-url').value=p.image_url||'';
-            document.getElementById('product-description').value=p.description||'';
-            document.getElementById('product-active').checked=p.is_active;
+            const res = await fetchWithAuth(`${API_BASE_URL}/products/${id}`);
+            const p = await res.json();
+            document.getElementById('modal-title').textContent = 'Edit Product';
+            document.getElementById('product-id').value = p.id;
+            document.getElementById('product-name').value = p.name;
+            document.getElementById('product-category').value = p.category_id || '';
+            document.getElementById('product-price').value = p.price;
+            document.getElementById('product-stock').value = p.stock_quantity;
+            document.getElementById('product-image-url').value = p.image_url || '';
+            document.getElementById('product-description').value = p.description || '';
+            document.getElementById('product-active').checked = p.is_active;
             
             if (p.image_url) {
                 let imgUrl = p.image_url;
-                if (!imgUrl.startsWith('http') && !imgUrl.startsWith('data:')) {
-                    imgUrl = 'https://apiaro-backend.onrender.com' + imgUrl;
-                }
+                if (!imgUrl.startsWith('http') && !imgUrl.startsWith('data:')) imgUrl = API_BASE_URL + imgUrl;
                 document.getElementById('image-preview').src = imgUrl;
                 document.getElementById('image-preview').style.display = 'block';
                 document.getElementById('image-placeholder').style.display = 'none';
@@ -256,12 +448,10 @@
                 document.getElementById('image-preview').style.display = 'none';
                 document.getElementById('image-placeholder').style.display = 'block';
             }
-            document.getElementById('product-modal').style.display='flex';
+            document.getElementById('product-modal').style.display = 'flex';
         }
 
-        function closeModal() { 
-            document.getElementById('product-modal').style.display='none'; 
-        }
+        function closeModal() { document.getElementById('product-modal').style.display = 'none'; }
 
         document.getElementById('product-form').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -273,14 +463,8 @@
                 if (imageFile) {
                     const formData = new FormData();
                     formData.append('file', imageFile);
-                    const uploadRes = await fetchWithAuth('https://apiaro-backend.onrender.com/products/admin/upload-image', {
-                        method: 'POST',
-                        body: formData
-                    });
-                    if (!uploadRes.ok) {
-                        const error = await uploadRes.json();
-                        throw new Error('Image upload failed: ' + (error.detail || 'Unknown error'));
-                    }
+                    const uploadRes = await fetchWithAuth(`${API_BASE_URL}/products/admin/upload-image`, { method: 'POST', body: formData });
+                    if (!uploadRes.ok) { const error = await uploadRes.json(); throw new Error('Image upload failed: ' + (error.detail || 'Unknown error')); }
                     const uploadData = await uploadRes.json();
                     imageUrl = uploadData.image_url;
                 }
@@ -295,58 +479,28 @@
                     is_active: document.getElementById('product-active').checked
                 };
                 
-                const url = id ? `https://apiaro-backend.onrender.com/products/admin/${id}` : 'https://apiaro-backend.onrender.com/products/admin/';
+                const url = id ? `${API_BASE_URL}/products/admin/${id}` : `${API_BASE_URL}/products/admin/`;
                 const method = id ? 'PUT' : 'POST';
                 
-                const res = await fetchWithAuth(url, {
-                    method: method,
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
+                const res = await fetchWithAuth(url, { method: method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
                 
-                if (res.ok) {
-                    closeModal();
-                    loadProducts();
-                    alert(id ? 'Product updated successfully!' : 'Product created successfully!');
-                } else {
-                    const error = await res.json();
-                    alert('Failed to save: ' + (error.detail || 'Unknown error'));
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Error: ' + error.message);
-            }
+                if (res.ok) { closeModal(); loadProducts(); alert(id ? 'Product updated!' : 'Product created!'); }
+                else { const error = await res.json(); alert('Failed: ' + (error.detail || 'Unknown error')); }
+            } catch (error) { console.error('Error:', error); alert('Error: ' + error.message); }
         });
 
-        document.getElementById('product-modal').addEventListener('click', (e) => {
-            if (e.target.id === 'product-modal') closeModal();
-        });
+        document.getElementById('product-modal').addEventListener('click', (e) => { if (e.target.id === 'product-modal') closeModal(); });
 
-        document.addEventListener('DOMContentLoaded', () => {
-            checkAdminAuth();
-            loadProducts();
-        });
-    </script>
+        document.addEventListener('DOMContentLoaded', () => { checkAdminAuth(); loadProducts(); });
 
-    <script>
-    function toggleSidebar() {
-        var sidebar = document.querySelector('.sidebar');
-        var overlay = document.querySelector('.sidebar-overlay');
-        if (!sidebar) return;
-        sidebar.classList.toggle('active');
-        if (overlay) overlay.classList.toggle('active');
-        document.body.style.overflow = sidebar.classList.contains('active') ? 'hidden' : '';
-    }
-    document.addEventListener('DOMContentLoaded', function() {
-        var sidebar = document.querySelector('.sidebar');
-        if (sidebar) {
-            sidebar.querySelectorAll('a').forEach(function(link) {
-                link.addEventListener('click', function() {
-                    if (window.innerWidth <= 768) toggleSidebar();
-                });
-            });
+        function toggleSidebar() {
+            var sb = document.getElementById('admin-sidebar');
+            var ov = document.getElementById('sidebar-overlay');
+            if (!sb) return;
+            sb.classList.toggle('active');
+            if (ov) ov.classList.toggle('active');
+            document.body.style.overflow = sb.classList.contains('active') ? 'hidden' : '';
         }
-    });
     </script>
 </body>
 </html>

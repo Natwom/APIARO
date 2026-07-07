@@ -4,23 +4,141 @@
     <script>
         (function() {
             const token = localStorage.getItem('admin_token');
-            if (!token) {
-                window.location.replace('index.html');
-            }
+            if (!token) { window.location.replace('index.html'); }
         })();
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Management - Apiaro Admin</title>
-    <link rel="stylesheet" href="css/admin.css">
+    <title>User Management — Apiaro Admin</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #ff6b00; --primary-light: #ff8533; --primary-glow: rgba(255,107,0,0.15);
+            --bg-dark: #0f0f23; --bg-card: rgba(255,255,255,0.03); --bg-hover: rgba(255,255,255,0.06);
+            --border: rgba(255,255,255,0.08); --text-primary: #ffffff; --text-secondary: rgba(255,255,255,0.6);
+            --text-muted: rgba(255,255,255,0.4); --success: #10b981; --warning: #f59e0b; --danger: #ef4444;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            color: var(--text-primary); min-height: 100vh; overflow-x: hidden;
+        }
+        .admin-layout { display: flex; min-height: 100vh; }
+        .sidebar {
+            width: 280px; background: rgba(15,15,35,0.95); backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border); position: fixed; height: 100vh; left: 0; top: 0; z-index: 100;
+            transition: transform 0.3s ease; display: flex; flex-direction: column;
+        }
+        .sidebar-header { padding: 32px 24px; border-bottom: 1px solid var(--border); }
+        .sidebar-header h2 { font-size: 24px; font-weight: 800; display: flex; align-items: center; gap: 12px; color: white; }
+        .sidebar-header h2 i { color: var(--primary); font-size: 28px; }
+        .sidebar-header p { font-size: 13px; color: var(--text-muted); margin-top: 4px; margin-left: 40px; text-transform: uppercase; letter-spacing: 1px; }
+        .sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 4px; }
+        .sidebar-nav a {
+            display: flex; align-items: center; gap: 14px; padding: 14px 18px; color: var(--text-secondary);
+            text-decoration: none; border-radius: 12px; font-size: 15px; font-weight: 500; transition: all 0.3s ease; position: relative;
+        }
+        .sidebar-nav a i { font-size: 18px; width: 24px; text-align: center; }
+        .sidebar-nav a:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .sidebar-nav a.active {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: white;
+            box-shadow: 0 4px 15px rgba(255,107,0,0.3);
+        }
+        .sidebar-nav a.active::before {
+            content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+            width: 3px; height: 60%; background: white; border-radius: 0 4px 4px 0;
+        }
+        .sidebar-footer { padding: 16px 12px; border-top: 1px solid var(--border); }
+        .sidebar-footer a {
+            display: flex; align-items: center; gap: 14px; padding: 14px 18px; color: var(--danger);
+            text-decoration: none; border-radius: 12px; font-size: 15px; font-weight: 500; transition: all 0.3s ease;
+        }
+        .sidebar-footer a:hover { background: rgba(239,68,68,0.1); }
+        .main-content { flex: 1; margin-left: 280px; padding: 32px; min-height: 100vh; }
+        .admin-header {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;
+            padding-bottom: 24px; border-bottom: 1px solid var(--border);
+        }
+        .admin-header h1 {
+            font-size: 32px; font-weight: 800;
+            background: linear-gradient(135deg, white 0%, rgba(255,255,255,0.7) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .stats-badge {
+            padding: 10px 20px; background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 50px; color: var(--text-secondary); font-size: 14px; font-weight: 600;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .stats-badge i { color: var(--primary); }
+        .users-section {
+            background: var(--bg-card); backdrop-filter: blur(10px); border: 1px solid var(--border);
+            border-radius: 20px; padding: 28px; position: relative; overflow: hidden;
+        }
+        .users-section::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--primary-light));
+        }
+        .users-section h2 { font-size: 20px; font-weight: 700; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+        .users-section h2::after { content: ''; flex: 1; height: 1px; background: var(--border); margin-left: 12px; }
+        .table-responsive { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        thead th {
+            text-align: left; padding: 14px 16px; font-size: 12px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); border-bottom: 1px solid var(--border);
+        }
+        tbody td { padding: 16px; font-size: 14px; color: var(--text-secondary); border-bottom: 1px solid rgba(255,255,255,0.03); }
+        tbody tr { transition: background 0.2s; }
+        tbody tr:hover { background: var(--bg-hover); }
+        tbody tr:last-child td { border-bottom: none; }
+        .user-avatar {
+            width: 40px; height: 40px; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            border-radius: 12px; display: inline-flex; align-items: center; justify-content: center;
+            color: white; font-size: 16px; font-weight: 700; margin-right: 12px;
+        }
+        .user-name { font-weight: 600; color: var(--text-primary); }
+        .user-email { color: var(--text-muted); font-size: 13px; display: block; margin-top: 4px; }
+        .phone-cell { display: flex; align-items: center; gap: 8px; }
+        .phone-cell i { color: var(--text-muted); font-size: 12px; }
+        .date-cell { color: var(--text-muted); font-size: 13px; }
+        .admin-hamburger {
+            display: none; position: fixed; top: 20px; left: 20px; z-index: 200;
+            background: var(--bg-card); border: 1px solid var(--border); color: white;
+            width: 48px; height: 48px; border-radius: 12px; font-size: 20px; cursor: pointer; backdrop-filter: blur(10px);
+        }
+        .sidebar-overlay {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99; backdrop-filter: blur(4px);
+        }
+        .sidebar-overlay.active { display: block; }
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+        .empty-state i { font-size: 48px; margin-bottom: 16px; opacity: 0.3; }
+        .loading-spinner {
+            display: inline-block; width: 24px; height: 24px; border: 2px solid var(--border);
+            border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite;
+            margin-right: 12px; vertical-align: middle;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.active { transform: translateX(0); }
+            .main-content { margin-left: 0; padding: 80px 20px 20px; }
+            .admin-hamburger { display: flex; align-items: center; justify-content: center; }
+            .admin-header { flex-direction: column; gap: 16px; align-items: flex-start; }
+            .admin-header h1 { font-size: 24px; }
+        }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
+    </style>
 </head>
 <body>
-    <button class="admin-hamburger" onclick="toggleSidebar()" aria-label="Menu">☰</button>
-    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+    <button class="admin-hamburger" onclick="toggleSidebar()">☰</button>
+    <div class="sidebar-overlay" onclick="toggleSidebar()" id="sidebar-overlay"></div>
 
     <div class="admin-layout">
-        <aside class="sidebar">
+        <aside class="sidebar" id="admin-sidebar">
             <div class="sidebar-header">
                 <h2><i class="fas fa-shopping-bag"></i> Apiaro</h2>
                 <p>Admin Panel</p>
@@ -30,31 +148,41 @@
                 <a href="products.html"><i class="fas fa-box"></i> Products</a>
                 <a href="orders.html"><i class="fas fa-clipboard-list"></i> Orders</a>
                 <a href="users.html" class="active"><i class="fas fa-users"></i> Users</a>
-                <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </nav>
+            <div class="sidebar-footer">
+                <a href="#" onclick="logout(); return false;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
         </aside>
 
         <main class="main-content">
             <header class="admin-header">
                 <h1>User Management</h1>
-                <div class="stats-summary">
+                <div class="stats-badge">
+                    <i class="fas fa-users"></i>
                     <span id="total-users">0 Users</span>
                 </div>
             </header>
 
-            <div class="users-table-container">
+            <div class="users-section">
+                <h2><i class="fas fa-user-friends"></i> Registered Users</h2>
                 <div class="table-responsive">
-                    <table class="users-table">
+                    <table>
                         <thead>
                             <tr>
                                 <th>ID</th>
-                                <th>Full Name</th>
+                                <th>User</th>
                                 <th>Email</th>
-                                <th>Phone Number</th>
-                                <th>Registered Date</th>
+                                <th>Phone</th>
+                                <th>Registered</th>
                             </tr>
                         </thead>
-                        <tbody id="users-table-body"></tbody>
+                        <tbody id="users-table-body">
+                            <tr>
+                                <td colspan="5" style="text-align:center;padding:40px;">
+                                    <span class="loading-spinner"></span> Loading users...
+                                </td>
+                            </tr>
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -62,40 +190,31 @@
     </div>
 
     <script>
+        const API_BASE_URL = 'https://apiaro-backend.onrender.com';
+
         function checkAdminAuth() {
             const token = localStorage.getItem('admin_token');
-            if (!token) {
-                window.location.href = 'index.html';
-                return null;
-            }
+            if (!token) { window.location.href = 'index.html'; return null; }
             return token;
         }
 
         function logout() {
             localStorage.removeItem('admin_token');
+            localStorage.removeItem('admin_user');
             window.location.href = 'index.html';
         }
 
         async function fetchWithAuth(url, options = {}) {
             const token = localStorage.getItem('admin_token');
-            const headers = {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + token,
-                ...options.headers
-            };
+            const headers = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token, ...options.headers };
             return fetch(url, { ...options, headers: headers });
         }
 
         async function loadUsers() {
             try {
-                const res = await fetchWithAuth('https://apiaro-backend.onrender.com/users/admin/all');
-                if (res.status === 401) {
-                    throw new Error('401 Unauthorized - Token invalid or expired.');
-                }
-                if (!res.ok) {
-                    const errorText = await res.text();
-                    throw new Error(`HTTP ${res.status}: ${errorText}`);
-                }
+                const res = await fetchWithAuth(`${API_BASE_URL}/users/admin/all`);
+                if (res.status === 401) { throw new Error('Session expired. Please login again.'); }
+                if (!res.ok) { const errorText = await res.text(); throw new Error(`HTTP ${res.status}: ${errorText}`); }
                 
                 const users = await res.json();
                 let usersArray = Array.isArray(users) ? users : (users.users || []);
@@ -104,27 +223,29 @@
                 
                 const tbody = document.getElementById('users-table-body');
                 if (usersArray.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;">No users found</td></tr>';
+                    tbody.innerHTML = `<tr><td colspan="5" class="empty-state"><i class="fas fa-user-slash"></i><p>No users found</p></td></tr>`;
                     return;
                 }
                 
                 tbody.innerHTML = usersArray.map(user => `
                     <tr>
-                        <td>#${user.id}</td>
-                        <td><strong>${user.full_name || 'N/A'}</strong></td>
-                        <td>${user.email}</td>
-                        <td>${user.phone_number || 'N/A'}</td>
-                        <td>${user.created_at ? new Date(user.created_at).toLocaleDateString('en-KE') : 'N/A'}</td>
+                        <td><strong style="color:var(--text-primary);">#${user.id}</strong></td>
+                        <td>
+                            <div style="display:flex;align-items:center;">
+                                <div class="user-avatar">${(user.full_name || 'U').charAt(0).toUpperCase()}</div>
+                                <div><span class="user-name">${user.full_name || 'N/A'}</span></div>
+                            </div>
+                        </td>
+                        <td><span class="user-email">${user.email}</span></td>
+                        <td class="phone-cell"><i class="fas fa-phone"></i> ${user.phone_number || 'N/A'}</td>
+                        <td class="date-cell">${user.created_at ? new Date(user.created_at).toLocaleDateString('en-KE', {day:'numeric', month:'short', year:'numeric'}) : 'N/A'}</td>
                     </tr>
                 `).join('');
                 
             } catch (error) {
                 console.error('Error loading users:', error);
                 document.getElementById('users-table-body').innerHTML = 
-                    `<tr><td colspan="5" style="text-align:center;padding:2rem;color:red;">
-                        Error: ${error.message}<br>
-                        <button onclick="logout()" style="margin-top: 10px; padding: 5px 15px;">Go to Login</button>
-                    </td></tr>`;
+                    `<tr><td colspan="5" class="empty-state"><i class="fas fa-exclamation-circle" style="color:var(--danger);"></i><p>${error.message}</p><button onclick="logout()" style="margin-top:16px;padding:10px 20px;background:var(--bg-hover);border:1px solid var(--border);border-radius:10px;color:var(--text-secondary);cursor:pointer;">Go to Login</button></td></tr>`;
             }
         }
 
@@ -132,27 +253,15 @@
             const token = checkAdminAuth();
             if (token) loadUsers();
         });
-    </script>
 
-    <script>
-    function toggleSidebar() {
-        var sidebar = document.querySelector('.sidebar');
-        var overlay = document.querySelector('.sidebar-overlay');
-        if (!sidebar) return;
-        sidebar.classList.toggle('active');
-        if (overlay) overlay.classList.toggle('active');
-        document.body.style.overflow = sidebar.classList.contains('active') ? 'hidden' : '';
-    }
-    document.addEventListener('DOMContentLoaded', function() {
-        var sidebar = document.querySelector('.sidebar');
-        if (sidebar) {
-            sidebar.querySelectorAll('a').forEach(function(link) {
-                link.addEventListener('click', function() {
-                    if (window.innerWidth <= 768) toggleSidebar();
-                });
-            });
+        function toggleSidebar() {
+            var sb = document.getElementById('admin-sidebar');
+            var ov = document.getElementById('sidebar-overlay');
+            if (!sb) return;
+            sb.classList.toggle('active');
+            if (ov) ov.classList.toggle('active');
+            document.body.style.overflow = sb.classList.contains('active') ? 'hidden' : '';
         }
-    });
     </script>
 </body>
 </html>
