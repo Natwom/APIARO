@@ -57,7 +57,7 @@
     <style>
         /* Modal styles for customer service messages */
         .modal-overlay {
-            display: none;
+            display: none !important; /* Force hidden by default */
             position: fixed;
             top: 0;
             left: 0;
@@ -70,7 +70,7 @@
         }
         
         .modal-overlay.active {
-            display: flex;
+            display: flex !important; /* Force visible when active */
         }
         
         .modal-content {
@@ -265,12 +265,12 @@
                 <div class="footer-section">
                     <h4>Customer Service</h4>
                     <ul>
-                        <li><a href="#" onclick="showHelpModal('help')">Help Center</a></li>
-                        <li><a href="#" onclick="showHelpModal('howtobuy')">How to Buy</a></li>
-                        <li><a href="#" onclick="showHelpModal('delivery')">Delivery Information</a></li>
-                        <li><a href="#" onclick="showHelpModal('returns')">Return Policy</a></li>
-                        <li><a href="#" onclick="showHelpModal('track')">Track Your Order</a></li>
-                        <li><a href="#" onclick="showHelpModal('contact')">Contact Us</a></li>
+                        <li><a href="#" onclick="showHelpModal('help'); return false;">Help Center</a></li>
+                        <li><a href="#" onclick="showHelpModal('howtobuy'); return false;">How to Buy</a></li>
+                        <li><a href="#" onclick="showHelpModal('delivery'); return false;">Delivery Information</a></li>
+                        <li><a href="#" onclick="showHelpModal('returns'); return false;">Return Policy</a></li>
+                        <li><a href="#" onclick="showHelpModal('track'); return false;">Track Your Order</a></li>
+                        <li><a href="#" onclick="showHelpModal('contact'); return false;">Contact Us</a></li>
                     </ul>
                 </div>
                 
@@ -326,11 +326,11 @@
             
             <div class="footer-bottom">
                 <div class="footer-bottom-links">
-                    <a onclick="showFooterModal('privacy')">Privacy Policy</a>
-                    <a onclick="showFooterModal('terms')">Terms & Conditions</a>
-                    <a onclick="showFooterModal('cookie')">Cookie Policy</a>
-                    <a onclick="showFooterModal('seller')">Seller Center</a>
-                    <a onclick="showFooterModal('advertise')">Advertise</a>
+                    <a onclick="showFooterModal('privacy'); return false;">Privacy Policy</a>
+                    <a onclick="showFooterModal('terms'); return false;">Terms & Conditions</a>
+                    <a onclick="showFooterModal('cookie'); return false;">Cookie Policy</a>
+                    <a onclick="showFooterModal('seller'); return false;">Seller Center</a>
+                    <a onclick="showFooterModal('advertise'); return false;">Advertise</a>
                 </div>
                 <p>&copy; 2026 Apiaro. All rights reserved.</p>
                 <div class="country-selector">
@@ -617,17 +617,21 @@
             const bodyEl = document.getElementById('modal-body');
             const content = helpContent[type];
             
-            if (content) {
+            if (content && modal) {
                 titleEl.innerHTML = `<i class="fas ${content.icon}"></i> <span>${content.title}</span>`;
                 bodyEl.innerHTML = content.content;
                 modal.classList.add('active');
+                modal.style.display = 'flex'; // Force display inline
                 document.body.style.overflow = 'hidden';
             }
         }
 
         function closeHelpModal() {
             const modal = document.getElementById('help-modal');
-            modal.classList.remove('active');
+            if (modal) {
+                modal.classList.remove('active');
+                modal.style.display = 'none'; // Force hide inline
+            }
             document.body.style.overflow = '';
         }
 
@@ -637,17 +641,21 @@
             const bodyEl = document.getElementById('footer-modal-body');
             const content = footerContent[type];
             
-            if (content) {
+            if (content && modal) {
                 titleEl.innerHTML = `<i class="fas ${content.icon}"></i> <span>${content.title}</span>`;
                 bodyEl.innerHTML = content.content;
                 modal.classList.add('active');
+                modal.style.display = 'flex'; // Force display inline
                 document.body.style.overflow = 'hidden';
             }
         }
 
         function closeFooterModal() {
             const modal = document.getElementById('footer-modal');
-            modal.classList.remove('active');
+            if (modal) {
+                modal.classList.remove('active');
+                modal.style.display = 'none'; // Force hide inline
+            }
             document.body.style.overflow = '';
         }
 
