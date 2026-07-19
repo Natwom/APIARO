@@ -53,7 +53,11 @@ function addToCart(product) {
     }
 
     saveCart(cart);
-    showToast(`${product.name} added to cart!`, 'success');
+    
+    // Show toast if available, otherwise alert
+    if (typeof showToast === 'function') {
+        showToast(`${product.name} added to cart!`, 'success');
+    }
 }
 
 function removeFromCart(productId) {
@@ -107,27 +111,32 @@ function renderCart() {
     if (contentDiv) contentDiv.style.display = 'grid';
 
     if (container) {
-        container.innerHTML = cart.map(item => {
+        container.innerHTML = cart.map((item, index) => {
             const imageUrl = getCartImageUrl(item.image_url);
 
             return `
-            <div class="cart-item">
-                <img src="${imageUrl}" 
-                     alt="${item.name}" 
-                     class="cart-item-image"
-                     onerror="this.src='https://via.placeholder.com/100'; this.onerror=null;">
-                <div class="cart-item-details">
-                    <div class="cart-item-title">${item.name}</div>
-                    <div class="cart-item-price">KES ${parseFloat(item.price).toFixed(2)}</div>
-                    <div class="quantity-controls">
-                        <button onclick="updateQuantity(${item.product_id}, -1)">-</button>
-                        <span>${item.quantity}</span>
-                        <button onclick="updateQuantity(${item.product_id}, 1)">+</button>
+            <div class="cart-item" style="animation-delay: ${index * 0.05}s">
+                <div class="product-info">
+                    <div class="product-image">
+                        <img src="${imageUrl}" alt="${item.name}" onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\\'fas fa-image\\'></i>';">
+                    </div>
+                    <div class="product-details">
+                        <h4>${item.name}</h4>
+                        <div class="stock-status"><i class="fas fa-check-circle"></i> In Stock</div>
                     </div>
                 </div>
-                <div class="remove-btn" onclick="removeFromCart(${item.product_id})">
-                    <i class="fas fa-trash"></i>
+                <div class="price">KES ${parseFloat(item.price).toLocaleString()}</div>
+                <div class="quantity-control-wrapper">
+                    <div class="quantity-control">
+                        <button onclick="updateQuantity(${item.product_id}, -1)"><i class="fas fa-minus" style="font-size: 0.625rem;"></i></button>
+                        <input type="number" value="${item.quantity}" min="1" onchange="updateQuantity(${item.product_id}, parseInt(this.value) - ${item.quantity})">
+                        <button onclick="updateQuantity(${item.product_id}, 1)"><i class="fas fa-plus" style="font-size: 0.625rem;"></i></button>
+                    </div>
                 </div>
+                <div class="item-total">KES ${(parseFloat(item.price) * item.quantity).toLocaleString()}</div>
+                <button class="remove-btn" onclick="removeFromCart(${item.product_id})" title="Remove item">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
             </div>
         `}).join('');
 
@@ -135,14 +144,17 @@ function renderCart() {
         const subtotal = calculateSubtotal(cart);
         const delivery = calculateDelivery(subtotal);
         const total = subtotal + delivery;
+        const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
         const subtotalEl = document.getElementById('subtotal');
         const totalEl = document.getElementById('total');
         const deliveryEl = document.getElementById('delivery-fee');
+        const itemCountEl = document.getElementById('item-count');
 
-        if (subtotalEl) subtotalEl.textContent = `KES ${subtotal.toFixed(2)}`;
-        if (totalEl) totalEl.textContent = `KES ${total.toFixed(2)}`;
-        if (deliveryEl) deliveryEl.textContent = delivery === 0 ? 'FREE' : `KES ${delivery.toFixed(2)}`;
+        if (subtotalEl) subtotalEl.textContent = `KES ${subtotal.toLocaleString()}`;
+        if (totalEl) totalEl.textContent = `KES ${total.toLocaleString()}`;
+        if (deliveryEl) deliveryEl.textContent = delivery === 0 ? 'FREE' : `KES ${delivery.toLocaleString()}`;
+        if (itemCountEl) itemCountEl.textContent = `${itemCount} item${itemCount !== 1 ? 's' : ''}`;
 
         // Show free delivery notice
         const summary = document.querySelector('.cart-summary');
@@ -152,8 +164,14 @@ function renderCart() {
                 if (!notice) {
                     notice = document.createElement('div');
                     notice.className = 'free-delivery-notice';
-                    notice.style.cssText = 'background:#e8f5e9;color:#2e7d32;padding:10px 15px;border-radius:8px;font-size:0.9em;margin-bottom:15px;text-align:center;';
-                    summary.insertBefore(notice, summary.firstChild);
+                    notice.style.cssText = 'background:linear-gradient(135deg, #d1fae5, #a7f3d0);color:#065f46;padding:10px 15px;border-radius:10px;font-size:0.875rem;margin-bottom:15px;text-align:center;font-weight:600;';
+                    // Insert after summary-header
+                    const header = summary.querySelector('.summary-header');
+                    if (header && header.nextSibling) {
+                        summary.insertBefore(notice, header.nextSibling);
+                    } else {
+                        summary.appendChild(notice);
+                    }
                 }
                 notice.innerHTML = '<i class="fas fa-check-circle"></i> You qualify for FREE delivery!';
             } else if (notice) {

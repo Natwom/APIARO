@@ -37,11 +37,7 @@
             --radius-xl: 24px;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -62,7 +58,6 @@
             z-index: 1000;
             transition: all 0.3s ease;
         }
-
         .nav-container {
             max-width: 1280px;
             margin: 0 auto;
@@ -72,7 +67,6 @@
             align-items: center;
             height: 72px;
         }
-
         .logo {
             font-size: 1.5rem;
             font-weight: 800;
@@ -83,20 +77,17 @@
             gap: 10px;
             letter-spacing: -0.5px;
         }
-
         .logo i {
             font-size: 1.75rem;
             background: linear-gradient(135deg, var(--primary), #3b82f6);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-
         .nav-links {
             display: flex;
             align-items: center;
             gap: 8px;
         }
-
         .nav-links a {
             text-decoration: none;
             color: var(--gray-600);
@@ -109,18 +100,15 @@
             align-items: center;
             gap: 8px;
         }
-
         .nav-links a:hover {
             color: var(--primary);
             background: var(--primary-light);
         }
-
         .nav-links a.active {
             color: var(--primary);
             background: var(--primary-light);
             font-weight: 600;
         }
-
         .badge {
             background: linear-gradient(135deg, var(--accent), #fbbf24);
             color: white;
@@ -132,24 +120,20 @@
             text-align: center;
             box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
         }
-
         .btn-nav {
             background: linear-gradient(135deg, var(--primary), #3b82f6);
             color: white !important;
             box-shadow: 0 4px 6px -1px rgba(26, 86, 219, 0.2);
         }
-
         .btn-nav:hover {
             transform: translateY(-1px);
             box-shadow: 0 8px 12px -2px rgba(26, 86, 219, 0.25);
         }
-
         #user-links {
             display: flex;
             align-items: center;
             gap: 16px;
         }
-
         #user-name {
             font-weight: 600;
             color: var(--gray-700);
@@ -157,7 +141,6 @@
             background: var(--gray-100);
             border-radius: var(--radius);
         }
-
         .hamburger {
             display: none;
             font-size: 1.5rem;
@@ -167,10 +150,7 @@
             border-radius: var(--radius);
             transition: background 0.2s;
         }
-
-        .hamburger:hover {
-            background: var(--gray-100);
-        }
+        .hamburger:hover { background: var(--gray-100); }
 
         /* ===== MAIN CONTENT ===== */
         .cart-page {
@@ -178,11 +158,9 @@
             max-width: 1280px;
             margin: 0 auto;
         }
-
         .page-header {
             margin-bottom: 40px;
         }
-
         .page-header h1 {
             font-size: 2.25rem;
             font-weight: 800;
@@ -192,12 +170,10 @@
             gap: 16px;
             letter-spacing: -0.025em;
         }
-
         .page-header h1 i {
             color: var(--primary);
             font-size: 2rem;
         }
-
         .breadcrumb {
             display: flex;
             align-items: center;
@@ -206,16 +182,12 @@
             color: var(--gray-500);
             font-size: 0.875rem;
         }
-
         .breadcrumb a {
             color: var(--primary);
             text-decoration: none;
             font-weight: 500;
         }
-
-        .breadcrumb a:hover {
-            text-decoration: underline;
-        }
+        .breadcrumb a:hover { text-decoration: underline; }
 
         /* ===== CART EMPTY STATE ===== */
         .cart-empty {
@@ -226,7 +198,6 @@
             box-shadow: var(--shadow-lg);
             border: 1px solid var(--gray-100);
         }
-
         .cart-empty-icon {
             width: 120px;
             height: 120px;
@@ -238,31 +209,26 @@
             margin: 0 auto 32px;
             animation: float 3s ease-in-out infinite;
         }
-
         .cart-empty-icon i {
             font-size: 3rem;
             color: var(--primary);
         }
-
         @keyframes float {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-10px); }
         }
-
         .cart-empty h2 {
             font-size: 1.875rem;
             font-weight: 700;
             color: var(--gray-900);
             margin-bottom: 12px;
         }
-
         .cart-empty p {
             color: var(--gray-500);
             font-size: 1.0625rem;
             max-width: 400px;
             margin: 0 auto 32px;
         }
-
         .btn-primary {
             display: inline-flex;
             align-items: center;
@@ -279,7 +245,6 @@
             transition: all 0.3s ease;
             box-shadow: 0 4px 6px -1px rgba(26, 86, 219, 0.2);
         }
-
         .btn-primary:hover {
             transform: translateY(-2px);
             box-shadow: 0 12px 20px -4px rgba(26, 86, 219, 0.3);
@@ -301,7 +266,6 @@
             border: 1px solid var(--gray-100);
             overflow: hidden;
         }
-
         .cart-items-header {
             display: grid;
             grid-template-columns: 2fr 1fr 1fr 1fr auto;
@@ -314,7 +278,6 @@
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }
-
         .cart-item {
             display: grid;
             grid-template-columns: 2fr 1fr 1fr 1fr auto;
@@ -324,32 +287,17 @@
             transition: all 0.2s ease;
             animation: slideIn 0.4s ease forwards;
         }
-
         @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
         }
-
-        .cart-item:hover {
-            background: var(--gray-50);
-        }
-
-        .cart-item:last-child {
-            border-bottom: none;
-        }
-
+        .cart-item:hover { background: var(--gray-50); }
+        .cart-item:last-child { border-bottom: none; }
         .product-info {
             display: flex;
             align-items: center;
             gap: 20px;
         }
-
         .product-image {
             width: 80px;
             height: 80px;
@@ -362,30 +310,25 @@
             border: 1px solid var(--gray-200);
             flex-shrink: 0;
         }
-
-        .product-image i {
-            font-size: 1.75rem;
-            color: var(--gray-400);
-        }
-
         .product-image img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
-
+        .product-image i {
+            font-size: 1.75rem;
+            color: var(--gray-400);
+        }
         .product-details h4 {
             font-size: 1rem;
             font-weight: 600;
             color: var(--gray-900);
             margin-bottom: 4px;
         }
-
         .product-details .variant {
             font-size: 0.8125rem;
             color: var(--gray-500);
         }
-
         .product-details .stock-status {
             font-size: 0.75rem;
             color: var(--success);
@@ -395,21 +338,17 @@
             gap: 4px;
             margin-top: 6px;
         }
-
         .price {
             font-weight: 600;
             color: var(--gray-900);
             font-size: 1rem;
         }
-
         .price-original {
             font-size: 0.8125rem;
             color: var(--gray-400);
             text-decoration: line-through;
             margin-left: 6px;
         }
-
-        /* Quantity Selector */
         .quantity-control {
             display: inline-flex;
             align-items: center;
@@ -418,7 +357,6 @@
             overflow: hidden;
             background: white;
         }
-
         .quantity-control button {
             width: 36px;
             height: 36px;
@@ -432,12 +370,10 @@
             align-items: center;
             justify-content: center;
         }
-
         .quantity-control button:hover {
             background: var(--gray-100);
             color: var(--primary);
         }
-
         .quantity-control input {
             width: 44px;
             height: 36px;
@@ -448,19 +384,16 @@
             font-size: 0.9375rem;
             -moz-appearance: textfield;
         }
-
         .quantity-control input::-webkit-outer-spin-button,
         .quantity-control input::-webkit-inner-spin-button {
             -webkit-appearance: none;
             margin: 0;
         }
-
         .item-total {
             font-weight: 700;
             color: var(--gray-900);
             font-size: 1.0625rem;
         }
-
         .remove-btn {
             width: 36px;
             height: 36px;
@@ -474,7 +407,6 @@
             align-items: center;
             justify-content: center;
         }
-
         .remove-btn:hover {
             background: #fef2f2;
             color: var(--danger);
@@ -490,14 +422,12 @@
             padding: 28px;
             margin-top: 24px;
         }
-
         .timeline-header {
             display: flex;
             align-items: center;
             gap: 12px;
             margin-bottom: 24px;
         }
-
         .timeline-header i {
             width: 40px;
             height: 40px;
@@ -509,20 +439,17 @@
             color: var(--success);
             font-size: 1.125rem;
         }
-
         .timeline-header h3 {
             font-size: 1.125rem;
             font-weight: 700;
             color: var(--gray-900);
         }
-
         .timeline {
             display: flex;
             justify-content: space-between;
             position: relative;
             padding: 0 8px;
         }
-
         .timeline::before {
             content: '';
             position: absolute;
@@ -533,7 +460,6 @@
             background: linear-gradient(to right, var(--success) 33%, var(--gray-200) 33%);
             border-radius: 9999px;
         }
-
         .timeline-step {
             display: flex;
             flex-direction: column;
@@ -542,7 +468,6 @@
             position: relative;
             z-index: 1;
         }
-
         .timeline-dot {
             width: 36px;
             height: 36px;
@@ -555,17 +480,14 @@
             border: 3px solid white;
             box-shadow: var(--shadow);
         }
-
         .timeline-step.completed .timeline-dot {
             background: var(--success);
             color: white;
         }
-
         .timeline-step.pending .timeline-dot {
             background: var(--gray-200);
             color: var(--gray-500);
         }
-
         .timeline-step span {
             font-size: 0.8125rem;
             font-weight: 600;
@@ -573,16 +495,10 @@
             text-align: center;
             max-width: 80px;
         }
-
-        .timeline-step.completed span {
-            color: var(--success);
-        }
+        .timeline-step.completed span { color: var(--success); }
 
         /* ===== RECENTLY VIEWED ===== */
-        .recently-viewed {
-            margin-top: 48px;
-        }
-
+        .recently-viewed { margin-top: 48px; }
         .section-title {
             font-size: 1.5rem;
             font-weight: 700;
@@ -592,17 +508,12 @@
             align-items: center;
             gap: 12px;
         }
-
-        .section-title i {
-            color: var(--primary);
-        }
-
+        .section-title i { color: var(--primary); }
         .products-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 24px;
         }
-
         .product-card {
             background: white;
             border-radius: var(--radius-lg);
@@ -612,12 +523,10 @@
             transition: all 0.3s ease;
             cursor: pointer;
         }
-
         .product-card:hover {
             transform: translateY(-4px);
             box-shadow: var(--shadow-xl);
         }
-
         .product-card-image {
             height: 180px;
             background: linear-gradient(135deg, var(--gray-100), #f3f4f6);
@@ -625,13 +534,21 @@
             align-items: center;
             justify-content: center;
             position: relative;
+            overflow: hidden;
         }
-
+        .product-card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+        .product-card:hover .product-card-image img {
+            transform: scale(1.05);
+        }
         .product-card-image i {
             font-size: 2.5rem;
             color: var(--gray-300);
         }
-
         .product-card-badge {
             position: absolute;
             top: 12px;
@@ -643,11 +560,9 @@
             font-size: 0.6875rem;
             font-weight: 700;
         }
-
         .product-card-body {
             padding: 16px;
         }
-
         .product-card-title {
             font-size: 0.9375rem;
             font-weight: 600;
@@ -657,14 +572,12 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-
         .product-card-price {
             font-size: 1.125rem;
             font-weight: 700;
             color: var(--primary);
             margin-bottom: 12px;
         }
-
         .product-card-price .original {
             font-size: 0.8125rem;
             color: var(--gray-400);
@@ -672,7 +585,6 @@
             margin-left: 6px;
             font-weight: 500;
         }
-
         .btn-add-cart {
             width: 100%;
             padding: 10px;
@@ -689,10 +601,7 @@
             justify-content: center;
             gap: 8px;
         }
-
-        .btn-add-cart:hover {
-            background: var(--primary);
-        }
+        .btn-add-cart:hover { background: var(--primary); }
 
         /* ===== CART SUMMARY ===== */
         .cart-summary {
@@ -704,7 +613,6 @@
             position: sticky;
             top: 96px;
         }
-
         .summary-header {
             display: flex;
             align-items: center;
@@ -713,7 +621,6 @@
             padding-bottom: 20px;
             border-bottom: 2px solid var(--gray-100);
         }
-
         .summary-header i {
             width: 40px;
             height: 40px;
@@ -725,13 +632,11 @@
             color: var(--primary);
             font-size: 1.125rem;
         }
-
         .summary-header h3 {
             font-size: 1.25rem;
             font-weight: 700;
             color: var(--gray-900);
         }
-
         .summary-row {
             display: flex;
             justify-content: space-between;
@@ -739,45 +644,33 @@
             padding: 12px 0;
             font-size: 0.9375rem;
         }
-
-        .summary-row span:first-child {
-            color: var(--gray-500);
-        }
-
+        .summary-row span:first-child { color: var(--gray-500); }
         .summary-row span:last-child {
             font-weight: 600;
             color: var(--gray-700);
         }
-
-        .summary-row.discount span:last-child {
-            color: var(--success);
-        }
-
+        .summary-row.discount span:last-child { color: var(--success); }
         .summary-divider {
             height: 1px;
             background: linear-gradient(to right, transparent, var(--gray-200), transparent);
             margin: 16px 0;
         }
-
         .summary-row.total {
             padding: 20px 0;
             margin-top: 8px;
             border-top: 2px dashed var(--gray-200);
         }
-
         .summary-row.total span:first-child {
             font-size: 1.125rem;
             font-weight: 700;
             color: var(--gray-900);
         }
-
         .summary-row.total span:last-child {
             font-size: 1.5rem;
             font-weight: 800;
             color: var(--primary);
             letter-spacing: -0.025em;
         }
-
         .savings-badge {
             display: inline-flex;
             align-items: center;
@@ -790,7 +683,6 @@
             font-weight: 600;
             margin-bottom: 20px;
         }
-
         .btn-checkout {
             width: 100%;
             padding: 16px;
@@ -809,16 +701,11 @@
             box-shadow: 0 4px 6px -1px rgba(26, 86, 219, 0.2);
             margin-bottom: 16px;
         }
-
         .btn-checkout:hover {
             transform: translateY(-2px);
             box-shadow: 0 12px 20px -4px rgba(26, 86, 219, 0.3);
         }
-
-        .btn-checkout:active {
-            transform: translateY(0);
-        }
-
+        .btn-checkout:active { transform: translateY(0); }
         .continue-shopping {
             display: flex;
             align-items: center;
@@ -832,12 +719,10 @@
             border-radius: var(--radius);
             transition: all 0.2s;
         }
-
         .continue-shopping:hover {
             color: var(--primary);
             background: var(--primary-light);
         }
-
         .secure-badge {
             display: flex;
             align-items: center;
@@ -849,11 +734,7 @@
             font-size: 0.8125rem;
             color: var(--gray-500);
         }
-
-        .secure-badge i {
-            color: var(--success);
-        }
-
+        .secure-badge i { color: var(--success); }
         .trust-inline {
             display: flex;
             justify-content: center;
@@ -861,7 +742,6 @@
             margin-top: 16px;
             flex-wrap: wrap;
         }
-
         .trust-inline-item {
             display: flex;
             align-items: center;
@@ -869,7 +749,6 @@
             font-size: 0.75rem;
             color: var(--gray-500);
         }
-
         .trust-inline-item i {
             color: var(--success);
             font-size: 0.875rem;
@@ -882,20 +761,17 @@
             margin-top: 80px;
             border-top: 1px solid rgba(255,255,255,0.05);
         }
-
         .footer .container {
             max-width: 1280px;
             margin: 0 auto;
             padding: 64px 24px 32px;
         }
-
         .footer-content {
             display: grid;
             grid-template-columns: 2fr 1fr 1fr 1.5fr;
             gap: 48px;
             margin-bottom: 48px;
         }
-
         .footer-section h4 {
             color: white;
             font-size: 1rem;
@@ -903,19 +779,16 @@
             margin-bottom: 20px;
             letter-spacing: 0.025em;
         }
-
         .footer-section p {
             font-size: 0.9375rem;
             line-height: 1.7;
             color: var(--gray-400);
         }
-
         .social-links {
             display: flex;
             gap: 12px;
             margin-top: 20px;
         }
-
         .social-links a {
             width: 40px;
             height: 40px;
@@ -929,22 +802,14 @@
             transition: all 0.3s;
             border: 1px solid rgba(255,255,255,0.1);
         }
-
         .social-links a:hover {
             background: var(--primary);
             color: white;
             transform: translateY(-2px);
             border-color: var(--primary);
         }
-
-        .footer-section ul {
-            list-style: none;
-        }
-
-        .footer-section ul li {
-            margin-bottom: 12px;
-        }
-
+        .footer-section ul { list-style: none; }
+        .footer-section ul li { margin-bottom: 12px; }
         .footer-section ul li a {
             color: var(--gray-400);
             text-decoration: none;
@@ -954,12 +819,10 @@
             align-items: center;
             gap: 8px;
         }
-
         .footer-section ul li a:hover {
             color: white;
             transform: translateX(4px);
         }
-
         .contact-info p {
             display: flex;
             align-items: center;
@@ -967,27 +830,14 @@
             margin-bottom: 12px;
             font-size: 0.9375rem;
         }
-
         .contact-info i {
             color: var(--primary);
             width: 20px;
             text-align: center;
         }
-
-        .newsletter {
-            margin-top: 24px;
-        }
-
-        .newsletter p {
-            margin-bottom: 12px;
-            font-size: 0.9375rem;
-        }
-
-        .newsletter-form {
-            display: flex;
-            gap: 8px;
-        }
-
+        .newsletter { margin-top: 24px; }
+        .newsletter p { margin-bottom: 12px; font-size: 0.9375rem; }
+        .newsletter-form { display: flex; gap: 8px; }
         .newsletter-form input {
             flex: 1;
             padding: 10px 14px;
@@ -998,16 +848,11 @@
             font-size: 0.875rem;
             font-family: inherit;
         }
-
-        .newsletter-form input::placeholder {
-            color: var(--gray-500);
-        }
-
+        .newsletter-form input::placeholder { color: var(--gray-500); }
         .newsletter-form input:focus {
             outline: none;
             border-color: var(--primary);
         }
-
         .newsletter-form button {
             padding: 10px 18px;
             background: var(--primary);
@@ -1018,11 +863,7 @@
             cursor: pointer;
             transition: all 0.2s;
         }
-
-        .newsletter-form button:hover {
-            background: #1e429f;
-        }
-
+        .newsletter-form button:hover { background: #1e429f; }
         .trust-badges {
             display: flex;
             justify-content: center;
@@ -1033,24 +874,20 @@
             margin-bottom: 32px;
             flex-wrap: wrap;
         }
-
         .trust-badge {
             display: flex;
             align-items: center;
             gap: 12px;
         }
-
         .trust-badge i {
             font-size: 1.5rem;
             color: var(--primary);
         }
-
         .trust-badge span {
             font-size: 0.875rem;
             font-weight: 600;
             color: var(--gray-300);
         }
-
         .footer-bottom {
             display: flex;
             justify-content: space-between;
@@ -1058,13 +895,11 @@
             flex-wrap: wrap;
             gap: 16px;
         }
-
         .footer-bottom-links {
             display: flex;
             gap: 24px;
             flex-wrap: wrap;
         }
-
         .footer-bottom-links a {
             color: var(--gray-500);
             text-decoration: none;
@@ -1072,16 +907,11 @@
             transition: color 0.2s;
             cursor: pointer;
         }
-
-        .footer-bottom-links a:hover {
-            color: white;
-        }
-
+        .footer-bottom-links a:hover { color: white; }
         .footer-bottom p {
             font-size: 0.875rem;
             color: var(--gray-500);
         }
-
         .country-selector {
             display: flex;
             align-items: center;
@@ -1089,7 +919,6 @@
             font-size: 0.875rem;
             color: var(--gray-400);
         }
-
         .country-selector img {
             width: 24px;
             border-radius: 3px;
@@ -1099,10 +928,8 @@
         .modal-overlay {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             background: rgba(15, 23, 42, 0.6);
             backdrop-filter: blur(4px);
             z-index: 10000;
@@ -1112,12 +939,10 @@
             opacity: 0;
             transition: opacity 0.3s ease;
         }
-
         .modal-overlay.active {
             display: flex;
             opacity: 1;
         }
-
         .modal-content {
             background: white;
             padding: 0;
@@ -1131,11 +956,9 @@
             transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
             box-shadow: var(--shadow-xl);
         }
-
         .modal-overlay.active .modal-content {
             transform: scale(1) translateY(0);
         }
-
         .modal-header {
             padding: 24px 28px;
             border-bottom: 1px solid var(--gray-100);
@@ -1143,7 +966,6 @@
             align-items: center;
             justify-content: space-between;
         }
-
         .modal-title {
             display: flex;
             align-items: center;
@@ -1153,7 +975,6 @@
             font-weight: 700;
             margin: 0;
         }
-
         .modal-title i {
             width: 36px;
             height: 36px;
@@ -1165,7 +986,6 @@
             color: var(--primary);
             font-size: 1rem;
         }
-
         .modal-close {
             width: 36px;
             height: 36px;
@@ -1180,13 +1000,11 @@
             align-items: center;
             justify-content: center;
         }
-
         .modal-close:hover {
             background: var(--gray-200);
             color: var(--gray-800);
             transform: rotate(90deg);
         }
-
         .modal-body {
             padding: 28px;
             line-height: 1.7;
@@ -1195,31 +1013,19 @@
             max-height: 60vh;
             font-size: 0.9375rem;
         }
-
         .modal-body h4 {
             color: var(--gray-900);
             font-size: 1rem;
             font-weight: 600;
             margin: 24px 0 12px;
         }
-
-        .modal-body h4:first-child {
-            margin-top: 0;
-        }
-
+        .modal-body h4:first-child { margin-top: 0; }
         .modal-body ul, .modal-body ol {
             margin: 12px 0;
             padding-left: 24px;
         }
-
-        .modal-body li {
-            margin: 8px 0;
-        }
-
-        .modal-body strong {
-            color: var(--gray-800);
-        }
-
+        .modal-body li { margin: 8px 0; }
+        .modal-body strong { color: var(--gray-800); }
         .contact-box {
             background: linear-gradient(135deg, var(--gray-50), #f9fafb);
             padding: 20px;
@@ -1227,7 +1033,6 @@
             margin-top: 20px;
             border: 1px solid var(--gray-100);
         }
-
         .contact-box p {
             margin: 8px 0;
             display: flex;
@@ -1235,7 +1040,6 @@
             gap: 12px;
             color: var(--gray-700);
         }
-
         .contact-box i {
             color: var(--primary);
             width: 20px;
@@ -1244,157 +1048,121 @@
 
         /* ===== RESPONSIVE ===== */
         @media (max-width: 1024px) {
-            .cart-content {
-                grid-template-columns: 1fr;
-            }
-
+            .cart-content { grid-template-columns: 1fr; }
             .cart-summary {
                 position: static;
                 max-width: 600px;
                 margin: 0 auto;
                 width: 100%;
             }
-
-            .cart-items-header {
-                display: none;
-            }
-
+            .cart-items-header { display: none; }
             .cart-item {
                 grid-template-columns: 1fr;
                 gap: 16px;
             }
-
             .cart-item > * {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
             }
-
-            .cart-item .product-info {
-                justify-content: flex-start;
-            }
-
+            .cart-item .product-info { justify-content: flex-start; }
             .cart-item .price::before {
                 content: "Price: ";
                 color: var(--gray-500);
                 font-weight: 400;
             }
-
             .cart-item .quantity-control-wrapper::before {
                 content: "Qty: ";
                 color: var(--gray-500);
                 font-weight: 400;
             }
-
             .cart-item .item-total::before {
                 content: "Total: ";
                 color: var(--gray-500);
                 font-weight: 400;
             }
-
-            .products-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .timeline::before {
-                left: 20px;
-                right: 20px;
-            }
+            .products-grid { grid-template-columns: repeat(2, 1fr); }
+            .timeline::before { left: 20px; right: 20px; }
         }
-
         @media (max-width: 768px) {
             .nav-links {
                 display: none;
                 position: absolute;
-                top: 72px;
-                left: 0;
-                right: 0;
+                top: 72px; left: 0; right: 0;
                 background: white;
                 flex-direction: column;
                 padding: 16px;
                 box-shadow: var(--shadow-lg);
                 gap: 4px;
             }
-
-            .nav-links.active {
-                display: flex;
-            }
-
-            .hamburger {
-                display: block;
-            }
-
+            .nav-links.active { display: flex; }
+            .hamburger { display: block; }
             .footer-content {
                 grid-template-columns: 1fr;
                 gap: 32px;
             }
-
-            .trust-badges {
-                gap: 24px;
-            }
-
+            .trust-badges { gap: 24px; }
             .footer-bottom {
                 flex-direction: column;
                 text-align: center;
             }
-
-            .cart-page {
-                padding: 24px 16px;
-            }
-
-            .page-header h1 {
-                font-size: 1.75rem;
-            }
-
+            .cart-page { padding: 24px 16px; }
+            .page-header h1 { font-size: 1.75rem; }
             .cart-items-container,
             .cart-summary,
-            .delivery-timeline {
-                border-radius: var(--radius-lg);
-            }
-
-            .products-grid {
-                grid-template-columns: 1fr;
-            }
-
+            .delivery-timeline { border-radius: var(--radius-lg); }
+            .products-grid { grid-template-columns: 1fr; }
             .timeline {
                 flex-direction: column;
                 gap: 24px;
             }
-
-            .timeline::before {
-                display: none;
-            }
-
+            .timeline::before { display: none; }
             .timeline-step {
                 flex-direction: row;
                 width: 100%;
                 justify-content: flex-start;
                 gap: 16px;
             }
-
             .timeline-step span {
                 text-align: left;
                 max-width: none;
             }
         }
 
-        /* Scrollbar Styling */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: var(--gray-100);
-        }
-
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--gray-100); }
         ::-webkit-scrollbar-thumb {
             background: var(--gray-300);
             border-radius: 9999px;
         }
+        ::-webkit-scrollbar-thumb:hover { background: var(--gray-400); }
 
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--gray-400);
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            padding: 14px 24px;
+            border-radius: var(--radius-lg);
+            color: white;
+            font-weight: 600;
+            font-size: 0.9375rem;
+            z-index: 99999;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: var(--shadow-xl);
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .toast.success { background: linear-gradient(135deg, var(--success), #34d399); }
+        .toast.error { background: linear-gradient(135deg, var(--danger), #f87171); }
     </style>
     <base target="_blank">
 </head>
@@ -1460,35 +1228,7 @@
                             <span></span>
                         </div>
                         <div class="cart-items" id="cart-items">
-                            <!-- Cart items loaded dynamically -->
-                            <!-- Demo item for visual reference: -->
-                            <div class="cart-item">
-                                <div class="product-info">
-                                    <div class="product-image">
-                                        <i class="fas fa-image"></i>
-                                    </div>
-                                    <div class="product-details">
-                                        <h4>Samsung Galaxy A54</h4>
-                                        <div class="variant">128GB / Awesome Black</div>
-                                        <div class="stock-status"><i class="fas fa-check-circle"></i> In Stock</div>
-                                    </div>
-                                </div>
-                                <div class="price">
-                                    KES 42,999
-                                    <span class="price-original">KES 48,000</span>
-                                </div>
-                                <div class="quantity-control-wrapper">
-                                    <div class="quantity-control">
-                                        <button onclick="updateQuantity(1, -1)"><i class="fas fa-minus" style="font-size: 0.625rem;"></i></button>
-                                        <input type="number" value="1" min="1" onchange="updateQuantity(1, this.value)">
-                                        <button onclick="updateQuantity(1, 1)"><i class="fas fa-plus" style="font-size: 0.625rem;"></i></button>
-                                    </div>
-                                </div>
-                                <div class="item-total">KES 42,999</div>
-                                <button class="remove-btn" onclick="removeItem(1)" title="Remove item">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
-                            </div>
+                            <!-- Cart items loaded dynamically from cart.js -->
                         </div>
                     </div>
 
@@ -1526,16 +1266,12 @@
                     </div>
 
                     <div class="summary-row">
-                        <span>Subtotal (2 items)</span>
-                        <span>KES 85,998</span>
-                    </div>
-                    <div class="summary-row discount">
-                        <span>Discount</span>
-                        <span>-KES 5,001</span>
+                        <span>Subtotal (<span id="item-count">0 items</span>)</span>
+                        <span id="subtotal">KES 0.00</span>
                     </div>
                     <div class="summary-row">
                         <span>Delivery Fee</span>
-                        <span>KES 50.00</span>
+                        <span id="delivery-fee">KES 50.00</span>
                     </div>
                     <div class="summary-row">
                         <span>Tax (0%)</span>
@@ -1544,11 +1280,7 @@
                     <div class="summary-divider"></div>
                     <div class="summary-row total">
                         <span>Total</span>
-                        <span id="total">KES 80,997</span>
-                    </div>
-
-                    <div class="savings-badge">
-                        <i class="fas fa-piggy-bank"></i> You save KES 5,001!
+                        <span id="total">KES 0.00</span>
                     </div>
 
                     <button onclick="proceedToCheckout()" class="btn-checkout">
@@ -1572,51 +1304,10 @@
             </div>
 
             <!-- Recently Viewed -->
-            <div class="recently-viewed">
+            <div class="recently-viewed" id="recently-viewed-section" style="display:none;">
                 <h2 class="section-title"><i class="fas fa-clock-rotate-left"></i> Recently Viewed</h2>
-                <div class="products-grid">
-                    <div class="product-card">
-                        <div class="product-card-image">
-                            <i class="fas fa-image"></i>
-                            <span class="product-card-badge">-15%</span>
-                        </div>
-                        <div class="product-card-body">
-                            <div class="product-card-title">iPhone 15 Pro Max</div>
-                            <div class="product-card-price">KES 189,999 <span class="original">KES 220,000</span></div>
-                            <button class="btn-add-cart"><i class="fas fa-cart-plus"></i> Add to Cart</button>
-                        </div>
-                    </div>
-                    <div class="product-card">
-                        <div class="product-card-image">
-                            <i class="fas fa-image"></i>
-                        </div>
-                        <div class="product-card-body">
-                            <div class="product-card-title">Sony WH-1000XM5</div>
-                            <div class="product-card-price">KES 45,999</div>
-                            <button class="btn-add-cart"><i class="fas fa-cart-plus"></i> Add to Cart</button>
-                        </div>
-                    </div>
-                    <div class="product-card">
-                        <div class="product-card-image">
-                            <i class="fas fa-image"></i>
-                            <span class="product-card-badge">HOT</span>
-                        </div>
-                        <div class="product-card-body">
-                            <div class="product-card-title">MacBook Air M3</div>
-                            <div class="product-card-price">KES 165,000 <span class="original">KES 180,000</span></div>
-                            <button class="btn-add-cart"><i class="fas fa-cart-plus"></i> Add to Cart</button>
-                        </div>
-                    </div>
-                    <div class="product-card">
-                        <div class="product-card-image">
-                            <i class="fas fa-image"></i>
-                        </div>
-                        <div class="product-card-body">
-                            <div class="product-card-title">Nike Air Force 1</div>
-                            <div class="product-card-price">KES 12,500</div>
-                            <button class="btn-add-cart"><i class="fas fa-cart-plus"></i> Add to Cart</button>
-                        </div>
-                    </div>
+                <div class="products-grid" id="recently-viewed-grid">
+                    <!-- Loaded dynamically from your real products -->
                 </div>
             </div>
         </div>
@@ -1726,9 +1417,7 @@
                 </h3>
                 <button class="modal-close" onclick="closeHelpModal()"><i class="fas fa-times"></i></button>
             </div>
-            <div class="modal-body" id="modal-body">
-                <!-- Content loaded dynamically -->
-            </div>
+            <div class="modal-body" id="modal-body"></div>
         </div>
     </div>
 
@@ -1742,15 +1431,31 @@
                 </h3>
                 <button class="modal-close" onclick="closeFooterModal()"><i class="fas fa-times"></i></button>
             </div>
-            <div class="modal-body" id="footer-modal-body">
-                <!-- Content loaded dynamically -->
-            </div>
+            <div class="modal-body" id="footer-modal-body"></div>
         </div>
     </div>
 
     <script src="js/auth.js"></script>
     <script src="js/cart.js"></script>
     <script>
+        // ===== TOAST NOTIFICATION =====
+        function showToast(message, type = 'success') {
+            const existing = document.querySelector('.toast');
+            if (existing) existing.remove();
+
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
+            document.body.appendChild(toast);
+
+            requestAnimationFrame(() => toast.classList.add('show'));
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 400);
+            }, 3000);
+        }
+
+        // ===== MOBILE MENU =====
         function toggleMenu() {
             document.getElementById('nav-links').classList.toggle('active');
         }
@@ -1763,12 +1468,110 @@
             }
         });
 
+        // ===== RECENTLY VIEWED PRODUCTS =====
+        const CART_API_URL = (typeof API_BASE_URL !== 'undefined') ? API_BASE_URL : 'https://apiaro-backend.onrender.com';
+
+        function getImageUrl(imageUrl) {
+            if (!imageUrl) return 'https://via.placeholder.com/300';
+            if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) return imageUrl;
+            if (imageUrl.startsWith('data:')) return imageUrl;
+            return `${CART_API_URL}${imageUrl}`;
+        }
+
+        function getRecentlyViewed() {
+            return JSON.parse(localStorage.getItem('recentlyViewed')) || [];
+        }
+
+        function saveRecentlyViewed(productId) {
+            let viewed = getRecentlyViewed();
+            viewed = viewed.filter(id => id !== productId);
+            viewed.unshift(productId);
+            viewed = viewed.slice(0, 8);
+            localStorage.setItem('recentlyViewed', JSON.stringify(viewed));
+        }
+
+        async function loadRecentlyViewed() {
+            const viewedIds = getRecentlyViewed();
+            const section = document.getElementById('recently-viewed-section');
+            const grid = document.getElementById('recently-viewed-grid');
+
+            if (viewedIds.length === 0) {
+                section.style.display = 'none';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${CART_API_URL}/products/`);
+                if (!response.ok) throw new Error('Failed to fetch products');
+
+                const allProducts = await response.json();
+                const products = allProducts.filter(p => viewedIds.includes(p.id));
+
+                if (products.length === 0) {
+                    section.style.display = 'none';
+                    return;
+                }
+
+                // Sort by viewed order
+                const sorted = viewedIds
+                    .map(id => products.find(p => p.id === id))
+                    .filter(Boolean);
+
+                grid.innerHTML = sorted.map(product => {
+                    const imageUrl = getImageUrl(product.image_url);
+                    const hasDiscount = product.original_price && parseFloat(product.original_price) > parseFloat(product.price);
+
+                    return `
+                        <div class="product-card" onclick="window.location.href='product-detail.html?id=${product.id}'">
+                            <div class="product-card-image">
+                                <img src="${imageUrl}" alt="${product.name}" onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\\'fas fa-image\\'></i>';">
+                                ${hasDiscount ? '<span class="product-card-badge">SALE</span>' : ''}
+                            </div>
+                            <div class="product-card-body">
+                                <div class="product-card-title">${product.name}</div>
+                                <div class="product-card-price">
+                                    KES ${parseFloat(product.price).toLocaleString()}
+                                    ${hasDiscount ? `<span class="original">KES ${parseFloat(product.original_price).toLocaleString()}</span>` : ''}
+                                </div>
+                                <button class="btn-add-cart" onclick="event.stopPropagation(); addToCartFromRecentlyViewed(${product.id}, '${product.name.replace(/'/g, "\\'")}', ${product.price}, '${product.image_url || ''}')">
+                                    <i class="fas fa-cart-plus"></i> Add to Cart
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                section.style.display = 'block';
+            } catch (error) {
+                console.error('Error loading recently viewed:', error);
+                section.style.display = 'none';
+            }
+        }
+
+        function addToCartFromRecentlyViewed(id, name, price, imageUrl) {
+            const product = { id, name, price, image_url: imageUrl };
+            if (typeof addToCart === 'function') {
+                addToCart(product);
+            } else {
+                // Fallback if cart.js isn't loaded yet
+                let cart = JSON.parse(localStorage.getItem('cart')) || [];
+                const existing = cart.find(item => item.product_id === id);
+                if (existing) {
+                    existing.quantity += 1;
+                } else {
+                    cart.push({ product_id: id, name, price, image_url: imageUrl, quantity: 1 });
+                }
+                localStorage.setItem('cart', JSON.stringify(cart));
+                showToast(`${name} added to cart!`, 'success');
+                updateCartCount();
+            }
+        }
+
+        // ===== MODAL CONTENT =====
         const helpContent = {
             help: {
-                title: 'Help Center',
-                icon: 'fa-life-ring',
-                content: `
-                    <p>Welcome to APIARO Help Center! We're here to assist you with any questions or concerns.</p>
+                title: 'Help Center', icon: 'fa-life-ring',
+                content: `<p>Welcome to APIARO Help Center! We're here to assist you with any questions or concerns.</p>
                     <h4>Frequently Asked Questions:</h4>
                     <ul>
                         <li><strong>How do I create an account?</strong> Click on "Register" in the top menu and fill in your details.</li>
@@ -1776,14 +1579,11 @@
                         <li><strong>Can I change my order after placing it?</strong> Contact us within 1 hour of placing your order.</li>
                         <li><strong>What if my product is damaged?</strong> We offer easy returns within 7 days for damaged items.</li>
                     </ul>
-                    <p>Can't find what you're looking for? Contact our support team below.</p>
-                `
+                    <p>Can't find what you're looking for? Contact our support team below.</p>`
             },
             howtobuy: {
-                title: 'How to Buy',
-                icon: 'fa-shopping-cart',
-                content: `
-                    <p>Shopping on APIARO is easy! Follow these simple steps:</p>
+                title: 'How to Buy', icon: 'fa-shopping-cart',
+                content: `<p>Shopping on APIARO is easy! Follow these simple steps:</p>
                     <ol>
                         <li><strong>Browse Products:</strong> Use the search bar or categories to find what you need.</li>
                         <li><strong>Add to Cart:</strong> Click the "Add to Cart" button on any product you like.</li>
@@ -1792,14 +1592,11 @@
                         <li><strong>Payment:</strong> Choose M-Pesa, Cash on Delivery, or Card payment.</li>
                         <li><strong>Confirmation:</strong> You'll receive an SMS and email confirmation.</li>
                     </ol>
-                    <p><strong>Tip:</strong> Create an account to track your orders and save your delivery information!</p>
-                `
+                    <p><strong>Tip:</strong> Create an account to track your orders and save your delivery information!</p>`
             },
             delivery: {
-                title: 'Delivery Information',
-                icon: 'fa-truck',
-                content: `
-                    <p>We deliver to all 47 counties in Kenya!</p>
+                title: 'Delivery Information', icon: 'fa-truck',
+                content: `<p>We deliver to all 47 counties in Kenya!</p>
                     <h4>Delivery Times:</h4>
                     <ul>
                         <li><strong>Nairobi & Surroundings:</strong> Same day or next day delivery</li>
@@ -1812,14 +1609,11 @@
                         <li>Orders above KES 5,000: <strong>FREE delivery</strong></li>
                         <li>Orders below KES 5,000: KES 50 depending on location</li>
                     </ul>
-                    <p>You'll receive SMS updates when your order is dispatched and when it's near delivery.</p>
-                `
+                    <p>You'll receive SMS updates when your order is dispatched and when it's near delivery.</p>`
             },
             returns: {
-                title: 'Return Policy',
-                icon: 'fa-undo',
-                content: `
-                    <p>We want you to be completely satisfied with your purchase!</p>
+                title: 'Return Policy', icon: 'fa-undo',
+                content: `<p>We want you to be completely satisfied with your purchase!</p>
                     <h4>Our 7-Day Return Policy:</h4>
                     <ul>
                         <li><strong>Damaged/Defective Items:</strong> Full refund or replacement - no questions asked!</li>
@@ -1833,14 +1627,11 @@
                         <li>We'll arrange pickup from your location (FREE for defective items)</li>
                         <li>Refund processed within 5-7 business days to your M-Pesa or bank account</li>
                     </ol>
-                    <p><strong>Note:</strong> Perishable goods and intimate items cannot be returned for hygiene reasons.</p>
-                `
+                    <p><strong>Note:</strong> Perishable goods and intimate items cannot be returned for hygiene reasons.</p>`
             },
             track: {
-                title: 'Track Your Order',
-                icon: 'fa-map-marker-alt',
-                content: `
-                    <p>Stay updated on your order status every step of the way!</p>
+                title: 'Track Your Order', icon: 'fa-map-marker-alt',
+                content: `<p>Stay updated on your order status every step of the way!</p>
                     <h4>How to Track:</h4>
                     <ol>
                         <li><strong>Via Website:</strong> Log into your account and go to "My Orders"</li>
@@ -1855,14 +1646,11 @@
                         <li><strong>Out for Delivery:</strong> Rider is on the way to your address</li>
                         <li><strong>Delivered:</strong> Order successfully delivered</li>
                     </ul>
-                    <p>Need help? Contact our support team with your order number.</p>
-                `
+                    <p>Need help? Contact our support team with your order number.</p>`
             },
             contact: {
-                title: 'Contact Us',
-                icon: 'fa-headset',
-                content: `
-                    <p>We're here to help! Reach out to us through any of these channels:</p>
+                title: 'Contact Us', icon: 'fa-headset',
+                content: `<p>We're here to help! Reach out to us through any of these channels:</p>
                     <div class="contact-box">
                         <p><i class="fas fa-phone"></i> <strong>+254 712 345 678</strong> (Mon-Fri, 8AM - 6PM)</p>
                         <p><i class="fas fa-envelope"></i> <strong>support@apiaro.co.ke</strong></p>
@@ -1875,19 +1663,15 @@
                         <li>Email: Within 24 hours</li>
                         <li>Social Media: Within 2 hours</li>
                     </ul>
-                    <p>For urgent issues, please call or WhatsApp us for fastest response!</p>
-                `
+                    <p>For urgent issues, please call or WhatsApp us for fastest response!</p>`
             }
         };
 
         const footerContent = {
             privacy: {
-                title: 'Privacy Policy',
-                icon: 'fa-shield-alt',
-                content: `
-                    <p><strong>Last Updated:</strong> April 2024</p>
+                title: 'Privacy Policy', icon: 'fa-shield-alt',
+                content: `<p><strong>Last Updated:</strong> April 2024</p>
                     <p>At APIARO, we take your privacy seriously. This policy describes how we collect, use, and protect your personal information.</p>
-
                     <h4>Information We Collect</h4>
                     <ul>
                         <li><strong>Personal Information:</strong> Name, email, phone number, and delivery address</li>
@@ -1895,7 +1679,6 @@
                         <li><strong>Usage Data:</strong> Pages visited, products viewed, and purchase history</li>
                         <li><strong>Device Information:</strong> IP address, browser type, and operating system</li>
                     </ul>
-
                     <h4>How We Use Your Information</h4>
                     <ul>
                         <li>Process and deliver your orders</li>
@@ -1904,21 +1687,15 @@
                         <li>Prevent fraud and ensure security</li>
                         <li>Comply with legal obligations</li>
                     </ul>
-
                     <h4>Data Protection</h4>
                     <p>We implement industry-standard security measures including 256-bit SSL encryption to protect your data. Your information is stored on secure servers and is never sold to third parties.</p>
-
                     <h4>Your Rights</h4>
-                    <p>You have the right to access, correct, or delete your personal information. Contact us at <strong>privacy@apiaro.co.ke</strong> for any privacy-related requests.</p>
-                `
+                    <p>You have the right to access, correct, or delete your personal information. Contact us at <strong>privacy@apiaro.co.ke</strong> for any privacy-related requests.</p>`
             },
             terms: {
-                title: 'Terms & Conditions',
-                icon: 'fa-file-contract',
-                content: `
-                    <p><strong>Effective Date:</strong> April 2024</p>
+                title: 'Terms & Conditions', icon: 'fa-file-contract',
+                content: `<p><strong>Effective Date:</strong> April 2024</p>
                     <p>Welcome to APIARO. By using our platform, you agree to these terms and conditions.</p>
-
                     <h4>1. Account Registration</h4>
                     <ul>
                         <li>You must provide accurate and complete information when creating an account</li>
@@ -1926,7 +1703,6 @@
                         <li>You must be at least 18 years old to use our services</li>
                         <li>One person may only maintain one active account</li>
                     </ul>
-
                     <h4>2. Orders and Payments</h4>
                     <ul>
                         <li>All prices are in Kenyan Shillings (KES) and include VAT where applicable</li>
@@ -1934,14 +1710,12 @@
                         <li>Orders are confirmed only after payment is received</li>
                         <li>We reserve the right to cancel orders for fraudulent activity</li>
                     </ul>
-
                     <h4>3. Delivery</h4>
                     <ul>
                         <li>Delivery times are estimates and may vary based on location and availability</li>
                         <li>Risk of loss transfers to you upon delivery</li>
                         <li>You must inspect goods upon delivery and report issues within 24 hours</li>
                     </ul>
-
                     <h4>4. Returns and Refunds</h4>
                     <ul>
                         <li>Items may be returned within 7 days of delivery</li>
@@ -1949,21 +1723,15 @@
                         <li>Refunds are processed within 5-7 business days</li>
                         <li>Delivery fees are non-refundable unless item is defective</li>
                     </ul>
-
                     <h4>5. Prohibited Activities</h4>
-                    <p>You may not use our platform for illegal activities, fraud, harassment, or to distribute harmful content. Violation may result in account termination.</p>
-                `
+                    <p>You may not use our platform for illegal activities, fraud, harassment, or to distribute harmful content. Violation may result in account termination.</p>`
             },
             cookie: {
-                title: 'Cookie Policy',
-                icon: 'fa-cookie-bite',
-                content: `
-                    <p><strong>Last Updated:</strong> April 2024</p>
+                title: 'Cookie Policy', icon: 'fa-cookie-bite',
+                content: `<p><strong>Last Updated:</strong> April 2024</p>
                     <p>APIARO uses cookies and similar technologies to enhance your browsing experience.</p>
-
                     <h4>What Are Cookies?</h4>
                     <p>Cookies are small text files stored on your device when you visit our website. They help us remember your preferences and improve your experience.</p>
-
                     <h4>Types of Cookies We Use</h4>
                     <ul>
                         <li><strong>Essential Cookies:</strong> Required for the website to function (shopping cart, login session)</li>
@@ -1971,23 +1739,16 @@
                         <li><strong>Analytics Cookies:</strong> Help us understand how visitors interact with our site</li>
                         <li><strong>Marketing Cookies:</strong> Used to deliver relevant advertisements (with your consent)</li>
                     </ul>
-
                     <h4>Managing Cookies</h4>
                     <p>You can control cookies through your browser settings. However, disabling essential cookies may affect website functionality.</p>
-
                     <h4>Third-Party Cookies</h4>
                     <p>We may use third-party services (Google Analytics, payment processors) that set their own cookies. These are governed by the respective privacy policies.</p>
-
                     <h4>Contact Us</h4>
-                    <p>If you have questions about our cookie policy, email us at <strong>privacy@apiaro.co.ke</strong></p>
-                `
+                    <p>If you have questions about our cookie policy, email us at <strong>privacy@apiaro.co.ke</strong></p>`
             },
             seller: {
-                title: 'Seller Center',
-                icon: 'fa-store',
-                content: `
-                    <p>Join thousands of successful sellers on APIARO and grow your business across Kenya!</p>
-
+                title: 'Seller Center', icon: 'fa-store',
+                content: `<p>Join thousands of successful sellers on APIARO and grow your business across Kenya!</p>
                     <h4>Why Sell on APIARO?</h4>
                     <ul>
                         <li><strong>Reach 47 Counties:</strong> Access customers from Mombasa to Malaba</li>
@@ -1996,7 +1757,6 @@
                         <li><strong>Seller Protection:</strong> Fraud detection and dispute resolution</li>
                         <li><strong>Marketing Support:</strong> Featured placements and promotional campaigns</li>
                     </ul>
-
                     <h4>How to Become a Seller</h4>
                     <ol>
                         <li>Register for a seller account at <strong>seller.apiaro.co.ke</strong></li>
@@ -2005,14 +1765,12 @@
                         <li>Configure shipping preferences and return policy</li>
                         <li>Start selling! Orders come directly to your dashboard</li>
                     </ol>
-
                     <h4>Seller Fees</h4>
                     <ul>
                         <li><strong>Commission:</strong> 5-15% per sale (varies by category)</li>
                         <li><strong>Payment Processing:</strong> 1.5% for M-Pesa withdrawals</li>
                         <li><strong>No Monthly Fees:</strong> Pay only when you sell</li>
                     </ul>
-
                     <h4>Seller Requirements</h4>
                     <ul>
                         <li>Valid Kenyan ID or Passport</li>
@@ -2020,20 +1778,15 @@
                         <li>Genuine products only (counterfeits prohibited)</li>
                         <li>Ability to fulfill orders within 24-48 hours</li>
                     </ul>
-
                     <div class="contact-box">
                         <p><strong>Ready to start?</strong> Contact our Seller Support:</p>
                         <p><i class="fas fa-envelope"></i> sellers@apiaro.co.ke</p>
-                        <p><i class="fas fa-phone"></i> +254 712 345 679</p>
-                    </div>
-                `
+                                                <p><i class="fas fa-phone"></i> +254 712 345 679</p>
+                    </div>`
             },
             advertise: {
-                title: 'Advertise with Us',
-                icon: 'fa-bullhorn',
-                content: `
-                    <p>Reach millions of Kenyan shoppers with targeted advertising on APIARO!</p>
-
+                title: 'Advertise with Us', icon: 'fa-bullhorn',
+                content: `<p>Reach millions of Kenyan shoppers with targeted advertising on APIARO!</p>
                     <h4>Advertising Options</h4>
                     <ul>
                         <li><strong>Homepage Banner:</strong> Premium placement on our homepage (500K+ daily views)</li>
@@ -2042,7 +1795,6 @@
                         <li><strong>Email Marketing:</strong> Reach 200K+ subscribers with targeted campaigns</li>
                         <li><strong>SMS Campaigns:</strong> Direct marketing to verified phone numbers</li>
                     </ul>
-
                     <h4>Why Advertise on APIARO?</h4>
                     <ul>
                         <li><strong>Targeted Audience:</strong> Reach active shoppers across all 47 counties</li>
@@ -2050,15 +1802,13 @@
                         <li><strong>Flexible Budgets:</strong> Start from as low as KES 5,000</li>
                         <li><strong>Brand Safety:</strong> Your ads appear alongside trusted Kenyan brands</li>
                     </ul>
-
                     <h4>Our Audience</h4>
                     <ul>
                         <li>1.5M+ monthly active users</li>
-                                              <li>65% aged 25-45 (prime purchasing demographic)</li>
+                        <li>65% aged 25-45 (prime purchasing demographic)</li>
                         <li>45% from Nairobi, 55% from other counties</li>
                         <li>70% female, 30% male shoppers</li>
                     </ul>
-
                     <h4>Get Started</h4>
                     <p>Contact our advertising team for a customized media kit and rate card:</p>
                     <div class="contact-box">
@@ -2066,9 +1816,7 @@
                         <p><i class="fas fa-phone"></i> +254 712 345 680</p>
                         <p><i class="fas fa-user"></i> Account Manager: Jane Wanjiku</p>
                     </div>
-
-                    <p><em>Special discounts available for Kenyan-owned SMEs and first-time advertisers!</em></p>
-                `
+                    <p><em>Special discounts available for Kenyan-owned SMEs and first-time advertisers!</em></p>`
             }
         };
 
@@ -2112,7 +1860,6 @@
             document.body.style.overflow = '';
         }
 
-        // Close modals when clicking outside
         document.getElementById('help-modal').addEventListener('click', function(e) {
             if (e.target === this) closeHelpModal();
         });
@@ -2121,7 +1868,6 @@
             if (e.target === this) closeFooterModal();
         });
 
-        // Close modals with Escape key
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 closeHelpModal();
@@ -2129,32 +1875,23 @@
             }
         });
 
-        // Demo quantity update function
-        function updateQuantity(id, change) {
-            // Your existing cart.js will handle this
-            console.log('Update quantity:', id, change);
-        }
-
-        function removeItem(id) {
-            // Your existing cart.js will handle this
-            console.log('Remove item:', id);
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            checkAuth();
-            renderCart();
-        });
-
         function proceedToCheckout() {
             const token = localStorage.getItem('token');
             if (!token) {
-                alert('Please login to proceed to checkout');
-                window.location.href = 'login.html';
+                showToast('Please login to proceed to checkout', 'error');
+                setTimeout(() => { window.location.href = 'login.html'; }, 1500);
                 return;
             }
             window.location.href = 'checkout.html';
         }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            renderCart();
+            loadRecentlyViewed();
+        });
     </script>
     <script src="pwa.js"></script>
 </body>
-</html>  
+</html>

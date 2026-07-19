@@ -1,4 +1,18 @@
 // Products Management - Uses API_BASE_URL from auth.js
+// ===== RECENTLY VIEWED TRACKING =====
+// Track when user views a product modal
+const originalOpenProductModal = openProductModal;
+openProductModal = async function(productId) {
+    // Save to recently viewed before opening
+    let viewed = JSON.parse(localStorage.getItem('recentlyViewed')) || [];
+    viewed = viewed.filter(id => id !== productId);
+    viewed.unshift(productId);
+    viewed = viewed.slice(0, 8);
+    localStorage.setItem('recentlyViewed', JSON.stringify(viewed));
+    
+    // Call original function
+    return originalOpenProductModal(productId);
+};
 
 const SearchHistory = {
     API_BASE: API_BASE_URL,
