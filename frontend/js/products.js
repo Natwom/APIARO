@@ -1,18 +1,4 @@
 // Products Management - Uses API_BASE_URL from auth.js
-// ===== RECENTLY VIEWED TRACKING =====
-// Track when user views a product modal
-const originalOpenProductModal = openProductModal;
-openProductModal = async function(productId) {
-    // Save to recently viewed before opening
-    let viewed = JSON.parse(localStorage.getItem('recentlyViewed')) || [];
-    viewed = viewed.filter(id => id !== productId);
-    viewed.unshift(productId);
-    viewed = viewed.slice(0, 8);
-    localStorage.setItem('recentlyViewed', JSON.stringify(viewed));
-    
-    // Call original function
-    return originalOpenProductModal(productId);
-};
 
 const SearchHistory = {
     API_BASE: API_BASE_URL,
@@ -434,6 +420,25 @@ function getImageUrl(imageUrl) {
     return `${API_BASE_URL}${imageUrl}`;
 }
 
+// ========== RECENTLY VIEWED TRACKING ==========
+// Track when user views a product modal
+(function() {
+    // Store reference to the original function if it exists
+    const _originalOpenProductModal = window.openProductModal;
+    
+    window.openProductModal = async function(productId) {
+        // Save to recently viewed before opening modal
+        let viewed = JSON.parse(localStorage.getItem('recentlyViewed')) || [];
+        viewed = viewed.filter(id => id !== productId);
+        viewed.unshift(productId);
+        viewed = viewed.slice(0, 8);
+        localStorage.setItem('recentlyViewed', JSON.stringify(viewed));
+        
+        // Call original implementation below
+        return _openProductModalImpl(productId);
+    };
+})();
+
 // ========== MODAL WITH IMAGE GALLERY ==========
 
 let currentModalImages = [];
@@ -452,7 +457,8 @@ function switchMainImage(index) {
     });
 }
 
-async function openProductModal(productId) {
+// The actual modal implementation - called by the wrapped function above
+async function _openProductModalImpl(productId) {
     try {
         const response = await fetch(`${API_BASE_URL}/products/${productId}`);
         if (!response.ok) throw new Error('Product not found');
@@ -557,6 +563,7 @@ async function openProductModal(productId) {
     }
 }
 
+// Keep closeProductModal available globally
 function closeProductModal(event) {
     if (!event || event.target.id === 'product-modal' || event.target.tagName === 'BUTTON') {
         const modal = document.getElementById('product-modal');
