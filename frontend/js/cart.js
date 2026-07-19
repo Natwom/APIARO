@@ -17,29 +17,21 @@ function saveCart(cart) {
 function updateCartCount() {
     const cart = getCart();
     const count = cart.reduce((sum, item) => sum + item.quantity, 0);
-
     document.querySelectorAll('#cart-count').forEach(el => {
         el.textContent = count;
     });
 }
 
 function getCartImageUrl(imageUrl) {
-    if (!imageUrl) {
-        return 'https://via.placeholder.com/100';
-    }
-    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
-        return imageUrl;
-    }
-    if (imageUrl.startsWith('data:')) {
-        return imageUrl;
-    }
+    if (!imageUrl) return 'https://via.placeholder.com/100';
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) return imageUrl;
+    if (imageUrl.startsWith('data:')) return imageUrl;
     return `${CART_API_URL}${imageUrl}`;
 }
 
 function addToCart(product) {
     let cart = getCart();
     const existingItem = cart.find(item => item.product_id === product.id);
-
     if (existingItem) {
         existingItem.quantity += 1;
     } else {
@@ -51,9 +43,7 @@ function addToCart(product) {
             quantity: 1
         });
     }
-
     saveCart(cart);
-    
     if (typeof showToast === 'function') {
         showToast(`${product.name} added to cart!`, 'success');
     }
@@ -69,14 +59,12 @@ function removeFromCart(productId) {
 function updateQuantity(productId, change) {
     let cart = getCart();
     const item = cart.find(item => item.product_id === productId);
-
     if (item) {
         item.quantity += change;
         if (item.quantity <= 0) {
             cart = cart.filter(i => i.product_id !== productId);
         }
     }
-
     saveCart(cart);
     renderCart();
 }
@@ -112,7 +100,6 @@ function renderCart() {
     if (container) {
         container.innerHTML = cart.map((item, index) => {
             const imageUrl = getCartImageUrl(item.image_url);
-
             return `
             <div class="cart-item" style="animation-delay: ${index * 0.05}s">
                 <div class="product-info">
@@ -136,10 +123,9 @@ function renderCart() {
                 <button class="remove-btn" onclick="removeFromCart(${item.product_id})" title="Remove item">
                     <i class="fas fa-trash-alt"></i>
                 </button>
-            </div>
-        `}).join('');
+            </div>`;
+        }).join('');
 
-        // Calculate totals with dynamic delivery
         const subtotal = calculateSubtotal(cart);
         const delivery = calculateDelivery(subtotal);
         const total = subtotal + delivery;
@@ -155,7 +141,6 @@ function renderCart() {
         if (deliveryEl) deliveryEl.textContent = delivery === 0 ? 'FREE' : `KES ${delivery.toLocaleString()}`;
         if (itemCountEl) itemCountEl.textContent = `${itemCount} item${itemCount !== 1 ? 's' : ''}`;
 
-        // Show free delivery notice
         const summary = document.querySelector('.cart-summary');
         if (summary) {
             let notice = summary.querySelector('.free-delivery-notice');
@@ -179,5 +164,4 @@ function renderCart() {
     }
 }
 
-// Initialize cart count on page load
 document.addEventListener('DOMContentLoaded', updateCartCount);
