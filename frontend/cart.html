@@ -1592,7 +1592,6 @@
                     return;
                 }
 
-                // Sort by viewed order
                 const sorted = viewedIds
                     .map(id => products.find(p => p.id === id))
                     .filter(Boolean);
@@ -1628,18 +1627,19 @@
             }
         }
 
+        // ===== FIX: Normalize product_id to number =====
         function addToCartFromRecentlyViewed(id, name, price, imageUrl) {
-            const product = { id, name, price, image_url: imageUrl };
+            const productId = parseInt(id, 10) || id;
+            const product = { id: productId, name, price, image_url: imageUrl };
             if (typeof addToCart === 'function') {
                 addToCart(product);
             } else {
-                // Fallback if cart.js isn't loaded yet
                 let cart = JSON.parse(localStorage.getItem('cart')) || [];
-                const existing = cart.find(item => item.product_id === id);
+                const existing = cart.find(item => (parseInt(item.product_id, 10) || item.product_id) === productId);
                 if (existing) {
                     existing.quantity += 1;
                 } else {
-                    cart.push({ product_id: id, name, price, image_url: imageUrl, quantity: 1 });
+                    cart.push({ product_id: productId, name, price, image_url: imageUrl, quantity: 1 });
                 }
                 localStorage.setItem('cart', JSON.stringify(cart));
                 showToast(`${name} added to cart!`, 'success');
@@ -1820,7 +1820,8 @@
                         <li><strong>Marketing Cookies:</strong> Used to deliver relevant advertisements (with your consent)</li>
                     </ul>
                     <h4>Managing Cookies</h4>
-                    <p>You can control cookies through your browser settings. However, disabling essential cookies may affect website functionality.</p>
+                    <p>You can control cookies through your browser settings. However, disabling essential cookies may affect website
+                                           functionality.</p>
                     <h4>Third-Party Cookies</h4>
                     <p>We may use third-party services (Google Analytics, payment processors) that set their own cookies. These are governed by the respective privacy policies.</p>
                     <h4>Contact Us</h4>
@@ -1861,7 +1862,7 @@
                     <div class="contact-box">
                         <p><strong>Ready to start?</strong> Contact our Seller Support:</p>
                         <p><i class="fas fa-envelope"></i> sellers@apiaro.co.ke</p>
-                                                <p><i class="fas fa-phone"></i> +254 712 345 679</p>
+                        <p><i class="fas fa-phone"></i> +254 712 345 679</p>
                     </div>`
             },
             advertise: {
@@ -1974,4 +1975,4 @@
     </script>
     <script src="pwa.js"></script>
 </body>
-</html>
+</html> 

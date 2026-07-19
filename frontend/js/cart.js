@@ -29,14 +29,22 @@ function getCartImageUrl(imageUrl) {
     return `${CART_API_URL}${imageUrl}`;
 }
 
+// ===== FIX: Normalize product_id to number =====
+function normalizeId(id) {
+    const num = parseInt(id, 10);
+    return isNaN(num) ? id : num;
+}
+
 function addToCart(product) {
     let cart = getCart();
-    const existingItem = cart.find(item => item.product_id === product.id);
+    const productId = normalizeId(product.id);
+    const existingItem = cart.find(item => normalizeId(item.product_id) === productId);
+    
     if (existingItem) {
         existingItem.quantity += 1;
     } else {
         cart.push({
-            product_id: product.id,
+            product_id: productId,
             name: product.name,
             price: product.price,
             image_url: product.image_url,
@@ -51,18 +59,21 @@ function addToCart(product) {
 
 function removeFromCart(productId) {
     let cart = getCart();
-    cart = cart.filter(item => item.product_id !== productId);
+    const normalizedId = normalizeId(productId);
+    cart = cart.filter(item => normalizeId(item.product_id) !== normalizedId);
     saveCart(cart);
     renderCart();
 }
 
 function updateQuantity(productId, change) {
     let cart = getCart();
-    const item = cart.find(item => item.product_id === productId);
+    const normalizedId = normalizeId(productId);
+    const item = cart.find(item => normalizeId(item.product_id) === normalizedId);
+    
     if (item) {
         item.quantity += change;
         if (item.quantity <= 0) {
-            cart = cart.filter(i => i.product_id !== productId);
+            cart = cart.filter(i => normalizeId(i.product_id) !== normalizedId);
         }
     }
     saveCart(cart);
@@ -100,6 +111,11 @@ function renderCart() {
     if (container) {
         container.innerHTML = cart.map((item, index) => {
             const imageUrl = getCartImageUrl(item.image_url);
+            const itemPrice = parseFloat(item.price) || 0;
+            const itemQty = parseInt(item.quantity) || 1;
+            const itemTotal = itemPrice * itemQty;
+            const productId = item.product_id;
+            
             return `
             <div class="cart-item" style="animation-delay: ${index * 0.05}s">
                 <div class="product-info">
@@ -111,16 +127,16 @@ function renderCart() {
                         <div class="stock-status"><i class="fas fa-check-circle"></i> In Stock</div>
                     </div>
                 </div>
-                <div class="price">KES ${parseFloat(item.price).toLocaleString()}</div>
+                <div class="price">KES ${itemPrice.toLocaleString()}</div>
                 <div class="quantity-control-wrapper">
                     <div class="quantity-control">
-                        <button onclick="updateQuantity(${item.product_id}, -1)"><i class="fas fa-minus" style="font-size: 0.625rem;"></i></button>
-                        <input type="number" value="${item.quantity}" min="1" onchange="updateQuantity(${item.product_id}, parseInt(this.value) - ${item.quantity})">
-                        <button onclick="updateQuantity(${item.product_id}, 1)"><i class="fas fa-plus" style="font-size: 0.625rem;"></i></button>
+                        <button onclick="updateQuantity(${productId}, -1)"><i class="fas fa-minus" style="font-size: 0.625rem;"></i></button>
+                        <input type="number" value="${itemQty}" min="1" onchange="updateQuantity(${productId}, parseInt(this.value) - ${itemQty})">
+                        <button onclick="updateQuantity(${productId}, 1)"><i class="fas fa-plus" style="font-size: 0.625rem;"></i></button>
                     </div>
                 </div>
-                <div class="item-total">KES ${(parseFloat(item.price) * item.quantity).toLocaleString()}</div>
-                <button class="remove-btn" onclick="removeFromCart(${item.product_id})" title="Remove item">
+                <div class="item-total">KES ${itemTotal.toLocaleString()}</div>
+                <button class="remove-btn" onclick="removeFromCart(${productId})" title="Remove item">
                     <i class="fas fa-trash-alt"></i>
                 </button>
             </div>`;
@@ -129,7 +145,7 @@ function renderCart() {
         const subtotal = calculateSubtotal(cart);
         const delivery = calculateDelivery(subtotal);
         const total = subtotal + delivery;
-        const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+        const itemCount = cart.reduce((sum, item) => sum + (parseInt(item.quantity) || 0), 0);
 
         const subtotalEl = document.getElementById('subtotal');
         const totalEl = document.getElementById('total');

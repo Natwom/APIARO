@@ -345,7 +345,6 @@ function getImageUrl(imageUrl) {
 }
 
 // ===== RECENTLY VIEWED TRACKING =====
-// Wrap openProductModal to track viewed products
 const _originalOpenProductModal = window.openProductModal;
 window.openProductModal = async function(productId) {
     let viewed = JSON.parse(localStorage.getItem('recentlyViewed')) || [];
