@@ -481,6 +481,219 @@
             transform: scale(1.1);
         }
 
+        /* ===== DELIVERY TIMELINE ===== */
+        .delivery-timeline {
+            background: white;
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--gray-100);
+            padding: 28px;
+            margin-top: 24px;
+        }
+
+        .timeline-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .timeline-header i {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--success);
+            font-size: 1.125rem;
+        }
+
+        .timeline-header h3 {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        .timeline {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            padding: 0 8px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 16px;
+            left: 40px;
+            right: 40px;
+            height: 3px;
+            background: linear-gradient(to right, var(--success) 33%, var(--gray-200) 33%);
+            border-radius: 9999px;
+        }
+
+        .timeline-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .timeline-dot {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+            font-weight: 700;
+            border: 3px solid white;
+            box-shadow: var(--shadow);
+        }
+
+        .timeline-step.completed .timeline-dot {
+            background: var(--success);
+            color: white;
+        }
+
+        .timeline-step.pending .timeline-dot {
+            background: var(--gray-200);
+            color: var(--gray-500);
+        }
+
+        .timeline-step span {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--gray-600);
+            text-align: center;
+            max-width: 80px;
+        }
+
+        .timeline-step.completed span {
+            color: var(--success);
+        }
+
+        /* ===== RECENTLY VIEWED ===== */
+        .recently-viewed {
+            margin-top: 48px;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-title i {
+            color: var(--primary);
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--gray-100);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .product-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .product-card-image {
+            height: 180px;
+            background: linear-gradient(135deg, var(--gray-100), #f3f4f6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .product-card-image i {
+            font-size: 2.5rem;
+            color: var(--gray-300);
+        }
+
+        .product-card-badge {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: linear-gradient(135deg, var(--danger), #f87171);
+            color: white;
+            padding: 4px 10px;
+            border-radius: var(--radius-sm);
+            font-size: 0.6875rem;
+            font-weight: 700;
+        }
+
+        .product-card-body {
+            padding: 16px;
+        }
+
+        .product-card-title {
+            font-size: 0.9375rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 6px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .product-card-price {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 12px;
+        }
+
+        .product-card-price .original {
+            font-size: 0.8125rem;
+            color: var(--gray-400);
+            text-decoration: line-through;
+            margin-left: 6px;
+            font-weight: 500;
+        }
+
+        .btn-add-cart {
+            width: 100%;
+            padding: 10px;
+            background: var(--gray-900);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-add-cart:hover {
+            background: var(--primary);
+        }
+
         /* ===== CART SUMMARY ===== */
         .cart-summary {
             background: white;
@@ -641,50 +854,6 @@
             color: var(--success);
         }
 
-        /* Promo Code */
-        .promo-section {
-            margin-bottom: 20px;
-        }
-
-        .promo-input-group {
-            display: flex;
-            gap: 8px;
-        }
-
-        .promo-input {
-            flex: 1;
-            padding: 10px 14px;
-            border: 1.5px solid var(--gray-200);
-            border-radius: var(--radius);
-            font-size: 0.875rem;
-            transition: all 0.2s;
-            font-family: inherit;
-        }
-
-        .promo-input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.1);
-        }
-
-        .btn-promo {
-            padding: 10px 18px;
-            background: var(--gray-800);
-            color: white;
-            border: none;
-            border-radius: var(--radius);
-            font-weight: 600;
-            font-size: 0.875rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            white-space: nowrap;
-        }
-
-        .btn-promo:hover {
-            background: var(--gray-900);
-        }
-
-        /* Trust Badges Inline */
         .trust-inline {
             display: flex;
             justify-content: center;
@@ -1122,6 +1291,15 @@
                 color: var(--gray-500);
                 font-weight: 400;
             }
+
+            .products-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .timeline::before {
+                left: 20px;
+                right: 20px;
+            }
         }
 
         @media (max-width: 768px) {
@@ -1169,8 +1347,34 @@
             }
 
             .cart-items-container,
-            .cart-summary {
+            .cart-summary,
+            .delivery-timeline {
                 border-radius: var(--radius-lg);
+            }
+
+            .products-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .timeline {
+                flex-direction: column;
+                gap: 24px;
+            }
+
+            .timeline::before {
+                display: none;
+            }
+
+            .timeline-step {
+                flex-direction: row;
+                width: 100%;
+                justify-content: flex-start;
+                gap: 16px;
+            }
+
+            .timeline-step span {
+                text-align: left;
+                max-width: none;
             }
         }
 
@@ -1246,43 +1450,71 @@
 
             <!-- Cart Content -->
             <div id="cart-content" class="cart-content">
-                <div class="cart-items-container">
-                    <div class="cart-items-header">
-                        <span>Product</span>
-                        <span>Price</span>
-                        <span>Quantity</span>
-                        <span>Total</span>
-                        <span></span>
+                <div>
+                    <div class="cart-items-container">
+                        <div class="cart-items-header">
+                            <span>Product</span>
+                            <span>Price</span>
+                            <span>Quantity</span>
+                            <span>Total</span>
+                            <span></span>
+                        </div>
+                        <div class="cart-items" id="cart-items">
+                            <!-- Cart items loaded dynamically -->
+                            <!-- Demo item for visual reference: -->
+                            <div class="cart-item">
+                                <div class="product-info">
+                                    <div class="product-image">
+                                        <i class="fas fa-image"></i>
+                                    </div>
+                                    <div class="product-details">
+                                        <h4>Samsung Galaxy A54</h4>
+                                        <div class="variant">128GB / Awesome Black</div>
+                                        <div class="stock-status"><i class="fas fa-check-circle"></i> In Stock</div>
+                                    </div>
+                                </div>
+                                <div class="price">
+                                    KES 42,999
+                                    <span class="price-original">KES 48,000</span>
+                                </div>
+                                <div class="quantity-control-wrapper">
+                                    <div class="quantity-control">
+                                        <button onclick="updateQuantity(1, -1)"><i class="fas fa-minus" style="font-size: 0.625rem;"></i></button>
+                                        <input type="number" value="1" min="1" onchange="updateQuantity(1, this.value)">
+                                        <button onclick="updateQuantity(1, 1)"><i class="fas fa-plus" style="font-size: 0.625rem;"></i></button>
+                                    </div>
+                                </div>
+                                <div class="item-total">KES 42,999</div>
+                                <button class="remove-btn" onclick="removeItem(1)" title="Remove item">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                    <div class="cart-items" id="cart-items">
-                        <!-- Cart items loaded dynamically -->
-                        <!-- Demo item for visual reference: -->
-                        <div class="cart-item">
-                            <div class="product-info">
-                                <div class="product-image">
-                                    <i class="fas fa-image"></i>
-                                </div>
-                                <div class="product-details">
-                                    <h4>Samsung Galaxy A54</h4>
-                                    <div class="variant">128GB / Awesome Black</div>
-                                    <div class="stock-status"><i class="fas fa-check-circle"></i> In Stock</div>
-                                </div>
+
+                    <!-- Delivery Timeline -->
+                    <div class="delivery-timeline">
+                        <div class="timeline-header">
+                            <i class="fas fa-shipping-fast"></i>
+                            <h3>Delivery Timeline</h3>
+                        </div>
+                        <div class="timeline">
+                            <div class="timeline-step completed">
+                                <div class="timeline-dot"><i class="fas fa-check"></i></div>
+                                <span>Order Placed</span>
                             </div>
-                            <div class="price">
-                                KES 42,999
-                                <span class="price-original">KES 48,000</span>
+                            <div class="timeline-step completed">
+                                <div class="timeline-dot"><i class="fas fa-check"></i></div>
+                                <span>Confirmed</span>
                             </div>
-                            <div class="quantity-control-wrapper">
-                                <div class="quantity-control">
-                                    <button onclick="updateQuantity(1, -1)"><i class="fas fa-minus" style="font-size: 0.625rem;"></i></button>
-                                    <input type="number" value="1" min="1" onchange="updateQuantity(1, this.value)">
-                                    <button onclick="updateQuantity(1, 1)"><i class="fas fa-plus" style="font-size: 0.625rem;"></i></button>
-                                </div>
+                            <div class="timeline-step pending">
+                                <div class="timeline-dot">3</div>
+                                <span>Shipped</span>
                             </div>
-                            <div class="item-total">KES 42,999</div>
-                            <button class="remove-btn" onclick="removeItem(1)" title="Remove item">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
+                            <div class="timeline-step pending">
+                                <div class="timeline-dot">4</div>
+                                <span>Delivered</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1291,13 +1523,6 @@
                     <div class="summary-header">
                         <i class="fas fa-receipt"></i>
                         <h3>Order Summary</h3>
-                    </div>
-
-                    <div class="promo-section">
-                        <div class="promo-input-group">
-                            <input type="text" class="promo-input" placeholder="Enter promo code">
-                            <button class="btn-promo">Apply</button>
-                        </div>
                     </div>
 
                     <div class="summary-row">
@@ -1342,6 +1567,55 @@
                         <div class="trust-inline-item"><i class="fas fa-shield-alt"></i> Secure</div>
                         <div class="trust-inline-item"><i class="fas fa-truck"></i> Fast Delivery</div>
                         <div class="trust-inline-item"><i class="fas fa-undo"></i> 7-Day Returns</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recently Viewed -->
+            <div class="recently-viewed">
+                <h2 class="section-title"><i class="fas fa-clock-rotate-left"></i> Recently Viewed</h2>
+                <div class="products-grid">
+                    <div class="product-card">
+                        <div class="product-card-image">
+                            <i class="fas fa-image"></i>
+                            <span class="product-card-badge">-15%</span>
+                        </div>
+                        <div class="product-card-body">
+                            <div class="product-card-title">iPhone 15 Pro Max</div>
+                            <div class="product-card-price">KES 189,999 <span class="original">KES 220,000</span></div>
+                            <button class="btn-add-cart"><i class="fas fa-cart-plus"></i> Add to Cart</button>
+                        </div>
+                    </div>
+                    <div class="product-card">
+                        <div class="product-card-image">
+                            <i class="fas fa-image"></i>
+                        </div>
+                        <div class="product-card-body">
+                            <div class="product-card-title">Sony WH-1000XM5</div>
+                            <div class="product-card-price">KES 45,999</div>
+                            <button class="btn-add-cart"><i class="fas fa-cart-plus"></i> Add to Cart</button>
+                        </div>
+                    </div>
+                    <div class="product-card">
+                        <div class="product-card-image">
+                            <i class="fas fa-image"></i>
+                            <span class="product-card-badge">HOT</span>
+                        </div>
+                        <div class="product-card-body">
+                            <div class="product-card-title">MacBook Air M3</div>
+                            <div class="product-card-price">KES 165,000 <span class="original">KES 180,000</span></div>
+                            <button class="btn-add-cart"><i class="fas fa-cart-plus"></i> Add to Cart</button>
+                        </div>
+                    </div>
+                    <div class="product-card">
+                        <div class="product-card-image">
+                            <i class="fas fa-image"></i>
+                        </div>
+                        <div class="product-card-body">
+                            <div class="product-card-title">Nike Air Force 1</div>
+                            <div class="product-card-price">KES 12,500</div>
+                            <button class="btn-add-cart"><i class="fas fa-cart-plus"></i> Add to Cart</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1481,7 +1755,6 @@
             document.getElementById('nav-links').classList.toggle('active');
         }
 
-        // Close mobile menu when clicking outside
         document.addEventListener('click', function(e) {
             const nav = document.querySelector('.navbar');
             const links = document.getElementById('nav-links');
@@ -1490,7 +1763,6 @@
             }
         });
 
-        // Customer Service Modal Functions
         const helpContent = {
             help: {
                 title: 'Help Center',
@@ -1608,7 +1880,6 @@
             }
         };
 
-        // Footer Links Modal Content
         const footerContent = {
             privacy: {
                 title: 'Privacy Policy',
@@ -1783,7 +2054,7 @@
                     <h4>Our Audience</h4>
                     <ul>
                         <li>1.5M+ monthly active users</li>
-                        <li>65% aged 25-45 (prime purchasing demographic)</li>
+                                              <li>65% aged 25-45 (prime purchasing demographic)</li>
                         <li>45% from Nairobi, 55% from other counties</li>
                         <li>70% female, 30% male shoppers</li>
                     </ul>
@@ -1886,4 +2157,4 @@
     </script>
     <script src="pwa.js"></script>
 </body>
-</html>
+</html>  
