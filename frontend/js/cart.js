@@ -17,65 +17,63 @@ function saveCart(cart) {
 function updateCartCount() {
     const cart = getCart();
     const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+
     document.querySelectorAll('#cart-count').forEach(el => {
         el.textContent = count;
     });
 }
 
 function getCartImageUrl(imageUrl) {
-    if (!imageUrl) return 'https://via.placeholder.com/100';
-    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) return imageUrl;
-    if (imageUrl.startsWith('data:')) return imageUrl;
+    if (!imageUrl) {
+        return 'https://via.placeholder.com/100';
+    }
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+        return imageUrl;
+    }
+    if (imageUrl.startsWith('data:')) {
+        return imageUrl;
+    }
     return `${CART_API_URL}${imageUrl}`;
-}
-
-// ===== FIX: Normalize product_id to number =====
-function normalizeId(id) {
-    const num = parseInt(id, 10);
-    return isNaN(num) ? id : num;
 }
 
 function addToCart(product) {
     let cart = getCart();
-    const productId = normalizeId(product.id);
-    const existingItem = cart.find(item => normalizeId(item.product_id) === productId);
-    
+    const existingItem = cart.find(item => item.product_id === product.id);
+
     if (existingItem) {
         existingItem.quantity += 1;
     } else {
         cart.push({
-            product_id: productId,
+            product_id: product.id,
             name: product.name,
             price: product.price,
             image_url: product.image_url,
             quantity: 1
         });
     }
+
     saveCart(cart);
-    if (typeof showToast === 'function') {
-        showToast(`${product.name} added to cart!`, 'success');
-    }
+    showToast(`${product.name} added to cart!`, 'success');
 }
 
 function removeFromCart(productId) {
     let cart = getCart();
-    const normalizedId = normalizeId(productId);
-    cart = cart.filter(item => normalizeId(item.product_id) !== normalizedId);
+    cart = cart.filter(item => item.product_id !== productId);
     saveCart(cart);
     renderCart();
 }
 
 function updateQuantity(productId, change) {
     let cart = getCart();
-    const normalizedId = normalizeId(productId);
-    const item = cart.find(item => normalizeId(item.product_id) === normalizedId);
-    
+    const item = cart.find(item => item.product_id === productId);
+
     if (item) {
         item.quantity += change;
         if (item.quantity <= 0) {
-            cart = cart.filter(i => normalizeId(i.product_id) !== normalizedId);
+            cart = cart.filter(i => i.product_id !== productId);
         }
     }
+
     saveCart(cart);
     renderCart();
 }
@@ -109,54 +107,44 @@ function renderCart() {
     if (contentDiv) contentDiv.style.display = 'grid';
 
     if (container) {
-        container.innerHTML = cart.map((item, index) => {
+        container.innerHTML = cart.map(item => {
             const imageUrl = getCartImageUrl(item.image_url);
-            const itemPrice = parseFloat(item.price) || 0;
-            const itemQty = parseInt(item.quantity) || 1;
-            const itemTotal = itemPrice * itemQty;
-            const productId = item.product_id;
-            
-            return `
-            <div class="cart-item" style="animation-delay: ${index * 0.05}s">
-                <div class="product-info">
-                    <div class="product-image">
-                        <img src="${imageUrl}" alt="${item.name}" onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\\'fas fa-image\\'></i>';">
-                    </div>
-                    <div class="product-details">
-                        <h4>${item.name}</h4>
-                        <div class="stock-status"><i class="fas fa-check-circle"></i> In Stock</div>
-                    </div>
-                </div>
-                <div class="price">KES ${itemPrice.toLocaleString()}</div>
-                <div class="quantity-control-wrapper">
-                    <div class="quantity-control">
-                        <button onclick="updateQuantity(${productId}, -1)"><i class="fas fa-minus" style="font-size: 0.625rem;"></i></button>
-                        <input type="number" value="${itemQty}" min="1" onchange="updateQuantity(${productId}, parseInt(this.value) - ${itemQty})">
-                        <button onclick="updateQuantity(${productId}, 1)"><i class="fas fa-plus" style="font-size: 0.625rem;"></i></button>
-                    </div>
-                </div>
-                <div class="item-total">KES ${itemTotal.toLocaleString()}</div>
-                <button class="remove-btn" onclick="removeFromCart(${productId})" title="Remove item">
-                    <i class="fas fa-trash-alt"></i>
-                </button>
-            </div>`;
-        }).join('');
 
+            return `
+            <div class="cart-item">
+                <img src="${imageUrl}" 
+                     alt="${item.name}" 
+                     class="cart-item-image"
+                     onerror="this.src='https://via.placeholder.com/100'; this.onerror=null;">
+                <div class="cart-item-details">
+                    <div class="cart-item-title">${item.name}</div>
+                    <div class="cart-item-price">KES ${parseFloat(item.price).toFixed(2)}</div>
+                    <div class="quantity-controls">
+                        <button onclick="updateQuantity(${item.product_id}, -1)">-</button>
+                        <span>${item.quantity}</span>
+                        <button onclick="updateQuantity(${item.product_id}, 1)">+</button>
+                    </div>
+                </div>
+                <div class="remove-btn" onclick="removeFromCart(${item.product_id})">
+                    <i class="fas fa-trash"></i>
+                </div>
+            </div>
+        `}).join('');
+
+        // Calculate totals with dynamic delivery
         const subtotal = calculateSubtotal(cart);
         const delivery = calculateDelivery(subtotal);
         const total = subtotal + delivery;
-        const itemCount = cart.reduce((sum, item) => sum + (parseInt(item.quantity) || 0), 0);
 
         const subtotalEl = document.getElementById('subtotal');
         const totalEl = document.getElementById('total');
         const deliveryEl = document.getElementById('delivery-fee');
-        const itemCountEl = document.getElementById('item-count');
 
-        if (subtotalEl) subtotalEl.textContent = `KES ${subtotal.toLocaleString()}`;
-        if (totalEl) totalEl.textContent = `KES ${total.toLocaleString()}`;
-        if (deliveryEl) deliveryEl.textContent = delivery === 0 ? 'FREE' : `KES ${delivery.toLocaleString()}`;
-        if (itemCountEl) itemCountEl.textContent = `${itemCount} item${itemCount !== 1 ? 's' : ''}`;
+        if (subtotalEl) subtotalEl.textContent = `KES ${subtotal.toFixed(2)}`;
+        if (totalEl) totalEl.textContent = `KES ${total.toFixed(2)}`;
+        if (deliveryEl) deliveryEl.textContent = delivery === 0 ? 'FREE' : `KES ${delivery.toFixed(2)}`;
 
+        // Show free delivery notice
         const summary = document.querySelector('.cart-summary');
         if (summary) {
             let notice = summary.querySelector('.free-delivery-notice');
@@ -164,13 +152,8 @@ function renderCart() {
                 if (!notice) {
                     notice = document.createElement('div');
                     notice.className = 'free-delivery-notice';
-                    notice.style.cssText = 'background:linear-gradient(135deg, #d1fae5, #a7f3d0);color:#065f46;padding:10px 15px;border-radius:10px;font-size:0.875rem;margin-bottom:15px;text-align:center;font-weight:600;';
-                    const header = summary.querySelector('.summary-header');
-                    if (header && header.nextSibling) {
-                        summary.insertBefore(notice, header.nextSibling);
-                    } else {
-                        summary.appendChild(notice);
-                    }
+                    notice.style.cssText = 'background:#e8f5e9;color:#2e7d32;padding:10px 15px;border-radius:8px;font-size:0.9em;margin-bottom:15px;text-align:center;';
+                    summary.insertBefore(notice, summary.firstChild);
                 }
                 notice.innerHTML = '<i class="fas fa-check-circle"></i> You qualify for FREE delivery!';
             } else if (notice) {
@@ -180,4 +163,5 @@ function renderCart() {
     }
 }
 
+// Initialize cart count on page load
 document.addEventListener('DOMContentLoaded', updateCartCount);
