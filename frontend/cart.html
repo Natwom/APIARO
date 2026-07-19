@@ -1163,6 +1163,86 @@
         }
         .toast.success { background: linear-gradient(135deg, var(--success), #34d399); }
         .toast.error { background: linear-gradient(135deg, var(--danger), #f87171); }
+
+
+
+
+        /* OVERRIDE OLD styles.css CONFLICTS */
+.cart-page .cart-items .cart-item {
+    display: grid !important;
+    grid-template-columns: 2fr 1fr 1fr 1fr auto !important;
+    padding: 24px 28px !important;
+    gap: 0 !important;
+    border-bottom: 1px solid var(--gray-100) !important;
+    align-items: center !important;
+    flex-direction: row !important;
+}
+.cart-page .cart-items .cart-item:hover {
+    background: var(--gray-50) !important;
+    margin: 0 !important;
+    padding-left: 28px !important;
+    padding-right: 28px !important;
+    border-radius: 0 !important;
+}
+.cart-page .product-info {
+    display: flex !important;
+    align-items: center !important;
+    gap: 20px !important;
+    flex-direction: row !important;
+}
+.cart-page .product-image {
+    width: 80px !important;
+    height: 80px !important;
+    border-radius: var(--radius) !important;
+    flex-shrink: 0 !important;
+}
+.cart-page .product-image img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    border-radius: 0 !important;
+}
+.cart-page .quantity-control {
+    display: inline-flex !important;
+    border: 1.5px solid var(--gray-200) !important;
+    border-radius: var(--radius-lg) !important;
+    overflow: hidden !important;
+    background: white !important;
+}
+.cart-page .quantity-control button {
+    width: 36px !important;
+    height: 36px !important;
+    border: none !important;
+    background: white !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+.cart-page .quantity-control input {
+    width: 44px !important;
+    height: 36px !important;
+    border: none !important;
+    text-align: center !important;
+}
+.cart-page .remove-btn {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: var(--radius) !important;
+    color: var(--gray-400) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+.cart-page .remove-btn:hover {
+    background: #fef2f2 !important;
+    color: var(--danger) !important;
+    transform: scale(1.1) !important;
+}
+.cart-page .cart-content {
+    display: grid !important;
+    grid-template-columns: 1fr 380px !important;
+    gap: 32px !important;
+}
     </style>
     <base target="_blank">
 </head>
