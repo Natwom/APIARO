@@ -54,7 +54,6 @@ function addToCart(product) {
 
     saveCart(cart);
     
-    // Show toast if available, otherwise alert
     if (typeof showToast === 'function') {
         showToast(`${product.name} added to cart!`, 'success');
     }
