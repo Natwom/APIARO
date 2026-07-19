@@ -49,7 +49,8 @@ window.loadCheckoutSummary = function() {
         return sum + (price * qty);
     }, 0);
     
-    const delivery = 300;
+    // FIXED: Changed from 300 to 50, with free delivery above KES 5,000
+    const delivery = subtotal >= 5000 ? 0 : 50;
     const total = subtotal + delivery;
     
     if (container) {
