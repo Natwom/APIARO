@@ -72,6 +72,19 @@ async function login(email, password) {
 }
 
 /**
+ * Get avatar URL with fallback
+ */
+function getAvatarUrl(profilePicture) {
+    if (!profilePicture) {
+        return 'https://ui-avatars.com/api/?name=User&background=1a56db&color=fff&size=128';
+    }
+    if (profilePicture.startsWith('http')) {
+        return profilePicture;
+    }
+    return `${API_BASE_URL}${profilePicture}`;
+}
+
+/**
  * Check authentication status and update UI
  */
 function checkAuth() {
@@ -92,8 +105,30 @@ function checkAuth() {
         if (authLinks) authLinks.style.display = 'none';
         if (userLinks) {
             userLinks.style.display = 'flex';
-            const userNameEl = document.getElementById('user-name');
-            if (userNameEl) userNameEl.textContent = user.full_name.split(' ')[0];
+            userLinks.innerHTML = `
+                <div class="user-dropdown">
+                    <button class="user-dropdown-toggle" onclick="toggleUserDropdown(event)">
+                        <img src="${getAvatarUrl(user.profile_picture)}" 
+                             alt="${user.full_name}" 
+                             class="user-avatar"
+                             onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(user.full_name)}&background=1a56db&color=fff&size=128'">
+                        <span class="user-name">${user.full_name.split(' ')[0]}</span>
+                        <i class="fas fa-chevron-down" style="font-size: 0.7rem;"></i>
+                    </button>
+                    <div class="user-dropdown-menu" id="user-dropdown-menu">
+                        <a href="profile.html" class="dropdown-item">
+                            <i class="fas fa-user"></i> My Profile
+                        </a>
+                        <a href="orders.html" class="dropdown-item">
+                            <i class="fas fa-box"></i> My Orders
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" onclick="logout(); return false;" class="dropdown-item text-danger">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    </div>
+                </div>
+            `;
         }
         
         // Debug: Show token time remaining
@@ -103,10 +138,33 @@ function checkAuth() {
         return token;
     } else {
         if (authLinks) authLinks.style.display = 'flex';
-        if (userLinks) userLinks.style.display = 'none';
+        if (userLinks) {
+            userLinks.style.display = 'none';
+            userLinks.innerHTML = '';
+        }
         return null;
     }
 }
+
+/**
+ * Toggle user dropdown menu
+ */
+function toggleUserDropdown(event) {
+    event.stopPropagation();
+    const menu = document.getElementById('user-dropdown-menu');
+    if (menu) {
+        menu.classList.toggle('show');
+    }
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(e) {
+    const dropdown = document.querySelector('.user-dropdown');
+    const menu = document.getElementById('user-dropdown-menu');
+    if (menu && dropdown && !dropdown.contains(e.target)) {
+        menu.classList.remove('show');
+    }
+});
 
 /**
  * Get time until token expires

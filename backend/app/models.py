@@ -25,6 +25,11 @@ class User(Base):
     password_hash = Column(String(255), nullable=False)
     full_name = Column(String(255), nullable=False)
     phone_number = Column(String(20), nullable=False)
+    profile_picture = Column(String(500), nullable=True)  # URL to avatar image
+    bio = Column(Text, nullable=True)  # Short user bio
+    address = Column(Text, nullable=True)  # Default delivery address
+    county = Column(String(100), nullable=True)  # Default county
+    town = Column(String(100), nullable=True)  # Default town
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     

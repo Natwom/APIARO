@@ -8,6 +8,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 import traceback
 
 # Cloudinary config
@@ -32,6 +33,19 @@ app = FastAPI(
     description="Production API for Kenya E-Commerce Platform",
     version="2.0.0"
 )
+
+# ========== STATIC FILES ==========
+# Create uploads directories if they don't exist
+UPLOADS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uploads")
+AVATARS_DIR = os.path.join(UPLOADS_DIR, "avatars")
+PRODUCTS_DIR = os.path.join(UPLOADS_DIR, "products")
+
+os.makedirs(AVATARS_DIR, exist_ok=True)
+os.makedirs(PRODUCTS_DIR, exist_ok=True)
+
+# Serve uploaded files
+app.mount("/uploads/avatars", StaticFiles(directory=AVATARS_DIR), name="avatars")
+app.mount("/uploads/products", StaticFiles(directory=PRODUCTS_DIR), name="products")
 
 # CORS - Allow all origins
 app.add_middleware(

@@ -73,6 +73,33 @@ class UserResponse(UserBase):
     class Config:
         from_attributes = True
 
+# ========== NEW: Profile Schemas ==========
+class UserProfileResponse(UserBase):
+    id: int
+    profile_picture: Optional[str] = None
+    bio: Optional[str] = None
+    address: Optional[str] = None
+    county: Optional[str] = None
+    town: Optional[str] = None
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    total_orders: int = 0
+    
+    class Config:
+        from_attributes = True
+
+class UserProfileUpdate(BaseModel):
+    full_name: Optional[str] = None
+    phone_number: Optional[str] = Field(None, pattern=r'^\+254\d{9}$')
+    bio: Optional[str] = Field(None, max_length=500)
+    address: Optional[str] = None
+    county: Optional[str] = None
+    town: Optional[str] = None
+
+class AvatarUploadResponse(BaseModel):
+    profile_picture: str
+    message: str = "Avatar updated successfully"
+
 # Product Schemas
 class ProductBase(BaseModel):
     name: str
