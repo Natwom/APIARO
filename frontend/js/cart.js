@@ -63,12 +63,27 @@ function removeFromCart(productId) {
     renderCart();
 }
 
-function updateQuantity(productId, change) {
+/**
+ * Update quantity of a cart item
+ * @param {number|string} productId - The product ID
+ * @param {number|string} change - Amount to change (+1, -1) or new absolute value
+ * @param {boolean} isAbsolute - If true, change is the new absolute quantity
+ */
+function updateQuantity(productId, change, isAbsolute = false) {
     let cart = getCart();
     const item = cart.find(item => item.product_id === productId);
 
     if (item) {
-        item.quantity += change;
+        // Parse change to number (handles string input from HTML)
+        let numChange = parseInt(change, 10);
+        if (isNaN(numChange)) numChange = 1;
+
+        if (isAbsolute) {
+            item.quantity = numChange;
+        } else {
+            item.quantity += numChange;
+        }
+
         if (item.quantity <= 0) {
             cart = cart.filter(i => i.product_id !== productId);
         }
@@ -109,23 +124,25 @@ function renderCart() {
     if (container) {
         container.innerHTML = cart.map(item => {
             const imageUrl = getCartImageUrl(item.image_url);
+            // Ensure product_id is properly handled for onclick strings
+            const pid = typeof item.product_id === 'string' ? item.product_id : item.product_id;
 
             return `
             <div class="cart-item">
                 <img src="${imageUrl}" 
-                     alt="${item.name}" 
+                     alt="${escapeHtml(item.name)}" 
                      class="cart-item-image"
                      onerror="this.src='https://via.placeholder.com/100'; this.onerror=null;">
                 <div class="cart-item-details">
-                    <div class="cart-item-title">${item.name}</div>
+                    <div class="cart-item-title">${escapeHtml(item.name)}</div>
                     <div class="cart-item-price">KES ${parseFloat(item.price).toFixed(2)}</div>
                     <div class="quantity-controls">
-                        <button onclick="updateQuantity(${item.product_id}, -1)">-</button>
+                        <button onclick='updateQuantity(${JSON.stringify(pid)}, -1)' aria-label="Decrease quantity">-</button>
                         <span>${item.quantity}</span>
-                        <button onclick="updateQuantity(${item.product_id}, 1)">+</button>
+                        <button onclick='updateQuantity(${JSON.stringify(pid)}, 1)' aria-label="Increase quantity">+</button>
                     </div>
                 </div>
-                <div class="remove-btn" onclick="removeFromCart(${item.product_id})">
+                <div class="remove-btn" onclick='removeFromCart(${JSON.stringify(pid)})' role="button" tabindex="0" aria-label="Remove item">
                     <i class="fas fa-trash"></i>
                 </div>
             </div>
@@ -163,5 +180,76 @@ function renderCart() {
     }
 }
 
+/**
+ * Escape HTML to prevent XSS in cart rendering
+ */
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Show toast notification (fallback if not defined elsewhere)
+function showToast(message, type = 'success') {
+    if (typeof window.showToast === 'function' && window.showToast !== showToast) {
+        window.showToast(message, type);
+        return;
+    }
+    
+    // Remove existing toasts
+    document.querySelectorAll('.cart-toast').forEach(t => t.remove());
+    
+    const toast = document.createElement('div');
+    toast.className = 'cart-toast';
+    
+    const colors = {
+        success: '#10b981',
+        error: '#ef4444',
+        warning: '#f59e0b',
+        info: '#3b82f6'
+    };
+    
+    toast.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        padding: 15px 25px;
+        border-radius: 10px;
+        color: white;
+        font-weight: 500;
+        z-index: 10001;
+        background: ${colors[type] || colors.success};
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        max-width: 350px;
+        word-wrap: break-word;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+    `;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    requestAnimationFrame(() => {
+        toast.style.transform = 'translateX(0)';
+    });
+    
+    setTimeout(() => {
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
 // Initialize cart count on page load
 document.addEventListener('DOMContentLoaded', updateCartCount);
+
+// Expose functions globally for HTML onclick handlers
+window.getCart = getCart;
+window.saveCart = saveCart;
+window.updateCartCount = updateCartCount;
+window.addToCart = addToCart;
+window.removeFromCart = removeFromCart;
+window.updateQuantity = updateQuantity;
+window.clearCart = clearCart;
+window.calculateSubtotal = calculateSubtotal;
+window.calculateDelivery = calculateDelivery;
+window.renderCart = renderCart;

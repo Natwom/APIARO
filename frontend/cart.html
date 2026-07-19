@@ -1255,35 +1255,8 @@
                         <span></span>
                     </div>
                     <div class="cart-items" id="cart-items">
-                        <!-- Cart items loaded dynamically -->
-                        <!-- Demo item for visual reference: -->
-                        <div class="cart-item">
-                            <div class="product-info">
-                                <div class="product-image">
-                                    <i class="fas fa-image"></i>
-                                </div>
-                                <div class="product-details">
-                                    <h4>Samsung Galaxy A54</h4>
-                                    <div class="variant">128GB / Awesome Black</div>
-                                    <div class="stock-status"><i class="fas fa-check-circle"></i> In Stock</div>
-                                </div>
-                            </div>
-                            <div class="price">
-                                KES 42,999
-                                <span class="price-original">KES 48,000</span>
-                            </div>
-                            <div class="quantity-control-wrapper">
-                                <div class="quantity-control">
-                                    <button onclick="updateQuantity(1, -1)"><i class="fas fa-minus" style="font-size: 0.625rem;"></i></button>
-                                    <input type="number" value="1" min="1" onchange="updateQuantity(1, this.value)">
-                                    <button onclick="updateQuantity(1, 1)"><i class="fas fa-plus" style="font-size: 0.625rem;"></i></button>
-                                </div>
-                            </div>
-                            <div class="item-total">KES 42,999</div>
-                            <button class="remove-btn" onclick="removeItem(1)" title="Remove item">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
-                        </div>
+                        <!-- Cart items loaded dynamically from cart.js -->
+                        <!-- Demo item removed - renderCart() populates this container -->
                     </div>
                 </div>
 
@@ -1301,16 +1274,16 @@
                     </div>
 
                     <div class="summary-row">
-                        <span>Subtotal (2 items)</span>
-                        <span>KES 85,998</span>
+                        <span>Subtotal (<span id="item-count">0 items</span>)</span>
+                        <span id="subtotal">KES 0.00</span>
                     </div>
-                    <div class="summary-row discount">
+                    <div class="summary-row discount" id="discount-row" style="display:none;">
                         <span>Discount</span>
-                        <span>-KES 5,001</span>
+                        <span id="discount-amount">-KES 0.00</span>
                     </div>
                     <div class="summary-row">
                         <span>Delivery Fee</span>
-                        <span>KES 50.00</span>
+                        <span id="delivery-fee">KES 50.00</span>
                     </div>
                     <div class="summary-row">
                         <span>Tax (0%)</span>
@@ -1319,11 +1292,11 @@
                     <div class="summary-divider"></div>
                     <div class="summary-row total">
                         <span>Total</span>
-                        <span id="total">KES 80,997</span>
+                        <span id="total">KES 0.00</span>
                     </div>
 
-                    <div class="savings-badge">
-                        <i class="fas fa-piggy-bank"></i> You save KES 5,001!
+                    <div class="savings-badge" id="savings-badge" style="display:none;">
+                        <i class="fas fa-piggy-bank"></i> You save <span id="savings-amount">KES 0</span>!
                     </div>
 
                     <button onclick="proceedToCheckout()" class="btn-checkout">
@@ -1857,17 +1830,6 @@
                 closeFooterModal();
             }
         });
-
-        // Demo quantity update function
-        function updateQuantity(id, change) {
-            // Your existing cart.js will handle this
-            console.log('Update quantity:', id, change);
-        }
-
-        function removeItem(id) {
-            // Your existing cart.js will handle this
-            console.log('Remove item:', id);
-        }
 
         document.addEventListener('DOMContentLoaded', () => {
             checkAuth();
