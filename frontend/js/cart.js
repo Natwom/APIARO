@@ -165,7 +165,6 @@ function renderCart() {
                     notice = document.createElement('div');
                     notice.className = 'free-delivery-notice';
                     notice.style.cssText = 'background:linear-gradient(135deg, #d1fae5, #a7f3d0);color:#065f46;padding:10px 15px;border-radius:10px;font-size:0.875rem;margin-bottom:15px;text-align:center;font-weight:600;';
-                    // Insert after summary-header
                     const header = summary.querySelector('.summary-header');
                     if (header && header.nextSibling) {
                         summary.insertBefore(notice, header.nextSibling);
