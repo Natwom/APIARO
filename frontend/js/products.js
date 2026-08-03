@@ -553,6 +553,8 @@ function closeProductModal(event) {
     }
 }
 
+/* ========== RENDER PRODUCTS — CSS-CLASSES ONLY ==========
+   NO inline style="..." on cards so media queries work! */
 function renderProducts(products) {
     const container = document.getElementById('products-container');
     
@@ -561,17 +563,11 @@ function renderProducts(products) {
     if (!products || products.length === 0) {
         const searchTerm = currentSearchQuery ? ` for "${currentSearchQuery}"` : '';
         container.innerHTML = `
-            <div style="grid-column: 1 / -1; text-align: center; padding: 40px;">
-                <i class="fas fa-search" style="font-size: 48px; color: #ddd; margin-bottom: 15px;"></i>
-                <p class="no-products" style="font-size: 1.2em; color: #666;">
-                    No products found${searchTerm}.
-                </p>
-                <p style="color: #999; margin-top: 10px;">
-                    Try a different search term or browse all products.
-                </p>
-                <button onclick="clearSearch()" style="margin-top: 15px; padding: 10px 20px; background: #2c5aa0; color: white; border: none; border-radius: 5px; cursor: pointer;">
-                    <i class="fas fa-times"></i> Clear Search
-                </button>
+            <div class="no-products-wrap">
+                <i class="fas fa-search"></i>
+                <p class="no-products">No products found${searchTerm}.</p>
+                <p>Try a different search term or browse all products.</p>
+                <button onclick="clearSearch()"><i class="fas fa-times"></i> Clear Search</button>
             </div>
         `;
         return;
@@ -585,19 +581,18 @@ function renderProducts(products) {
             : '';
         
         return `
-        <div class="product-card" style="border: 1px solid #eee; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: transform 0.2s; display: flex; flex-direction: column; height: 100%;">
+        <div class="product-card">
             <img src="${imageUrl}" 
                  alt="${product.name}" 
                  class="product-image" 
-                 style="width: 100%; height: 200px; object-fit: cover; cursor: pointer;"
                  onclick="openProductModal(${product.id})"
                  onerror="this.src='https://via.placeholder.com/300'; this.onerror=null;">
-            <div class="product-info" style="padding: 15px; display: flex; flex-direction: column; flex-grow: 1;">
-                <h3 class="product-title" style="margin: 0 0 8px 0; font-size: 1.1em; color: #333; cursor: pointer;" onclick="openProductModal(${product.id})">${product.name}</h3>
-                ${description ? `<p class="product-description" style="color: #666; font-size: 0.9em; margin: 0 0 12px 0; line-height: 1.4; flex-grow: 1;">${description}</p>` : '<div style="flex-grow: 1;"></div>'}
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 10px; border-top: 1px solid #eee;">
-                    <p class="product-price" style="font-weight: bold; color: #e74c3c; font-size: 1.2em; margin: 0;">KES ${parseFloat(product.price).toFixed(2)}</p>
-                    <button class="btn-add-cart" onclick='addToCart(${JSON.stringify(product).replace(/'/g, "&apos;")})' style="background: #2c5aa0; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 0.9em;">
+            <div class="product-info">
+                <h3 class="product-title" onclick="openProductModal(${product.id})">${product.name}</h3>
+                ${description ? `<p class="product-description">${description}</p>` : '<div class="product-spacer"></div>'}
+                <div class="product-actions">
+                    <p class="product-price">KES ${parseFloat(product.price).toFixed(2)}</p>
+                    <button class="btn-add-cart" onclick='addToCart(${JSON.stringify(product).replace(/'/g, "&apos;")})'>
                         <i class="fas fa-cart-plus"></i> Add
                     </button>
                 </div>
