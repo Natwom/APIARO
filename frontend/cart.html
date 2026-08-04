@@ -926,151 +926,96 @@
             border-radius: 3px;
         }
 
-        /* ===== MODALS ===== */
+                /* Modal styles for customer service messages */
         .modal-overlay {
-            display: none;
+            display: none !important; /* Force hidden by default */
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(4px);
+            background: rgba(0,0,0,0.6);
             z-index: 10000;
             justify-content: center;
             align-items: center;
-            padding: 24px;
-            opacity: 0;
-            transition: opacity 0.3s ease;
         }
 
         .modal-overlay.active {
-            display: flex;
-            opacity: 1;
+            display: flex !important; /* Force visible when active */
         }
 
         .modal-content {
             background: white;
-            padding: 0;
-            border-radius: var(--radius-xl);
-            max-width: 560px;
-            width: 100%;
-            max-height: 85vh;
-            overflow: hidden;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
             position: relative;
-            transform: scale(0.95) translateY(20px);
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            box-shadow: var(--shadow-xl);
-        }
-
-        .modal-overlay.active .modal-content {
-            transform: scale(1) translateY(0);
-        }
-
-        .modal-header {
-            padding: 24px 28px;
-            border-bottom: 1px solid var(--gray-100);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .modal-title {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            color: var(--gray-900);
-            font-size: 1.25rem;
-            font-weight: 700;
-            margin: 0;
-        }
-
-        .modal-title i {
-            width: 36px;
-            height: 36px;
-            background: linear-gradient(135deg, var(--primary-light), #dbeafe);
-            border-radius: var(--radius);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--primary);
-            font-size: 1rem;
+            animation: slideIn 0.3s ease;
         }
 
         .modal-close {
-            width: 36px;
-            height: 36px;
-            border-radius: var(--radius);
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
             border: none;
-            background: var(--gray-100);
-            color: var(--gray-500);
-            font-size: 1.25rem;
+            font-size: 1.5em;
             cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            color: #666;
         }
 
         .modal-close:hover {
-            background: var(--gray-200);
-            color: var(--gray-800);
-            transform: rotate(90deg);
+            color: #333;
+        }
+
+        .modal-title {
+            margin-bottom: 15px;
+            color: #2c5aa0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .modal-body {
-            padding: 28px;
-            line-height: 1.7;
-            color: var(--gray-600);
-            overflow-y: auto;
-            max-height: 60vh;
-            font-size: 0.9375rem;
+            line-height: 1.6;
+            color: #555;
         }
 
-        .modal-body h4 {
-            color: var(--gray-900);
-            font-size: 1rem;
-            font-weight: 600;
-            margin: 24px 0 12px;
-        }
-
-        .modal-body h4:first-child {
-            margin-top: 0;
-        }
-
-        .modal-body ul, .modal-body ol {
-            margin: 12px 0;
-            padding-left: 24px;
+        .modal-body ul {
+            margin: 10px 0;
+            padding-left: 20px;
         }
 
         .modal-body li {
             margin: 8px 0;
         }
 
-        .modal-body strong {
-            color: var(--gray-800);
-        }
-
         .contact-box {
-            background: linear-gradient(135deg, var(--gray-50), #f9fafb);
-            padding: 20px;
-            border-radius: var(--radius-lg);
-            margin-top: 20px;
-            border: 1px solid var(--gray-100);
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
         }
 
         .contact-box p {
-            margin: 8px 0;
+            margin: 5px 0;
             display: flex;
             align-items: center;
-            gap: 12px;
-            color: var(--gray-700);
+            gap: 10px;
         }
 
-        .contact-box i {
-            color: var(--primary);
-            width: 20px;
-            text-align: center;
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
 
         /* ===== RESPONSIVE ===== */
@@ -1338,12 +1283,12 @@
                 <div class="footer-section">
                     <h4>Customer Service</h4>
                     <ul>
-                        <li><a href="javascript:void(0)" onclick="showHelpModal('help')"><i class="fas fa-chevron-right" style="font-size: 0.625rem;"></i> Help Center</a></li>
-                        <li><a href="javascript:void(0)" onclick="showHelpModal('howtobuy')"><i class="fas fa-chevron-right" style="font-size: 0.625rem;"></i> How to Buy</a></li>
-                        <li><a href="javascript:void(0)" onclick="showHelpModal('delivery')"><i class="fas fa-chevron-right" style="font-size: 0.625rem;"></i> Delivery Info</a></li>
-                        <li><a href="javascript:void(0)" onclick="showHelpModal('returns')"><i class="fas fa-chevron-right" style="font-size: 0.625rem;"></i> Return Policy</a></li>
-                        <li><a href="javascript:void(0)" onclick="showHelpModal('track')"><i class="fas fa-chevron-right" style="font-size: 0.625rem;"></i> Track Order</a></li>
-                        <li><a href="javascript:void(0)" onclick="showHelpModal('contact')"><i class="fas fa-chevron-right" style="font-size: 0.625rem;"></i> Contact Us</a></li>
+                        <li><a href="#" onclick="showHelpModal('help'); return false;"><i class="fas fa-chevron-right" style="font-size: 0.625rem;"></i> Help Center</a></li>
+                        <li><a href="#" onclick="showHelpModal('howtobuy'); return false;"><i class="fas fa-chevron-right" style="font-size: 0.625rem;"></i> How to Buy</a></li>
+                        <li><a href="#" onclick="showHelpModal('delivery'); return false;"><i class="fas fa-chevron-right" style="font-size: 0.625rem;"></i> Delivery Info</a></li>
+                        <li><a href="#" onclick="showHelpModal('returns'); return false;"><i class="fas fa-chevron-right" style="font-size: 0.625rem;"></i> Return Policy</a></li>
+                        <li><a href="#" onclick="showHelpModal('track'); return false;"><i class="fas fa-chevron-right" style="font-size: 0.625rem;"></i> Track Order</a></li>
+                        <li><a href="#" onclick="showHelpModal('contact'); return false;"><i class="fas fa-chevron-right" style="font-size: 0.625rem;"></i> Contact Us</a></li>
                     </ul>
                 </div>
 
@@ -1399,11 +1344,11 @@
 
             <div class="footer-bottom">
                 <div class="footer-bottom-links">
-                    <a onclick="showFooterModal('privacy')">Privacy Policy</a>
-                    <a onclick="showFooterModal('terms')">Terms & Conditions</a>
-                    <a onclick="showFooterModal('cookie')">Cookie Policy</a>
-                    <a onclick="showFooterModal('seller')">Seller Center</a>
-                    <a onclick="showFooterModal('advertise')">Advertise</a>
+                    <a onclick="showFooterModal('privacy'); return false;">Privacy Policy</a>
+                    <a onclick="showFooterModal('terms'); return false;">Terms & Conditions</a>
+                    <a onclick="showFooterModal('cookie'); return false;">Cookie Policy</a>
+                    <a onclick="showFooterModal('seller'); return false;">Seller Center</a>
+                    <a onclick="showFooterModal('advertise'); return false;">Advertise</a>
                 </div>
                 <p>&copy; 2026 APIARO. All rights reserved.</p>
                 <div class="country-selector">
@@ -1418,14 +1363,31 @@
     <!-- Customer Service Modal -->
     <div id="help-modal" class="modal-overlay">
         <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title" id="modal-title">
-                    <i class="fas fa-info-circle"></i>
-                    <span>Help Center</span>
-                </h3>
-                <button class="modal-close" onclick="closeHelpModal()"><i class="fas fa-times"></i></button>
-            </div>
+            <button class="modal-close" onclick="closeHelpModal()">&times;</button>
+            <h3 class="modal-title" id="modal-title">
+                <i class="fas fa-info-circle"></i>
+                <span>Help Center</span>
+            </h3>
             <div class="modal-body" id="modal-body">
+                <!-- Content loaded dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Links Modal -->
+    <div id="footer-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeFooterModal()">&times;</button>
+            <h3 class="modal-title" id="footer-modal-title">
+                <i class="fas fa-info-circle"></i>
+                <span>Title</span>
+            </h3>
+            <div class="modal-body" id="footer-modal-body">
+                <!-- Content loaded dynamically -->
+            </div>
+        </div>
+    </div>
+<div class="modal-body" id="modal-body">
                 <!-- Content loaded dynamically -->
             </div>
         </div>
@@ -1774,23 +1736,27 @@
             }
         };
 
-        function showHelpModal(type) {
+                function showHelpModal(type) {
             const modal = document.getElementById('help-modal');
             const titleEl = document.getElementById('modal-title');
             const bodyEl = document.getElementById('modal-body');
             const content = helpContent[type];
 
-            if (content) {
+            if (content && modal) {
                 titleEl.innerHTML = `<i class="fas ${content.icon}"></i> <span>${content.title}</span>`;
                 bodyEl.innerHTML = content.content;
                 modal.classList.add('active');
+                modal.style.display = 'flex'; // Force display inline
                 document.body.style.overflow = 'hidden';
             }
         }
 
         function closeHelpModal() {
             const modal = document.getElementById('help-modal');
-            modal.classList.remove('active');
+            if (modal) {
+                modal.classList.remove('active');
+                modal.style.display = 'none'; // Force hide inline
+            }
             document.body.style.overflow = '';
         }
 
@@ -1800,21 +1766,24 @@
             const bodyEl = document.getElementById('footer-modal-body');
             const content = footerContent[type];
 
-            if (content) {
+            if (content && modal) {
                 titleEl.innerHTML = `<i class="fas ${content.icon}"></i> <span>${content.title}</span>`;
                 bodyEl.innerHTML = content.content;
                 modal.classList.add('active');
+                modal.style.display = 'flex'; // Force display inline
                 document.body.style.overflow = 'hidden';
             }
         }
 
         function closeFooterModal() {
             const modal = document.getElementById('footer-modal');
-            modal.classList.remove('active');
+            if (modal) {
+                modal.classList.remove('active');
+                modal.style.display = 'none'; // Force hide inline
+            }
             document.body.style.overflow = '';
         }
 
-        // Close modals when clicking outside
         document.getElementById('help-modal').addEventListener('click', function(e) {
             if (e.target === this) closeHelpModal();
         });
@@ -1823,7 +1792,6 @@
             if (e.target === this) closeFooterModal();
         });
 
-        // Close modals with Escape key
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 closeHelpModal();

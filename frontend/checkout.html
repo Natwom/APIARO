@@ -7,9 +7,9 @@
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Modal styles for customer service messages */
+                /* Modal styles for customer service messages */
         .modal-overlay {
-            display: none;
+            display: none !important; /* Force hidden by default */
             position: fixed;
             top: 0;
             left: 0;
@@ -20,11 +20,11 @@
             justify-content: center;
             align-items: center;
         }
-        
+
         .modal-overlay.active {
-            display: flex;
+            display: flex !important; /* Force visible when active */
         }
-        
+
         .modal-content {
             background: white;
             padding: 30px;
@@ -36,7 +36,7 @@
             position: relative;
             animation: slideIn 0.3s ease;
         }
-        
+
         .modal-close {
             position: absolute;
             top: 15px;
@@ -47,11 +47,11 @@
             cursor: pointer;
             color: #666;
         }
-        
+
         .modal-close:hover {
             color: #333;
         }
-        
+
         .modal-title {
             margin-bottom: 15px;
             color: #2c5aa0;
@@ -59,35 +59,35 @@
             align-items: center;
             gap: 10px;
         }
-        
+
         .modal-body {
             line-height: 1.6;
             color: #555;
         }
-        
+
         .modal-body ul {
             margin: 10px 0;
             padding-left: 20px;
         }
-        
+
         .modal-body li {
             margin: 8px 0;
         }
-        
+
         .contact-box {
             background: #f8f9fa;
             padding: 15px;
             border-radius: 8px;
             margin-top: 15px;
         }
-        
+
         .contact-box p {
             margin: 5px 0;
             display: flex;
             align-items: center;
             gap: 10px;
         }
-        
+
         @keyframes slideIn {
             from {
                 transform: translateY(-50px);
@@ -254,7 +254,7 @@
                             <label class="checkbox-container">
                                 <input type="checkbox" id="terms" required>
                                 <span class="checkmark"></span>
-                                I agree to the <a href="javascript:void(0)" onclick="showFooterModal('terms'); return false;">Terms & Conditions</a> and <a href="javascript:void(0)" onclick="showFooterModal('privacy'); return false;">Privacy Policy</a>
+                                I agree to the <a onclick="showFooterModal('terms'); return false;">Terms & Conditions</a> and <a onclick="showFooterModal('privacy'); return false;">Privacy Policy</a>
                             </label>
                         </div>
 
@@ -302,12 +302,12 @@
                 <div class="footer-section">
                     <h4>Customer Service</h4>
                     <ul>
-                        <li><a href="javascript:void(0)" onclick="showHelpModal('help')">Help Center</a></li>
-                        <li><a href="javascript:void(0)" onclick="showHelpModal('howtobuy')">How to Buy</a></li>
-                        <li><a href="javascript:void(0)" onclick="showHelpModal('delivery')">Delivery Information</a></li>
-                        <li><a href="javascript:void(0)" onclick="showHelpModal('returns')">Return Policy</a></li>
-                        <li><a href="javascript:void(0)" onclick="showHelpModal('track')">Track Your Order</a></li>
-                        <li><a href="javascript:void(0)" onclick="showHelpModal('contact')">Contact Us</a></li>
+                        <li><a href="#" onclick="showHelpModal('help'); return false;">Help Center</a></li>
+                        <li><a href="#" onclick="showHelpModal('howtobuy'); return false;">How to Buy</a></li>
+                        <li><a href="#" onclick="showHelpModal('delivery'); return false;">Delivery Information</a></li>
+                        <li><a href="#" onclick="showHelpModal('returns'); return false;">Return Policy</a></li>
+                        <li><a href="#" onclick="showHelpModal('track'); return false;">Track Your Order</a></li>
+                        <li><a href="#" onclick="showHelpModal('contact'); return false;">Contact Us</a></li>
                     </ul>
                 </div>
                 
@@ -363,11 +363,11 @@
             
             <div class="footer-bottom">
                 <div class="footer-bottom-links">
-                    <a onclick="showFooterModal('privacy')">Privacy Policy</a>
-                    <a onclick="showFooterModal('terms')">Terms & Conditions</a>
-                    <a onclick="showFooterModal('cookie')">Cookie Policy</a>
-                    <a onclick="showFooterModal('seller')">Seller Center</a>
-                    <a onclick="showFooterModal('advertise')">Advertise</a>
+                    <a onclick="showFooterModal('privacy'); return false;">Privacy Policy</a>
+                    <a onclick="showFooterModal('terms'); return false;">Terms & Conditions</a>
+                    <a onclick="showFooterModal('cookie'); return false;">Cookie Policy</a>
+                    <a onclick="showFooterModal('seller'); return false;">Seller Center</a>
+                    <a onclick="showFooterModal('advertise'); return false;">Advertise</a>
                 </div>
                 <p>&copy; 2026 Apiaro. All rights reserved.</p>
                 <div class="country-selector">
@@ -407,6 +407,22 @@
                 <!-- Content loaded dynamically -->
             </div>
         </div>
+    </div>
+
+    <!-- Footer Links Modal -->
+    <div id="footer-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeFooterModal()">&times;</button>
+            <h3 class="modal-title" id="footer-modal-title">
+                <i class="fas fa-info-circle"></i>
+                <span>Title</span>
+            </h3>
+            <div class="modal-body" id="footer-modal-body">
+                <!-- Content loaded dynamically -->
+            </div>
+        </div>
+    </div>
+</div>
     </div>
 
     <!-- Footer Links Modal -->
@@ -738,61 +754,62 @@
             }
         };
 
-        function showHelpModal(type) {
+                function showHelpModal(type) {
             const modal = document.getElementById('help-modal');
             const titleEl = document.getElementById('modal-title');
             const bodyEl = document.getElementById('modal-body');
             const content = helpContent[type];
-            
-            if (content) {
+
+            if (content && modal) {
                 titleEl.innerHTML = `<i class="fas ${content.icon}"></i> <span>${content.title}</span>`;
                 bodyEl.innerHTML = content.content;
                 modal.classList.add('active');
+                modal.style.display = 'flex'; // Force display inline
                 document.body.style.overflow = 'hidden';
             }
         }
 
         function closeHelpModal() {
             const modal = document.getElementById('help-modal');
-            modal.classList.remove('active');
+            if (modal) {
+                modal.classList.remove('active');
+                modal.style.display = 'none'; // Force hide inline
+            }
             document.body.style.overflow = '';
         }
 
-        // Footer Modal Functions
         function showFooterModal(type) {
             const modal = document.getElementById('footer-modal');
             const titleEl = document.getElementById('footer-modal-title');
             const bodyEl = document.getElementById('footer-modal-body');
             const content = footerContent[type];
-            
-            if (content) {
+
+            if (content && modal) {
                 titleEl.innerHTML = `<i class="fas ${content.icon}"></i> <span>${content.title}</span>`;
                 bodyEl.innerHTML = content.content;
                 modal.classList.add('active');
+                modal.style.display = 'flex'; // Force display inline
                 document.body.style.overflow = 'hidden';
             }
         }
 
         function closeFooterModal() {
             const modal = document.getElementById('footer-modal');
-            modal.classList.remove('active');
+            if (modal) {
+                modal.classList.remove('active');
+                modal.style.display = 'none'; // Force hide inline
+            }
             document.body.style.overflow = '';
         }
 
-        // Close modals when clicking outside
         document.getElementById('help-modal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeHelpModal();
-            }
+            if (e.target === this) closeHelpModal();
         });
 
         document.getElementById('footer-modal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeFooterModal();
-            }
+            if (e.target === this) closeFooterModal();
         });
 
-        // Close modals with Escape key
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 closeHelpModal();
