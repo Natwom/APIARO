@@ -2,50 +2,50 @@
 
 const SearchHistory = {
     API_BASE: API_BASE_URL,
-    
+
     init() {
         this.searchInput = document.getElementById('search-input');
         this.dropdown = document.getElementById('search-history-dropdown');
         this.historyList = document.getElementById('search-history-list');
-        
+
         if (!this.searchInput) return;
-        
+
         this.attachEventListeners();
         this.loadHistory();
     },
-    
+
     attachEventListeners() {
         this.searchInput.addEventListener('focus', () => {
             this.showDropdown();
             this.loadHistory();
         });
-        
+
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.search-wrapper')) {
                 this.hideDropdown();
             }
         });
-        
+
         const searchBtn = document.querySelector('.search-bar button');
         searchBtn?.addEventListener('click', () => {
             this.performSearch(this.searchInput.value);
         });
-        
+
         this.searchInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 this.performSearch(this.searchInput.value);
             }
         });
     },
-    
+
     getToken() {
         return localStorage.getItem('token') || sessionStorage.getItem('token');
     },
-    
+
     isLoggedIn() {
         return !!this.getToken();
     },
-    
+
     async loadHistory() {
         if (this.isLoggedIn()) {
             try {
@@ -65,7 +65,7 @@ const SearchHistory = {
             this.loadFromLocalStorage();
         }
     },
-    
+
     loadFromLocalStorage() {
         const history = JSON.parse(localStorage.getItem('searchHistory') || '[]');
         const formatted = history.map((item, index) => ({
@@ -76,10 +76,10 @@ const SearchHistory = {
         }));
         this.renderHistory(formatted);
     },
-    
+
     saveToLocalStorage(query) {
         let history = JSON.parse(localStorage.getItem('searchHistory') || '[]');
-        
+
         const existing = history.find(h => h.query.toLowerCase() === query.toLowerCase());
         if (existing) {
             existing.count = (existing.count || 1) + 1;
@@ -93,17 +93,17 @@ const SearchHistory = {
                 lastSearched: new Date().toISOString()
             });
         }
-        
+
         history = history.slice(0, 20);
         localStorage.setItem('searchHistory', JSON.stringify(history));
     },
-    
+
     async syncLocalToBackend() {
         const token = this.getToken();
         const localHistory = JSON.parse(localStorage.getItem('searchHistory') || '[]');
-        
+
         if (!token || localHistory.length === 0) return;
-        
+
         for (const item of localHistory) {
             try {
                 await fetch(`${this.API_BASE}/search/history?query=${encodeURIComponent(item.query)}`, {
@@ -114,16 +114,16 @@ const SearchHistory = {
                 console.error('Sync failed for:', item.query);
             }
         }
-        
+
         localStorage.removeItem('searchHistory');
     },
-    
+
     async performSearch(query) {
         query = query.trim();
         if (!query) return;
-        
+
         const token = this.getToken();
-        
+
         if (token) {
             try {
                 await fetch(`${this.API_BASE}/search/history?query=${encodeURIComponent(query)}`, {
@@ -136,20 +136,20 @@ const SearchHistory = {
         } else {
             this.saveToLocalStorage(query);
         }
-        
+
         this.hideDropdown();
         currentSearchQuery = query;
         loadProducts(currentCategoryFilter, query);
     },
-    
+
     renderHistory(searches) {
         if (!this.historyList) return;
-        
+
         if (!searches || searches.length === 0) {
             this.historyList.innerHTML = '<li class="search-history-empty"><i class="fas fa-search" style="display:block; margin-bottom:8px; font-size:20px;"></i>No recent searches</li>';
             return;
         }
-        
+
         this.historyList.innerHTML = searches.map(search => `
             <li data-query="${this.escapeHtml(search.search_query)}" data-id="${search.id}">
                 <div class="search-text">
@@ -162,7 +162,7 @@ const SearchHistory = {
                 </button>
             </li>
         `).join('');
-        
+
         this.historyList.querySelectorAll('li[data-query]').forEach(li => {
             li.addEventListener('click', (e) => {
                 if (e.target.closest('.delete-search-btn')) return;
@@ -171,7 +171,7 @@ const SearchHistory = {
                 this.performSearch(query);
             });
         });
-        
+
         this.historyList.querySelectorAll('.delete-search-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 e.stopPropagation();
@@ -181,10 +181,10 @@ const SearchHistory = {
             });
         });
     },
-    
+
     async deleteSearch(id, query) {
         const token = this.getToken();
-        
+
         if (token && !String(id).startsWith('local_')) {
             try {
                 await fetch(`${this.API_BASE}/search/history/${id}`, {
@@ -199,13 +199,13 @@ const SearchHistory = {
             history = history.filter(h => h.query.toLowerCase() !== query.toLowerCase());
             localStorage.setItem('searchHistory', JSON.stringify(history));
         }
-        
+
         this.loadHistory();
     },
-    
+
     async clearAllSearchHistory() {
         const token = this.getToken();
-        
+
         if (token) {
             try {
                 await fetch(`${this.API_BASE}/search/history`, {
@@ -216,21 +216,21 @@ const SearchHistory = {
                 console.error('Failed to clear history:', err);
             }
         }
-        
+
         localStorage.removeItem('searchHistory');
         this.loadHistory();
     },
-    
+
     showDropdown() {
         if (this.dropdown) this.dropdown.style.display = 'block';
     },
-    
+
     hideDropdown() {
         setTimeout(() => {
             if (this.dropdown) this.dropdown.style.display = 'none';
         }, 200);
     },
-    
+
     escapeHtml(text) {
         const div = document.createElement('div');
         div.textContent = text;
@@ -240,12 +240,10 @@ const SearchHistory = {
 
 window.clearAllSearchHistory = () => SearchHistory.clearAllSearchHistory();
 
-// ========== FILTER STATE ==========
 let currentPriceFilter = 'all';
 let currentCategoryFilter = null;
 let currentSearchQuery = null;
 
-// ========== PER-USER PRODUCT RANDOMIZATION ==========
 function getSessionSeed() {
     let seed = sessionStorage.getItem('product_shuffle_seed');
     if (!seed) {
@@ -278,15 +276,15 @@ async function loadCategories() {
     try {
         const response = await fetch(`${API_BASE_URL}/products/categories/all`);
         const data = await response.json();
-        
+
         const categories = Array.isArray(data) ? data : (data.categories || []);
-        
+
         const container = document.getElementById('category-filters');
         if (container && categories.length > 0) {
             const allProductsLi = container.querySelector('li:first-child');
             container.innerHTML = '';
             if (allProductsLi) container.appendChild(allProductsLi);
-            
+
             categories.forEach(cat => {
                 const li = document.createElement('li');
                 li.textContent = cat.name;
@@ -305,27 +303,26 @@ async function loadProducts(categoryId = null, searchQuery = null) {
         if (container) {
             container.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 40px;"><i class="fas fa-spinner fa-spin" style="font-size: 24px; color: #2c5aa0;"></i><p style="color: #666; margin-top: 10px;">Loading products...</p></div>';
         }
-        
+
         let url = `${API_BASE_URL}/products/`;
         const params = new URLSearchParams();
-        
+
         if (categoryId) params.append('category_id', categoryId);
         if (searchQuery) params.append('search', searchQuery);
-        
+
         if (params.toString()) url += '?' + params.toString();
-        
+
         const response = await fetch(url);
         const data = await response.json();
-        
+
         let products = Array.isArray(data) ? data : (data.products || []);
-        
-        // Shuffle products per-user when no explicit price sort is selected
+
         if (currentPriceFilter === 'all') {
             products = seededShuffle(products, getSessionSeed());
         }
-        
+
         products = applyPriceFilter(products, currentPriceFilter);
-        
+
         renderProducts(products);
     } catch (error) {
         console.error('Error loading products:', error);
@@ -338,7 +335,7 @@ async function loadProducts(categoryId = null, searchQuery = null) {
 
 function applyPriceFilter(products, filter) {
     const sorted = [...products];
-    
+
     switch (filter) {
         case 'low-to-high':
             return sorted.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
@@ -361,23 +358,23 @@ function applyPriceFilter(products, filter) {
 
 function setPriceFilter(filter) {
     currentPriceFilter = filter;
-    
+
     document.querySelectorAll('.price-filter-btn').forEach(btn => {
         btn.classList.remove('active');
         if (btn.dataset.filter === filter) {
             btn.classList.add('active');
         }
     });
-    
+
     loadProducts(currentCategoryFilter, currentSearchQuery);
 }
 
 function filterByCategory(categoryId) {
     currentCategoryFilter = categoryId;
-    
+
     document.querySelectorAll('.filters li').forEach(li => li.classList.remove('active'));
     if (event && event.target) event.target.classList.add('active');
-    
+
     loadProducts(categoryId, currentSearchQuery);
 }
 
@@ -391,16 +388,16 @@ function clearSearch() {
     currentSearchQuery = null;
     currentPriceFilter = 'all';
     currentCategoryFilter = null;
-    
+
     document.querySelectorAll('.price-filter-btn').forEach(btn => {
         btn.classList.remove('active');
         if (btn.dataset.filter === 'all') btn.classList.add('active');
     });
-    
+
     document.querySelectorAll('#category-filters li').forEach(li => li.classList.remove('active'));
     const allLi = document.querySelector('#category-filters li:first-child');
     if (allLi) allLi.classList.add('active');
-    
+
     loadProducts();
 }
 
@@ -408,19 +405,17 @@ function getImageUrl(imageUrl) {
     if (!imageUrl) {
         return 'https://via.placeholder.com/300';
     }
-    
+
     if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
         return imageUrl;
     }
-    
+
     if (imageUrl.startsWith('data:')) {
         return imageUrl;
     }
-    
+
     return `${API_BASE_URL}${imageUrl}`;
 }
-
-// ========== MODAL WITH IMAGE GALLERY ==========
 
 let currentModalImages = [];
 let currentModalImageIndex = 0;
@@ -429,10 +424,10 @@ function switchMainImage(index) {
     currentModalImageIndex = index;
     const mainImg = document.getElementById('modal-main-image');
     const flipFrontImg = document.querySelector('.flip-card-front img');
-    
+
     if (mainImg) mainImg.src = currentModalImages[index];
     if (flipFrontImg) flipFrontImg.src = currentModalImages[index];
-    
+
     document.querySelectorAll('.gallery-thumb').forEach((thumb, i) => {
         thumb.style.border = i === index ? '2px solid #2c5aa0' : '2px solid transparent';
     });
@@ -442,9 +437,9 @@ async function openProductModal(productId) {
     try {
         const response = await fetch(`${API_BASE_URL}/products/${productId}`);
         if (!response.ok) throw new Error('Product not found');
-        
+
         const product = await response.json();
-        
+
         currentModalImages = [];
         if (product.image_url) currentModalImages.push(getImageUrl(product.image_url));
         if (product.gallery_images && Array.isArray(product.gallery_images)) {
@@ -453,16 +448,16 @@ async function openProductModal(productId) {
                 if (!currentModalImages.includes(url)) currentModalImages.push(url);
             });
         }
-        
+
         if (currentModalImages.length === 0) {
             currentModalImages.push('https://via.placeholder.com/600');
         }
-        
+
         currentModalImageIndex = 0;
-        
+
         const mainImage = currentModalImages[0];
         const hasGallery = currentModalImages.length > 1;
-        
+
         const galleryThumbs = hasGallery ? `
             <div style="display: flex; gap: 8px; margin-top: 10px; overflow-x: auto; padding: 5px 0;">
                 ${currentModalImages.map((img, idx) => `
@@ -473,12 +468,12 @@ async function openProductModal(productId) {
                 `).join('')}
             </div>
         ` : '';
-        
+
         const modalHtml = `
             <div id="product-modal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px;" onclick="closeProductModal(event)">
                 <div style="background: white; border-radius: 12px; max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; animation: modalSlideIn 0.3s ease-out;" onclick="event.stopPropagation()">
                     <button onclick="closeProductModal()" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 24px; cursor: pointer; z-index: 10;">&times;</button>
-                    
+
                     <div class="flip-card" onclick="this.classList.toggle('flipped')" title="Click to flip">
                         <div class="flip-card-inner">
                             <div class="flip-card-front">
@@ -505,15 +500,15 @@ async function openProductModal(productId) {
                             </div>
                         </div>
                     </div>
-                    
+
                     ${galleryThumbs}
-                    
+
                     <div style="padding: 25px;">
                         <h2 style="margin: 0 0 10px 0; color: #333;">${product.name}</h2>
                         <p style="font-size: 1.5em; font-weight: bold; color: #e74c3c; margin: 0 0 15px 0;">KES ${parseFloat(product.price).toFixed(2)}</p>
-                        
+
                         ${product.description ? `<p style="color: #555; line-height: 1.6; margin-bottom: 20px;">${product.description}</p>` : ''}
-                        
+
                         <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px;">
                             <span style="background: #f0f0f0; padding: 5px 12px; border-radius: 15px; font-size: 0.85em; color: #666;">
                                 <i class="fas fa-box"></i> Stock: ${product.stock_quantity}
@@ -522,7 +517,7 @@ async function openProductModal(productId) {
                                 <i class="fas fa-tag"></i> ${product.is_active ? 'Available' : 'Out of Stock'}
                             </span>
                         </div>
-                        
+
                         <button onclick='addToCart(${JSON.stringify(product).replace(/'/g, "&apos;")}); closeProductModal();' style="width: 100%; background: #2c5aa0; color: white; border: none; padding: 12px; border-radius: 6px; font-size: 1em; cursor: pointer;">
                             <i class="fas fa-cart-plus"></i> Add to Cart
                         </button>
@@ -530,13 +525,13 @@ async function openProductModal(productId) {
                 </div>
             </div>
         `;
-        
+
         const existing = document.getElementById('product-modal');
         if (existing) existing.remove();
-        
+
         document.body.insertAdjacentHTML('beforeend', modalHtml);
         document.body.style.overflow = 'hidden';
-        
+
     } catch (error) {
         console.error('Error loading product:', error);
         alert('Failed to load product details');
@@ -553,13 +548,12 @@ function closeProductModal(event) {
     }
 }
 
-/* ========== RENDER PRODUCTS — CSS-CLASSES ONLY ==========
-   NO inline style="..." on cards so media queries work! */
+/* RENDER PRODUCTS - NO INLINE STYLES, USES CSS CLASSES */
 function renderProducts(products) {
     const container = document.getElementById('products-container');
-    
+
     if (!container) return;
-    
+
     if (!products || products.length === 0) {
         const searchTerm = currentSearchQuery ? ` for "${currentSearchQuery}"` : '';
         container.innerHTML = `
@@ -572,14 +566,14 @@ function renderProducts(products) {
         `;
         return;
     }
-    
+
     container.innerHTML = products.map(product => {
         const imageUrl = getImageUrl(product.image_url);
-        
+
         const description = product.description 
             ? product.description.substring(0, 100) + (product.description.length > 100 ? '...' : '')
             : '';
-        
+
         return `
         <div class="product-card">
             <img src="${imageUrl}" 
@@ -608,7 +602,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.key === 'Enter') searchProducts();
         });
     }
-    
+
     SearchHistory.init();
     loadCategories();
     loadProducts();
